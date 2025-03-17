@@ -7,9 +7,12 @@ import { cn } from '@/lib/utils';
 interface ArtisanCardProps {
   artisan: Artisan;
   className?: string;
+  linkTo?: string;
 }
 
-export function ArtisanCard({ artisan, className }: ArtisanCardProps) {
+export function ArtisanCard({ artisan, className, linkTo }: ArtisanCardProps) {
+  const artisanLink = linkTo || `/artisans/${artisan.id}`;
+  
   return (
     <div 
       className={cn(
@@ -19,13 +22,15 @@ export function ArtisanCard({ artisan, className }: ArtisanCardProps) {
     >
       {/* Artisan Profile Image */}
       <div className="aspect-[4/3] overflow-hidden relative">
-        <div className="zoom-image-container">
-          <img 
-            src={artisan.profileImage} 
-            alt={artisan.name} 
-            className="zoom-image object-cover"
-          />
-        </div>
+        <Link to={artisanLink}>
+          <div className="zoom-image-container">
+            <img 
+              src={artisan.profileImage} 
+              alt={artisan.name} 
+              className="zoom-image object-cover"
+            />
+          </div>
+        </Link>
         
         {/* Featured badge */}
         {artisan.featured && (
@@ -38,7 +43,7 @@ export function ArtisanCard({ artisan, className }: ArtisanCardProps) {
       {/* Artisan Info */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <Link to={`/artisans/${artisan.id}`} className="group-hover:text-terracotta-600 transition-colors">
+          <Link to={artisanLink} className="group-hover:text-terracotta-600 transition-colors">
             <h3 className="font-medium">{artisan.name}</h3>
           </Link>
           

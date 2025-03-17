@@ -31,13 +31,15 @@ export function ProductCard({ product, variant = 'default', className }: Product
         'relative aspect-square overflow-hidden',
         variant === 'horizontal' ? 'w-1/3' : 'w-full'
       )}>
-        <div className="zoom-image-container">
-          <img 
-            src={product.images[0]} 
-            alt={product.title} 
-            className="zoom-image"
-          />
-        </div>
+        <Link to={`/products/${product.id}`}>
+          <div className="zoom-image-container">
+            <img 
+              src={product.images[0]} 
+              alt={product.title} 
+              className="zoom-image"
+            />
+          </div>
+        </Link>
         
         {/* Wishlist button */}
         <Button 
