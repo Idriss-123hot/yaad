@@ -178,5 +178,133 @@ export const SAMPLE_ARTISANS: Artisan[] = [
     productCount: 18,
     featured: true,
     joinedDate: new Date('2022-06-10')
+  },
+  {
+    id: '3',
+    name: 'Fatima Zahra Kabbaj',
+    bio: 'Maître artisane spécialisée dans les tapis berbères traditionnels, perpétuant un savoir-faire familial vieux de trois générations.',
+    location: 'Marrakech, Maroc',
+    profileImage: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&q=80',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1581885726825-41bccb592807?auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1590076082845-8ce8c3abd51e?auto=format&fit=crop&q=80'
+    ],
+    rating: 4.9,
+    reviewCount: 94,
+    productCount: 32,
+    featured: true,
+    joinedDate: new Date('2022-01-20')
+  },
+  {
+    id: '4',
+    name: 'Hamid Benani',
+    bio: 'Artisan céramiste de Safi, créant des poteries aux motifs bleus traditionnels tout en innovant avec des designs contemporains.',
+    location: 'Safi, Maroc',
+    profileImage: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?auto=format&fit=crop&q=80'
+    ],
+    rating: 4.7,
+    reviewCount: 68,
+    productCount: 29,
+    featured: false,
+    joinedDate: new Date('2022-05-15')
+  },
+  {
+    id: '5',
+    name: 'Yasmine Alaoui',
+    bio: 'Artisane du zellige formée aux techniques ancestrales de Fès, créant des mosaïques géométriques complexes pour des projets internationaux.',
+    location: 'Fès, Maroc',
+    profileImage: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1560528257-62549914d907?auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1551732998-9573f695fdbb?auto=format&fit=crop&q=80'
+    ],
+    rating: 4.9,
+    reviewCount: 76,
+    productCount: 21,
+    featured: true,
+    joinedDate: new Date('2022-07-10')
+  },
+  {
+    id: '6',
+    name: 'Omar Benjelloun',
+    bio: 'Maroquinier d\'exception créant des pièces en cuir selon les techniques traditionnelles de tannage de Fès, de la sélection des peaux à la finition.',
+    location: 'Fès, Maroc',
+    profileImage: 'https://images.unsplash.com/photo-1499996860823-5214fcc65f8f?auto=format&fit=crop&q=80',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1475503572774-15a45e5d60b9?auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1473518501884-1e99c39aa810?auto=format&fit=crop&q=80'
+    ],
+    rating: 4.8,
+    reviewCount: 58,
+    productCount: 25,
+    featured: false,
+    joinedDate: new Date('2022-04-05')
+  },
+  {
+    id: '7',
+    name: 'Amina Chaoui',
+    bio: 'Artisane du bois de cèdre, sculptant des objets décoratifs et utilitaires inspirés par les motifs traditionnels du Moyen Atlas.',
+    location: 'Ifrane, Maroc',
+    profileImage: 'https://images.unsplash.com/photo-1485811661309-ab85183a729c?auto=format&fit=crop&q=80',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1604068549290-dea0e4a305f3?auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1567538096621-38d2284b23ff?auto=format&fit=crop&q=80'
+    ],
+    rating: 4.6,
+    reviewCount: 42,
+    productCount: 19,
+    featured: false,
+    joinedDate: new Date('2022-08-20')
+  },
+  {
+    id: '8',
+    name: 'Mohammed Idrissi',
+    bio: 'Bijoutier traditionnel de la ville bleue, perpétuant l\'art de la bijouterie berbère en argent avec des techniques transmises depuis sept générations.',
+    location: 'Chefchaouen, Maroc',
+    profileImage: 'https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&q=80',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1613843451831-21ddd265d6f9?auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80'
+    ],
+    rating: 4.9,
+    reviewCount: 88,
+    productCount: 34,
+    featured: true,
+    joinedDate: new Date('2022-02-10')
+  },
+  {
+    id: '9',
+    name: 'Rachida Tazi',
+    bio: 'Tisserande experte en tapis de la région d\'Ourika, alliant motifs berbères traditionnels et couleurs naturelles issues de teintures végétales.',
+    location: 'Ourika, Maroc',
+    profileImage: 'https://images.unsplash.com/photo-1588701177361-c42359b29f68?auto=format&fit=crop&q=80',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1581885726825-41bccb592807?auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1580902394343-c767c787efcb?auto=format&fit=crop&q=80'
+    ],
+    rating: 4.7,
+    reviewCount: 59,
+    productCount: 22,
+    featured: false,
+    joinedDate: new Date('2022-09-01')
+  },
+  {
+    id: '10',
+    name: 'Karim Berrada',
+    bio: 'Maître dans l\'art du cuivre martelé de Fès, façonnant des lanternes, plateaux et objets décoratifs selon des techniques ancestrales.',
+    location: 'Marrakech, Maroc',
+    profileImage: 'https://images.unsplash.com/photo-1602233158242-3ba0ac4d2167?auto=format&fit=crop&q=80',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1603238738442-905371202b92?auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?auto=format&fit=crop&q=80'
+    ],
+    rating: 4.8,
+    reviewCount: 71,
+    productCount: 27,
+    featured: true,
+    joinedDate: new Date('2022-06-25')
   }
 ];
