@@ -29,17 +29,17 @@ export interface BlogPost {
 
 // Sample authors
 const authors = {
-  sophie: {
+  idriss: {
     id: 'author-1',
-    name: 'Sophie Martin',
-    role: 'Fondatrice & CEO',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80'
-  },
-  ahmed: {
-    id: 'author-2',
-    name: 'Ahmed Benali',
-    role: 'Directeur des Partenariats',
+    name: 'Idriss Laroussi',
+    role: 'Fondateur & CEO',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80'
+  },
+  rita: {
+    id: 'author-2',
+    name: 'Rita Baniyahya',
+    role: 'Directrice des Partenariats',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80'
   },
   marie: {
     id: 'author-3',
@@ -59,7 +59,7 @@ export const SAMPLE_BLOG_POSTS: BlogPost[] = [
     coverImage: 'https://images.unsplash.com/photo-1528372444006-1bfc81acab02?auto=format&fit=crop&q=80',
     category: 'Artisanat & Technologie',
     tags: ['Maroc', 'Artisanat', 'E-commerce', 'Tradition'],
-    author: authors.sophie,
+    author: authors.idriss,
     publishedAt: '2023-10-15',
     content: [
       {
@@ -156,7 +156,7 @@ export const SAMPLE_BLOG_POSTS: BlogPost[] = [
     coverImage: 'https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?auto=format&fit=crop&q=80',
     category: 'Artisanat & Innovation',
     tags: ['Céramique', 'Poterie', 'Maroc', 'Innovation'],
-    author: authors.ahmed,
+    author: authors.rita,
     publishedAt: '2023-08-12',
     content: [
       {
@@ -174,7 +174,7 @@ export const SAMPLE_BLOG_POSTS: BlogPost[] = [
     coverImage: 'https://images.unsplash.com/photo-1560528257-62549914d907?auto=format&fit=crop&q=80',
     category: 'Art & Mathématiques',
     tags: ['Zellige', 'Géométrie', 'Architecture', 'Mathématiques'],
-    author: authors.sophie,
+    author: authors.idriss,
     publishedAt: '2023-07-20',
     content: [
       {
@@ -192,7 +192,7 @@ export const SAMPLE_BLOG_POSTS: BlogPost[] = [
     coverImage: 'https://images.unsplash.com/photo-1475503572774-15a45e5d60b9?auto=format&fit=crop&q=80',
     category: 'Métiers d\'Art',
     tags: ['Cuir', 'Tannerie', 'Fès', 'Artisanat'],
-    author: authors.ahmed,
+    author: authors.rita,
     publishedAt: '2023-06-05',
     content: [
       {
@@ -210,7 +210,7 @@ export const SAMPLE_BLOG_POSTS: BlogPost[] = [
     coverImage: 'https://images.unsplash.com/photo-1606791405792-1004f1d3e671?auto=format&fit=crop&q=80',
     category: 'Agriculture & Gastronomie',
     tags: ['Safran', 'Épices', 'Agriculture', 'Gastronomie'],
-    author: authors.sophie,
+    author: authors.idriss,
     publishedAt: '2023-05-18',
     content: [
       {
