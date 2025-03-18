@@ -17,17 +17,17 @@ const About = () => {
   const teamMembers = [
     {
       id: 1,
-      name: 'Sophie Martin',
-      role: 'Fondatrice & CEO',
-      bio: 'Passionnée par l\'artisanat depuis son enfance, Sophie a créé artisanlink pour connecter les artisans du monde entier avec des consommateurs responsables.',
-      image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80'
+      name: 'Idriss Laroussi',
+      role: 'Fondateur & CEO',
+      bio: 'Passionné par l\'artisanat depuis son enfance, Idriss a créé artisanlink pour connecter les artisans du monde entier avec des consommateurs responsables.',
+      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80'
     },
     {
       id: 2,
-      name: 'Ahmed Benali',
-      role: 'Directeur des Partenariats',
-      bio: 'Avec plus de 10 ans d\'expérience dans le commerce équitable, Ahmed développe des relations durables avec les communautés d\'artisans à travers le monde.',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80'
+      name: 'Rita Baniyahya',
+      role: 'Directrice des Partenariats',
+      bio: 'Avec plus de 10 ans d\'expérience dans le commerce équitable, Rita développe des relations durables avec les communautés d\'artisans à travers le monde.',
+      image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80'
     },
     {
       id: 3,
