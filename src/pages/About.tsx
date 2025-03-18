@@ -1,9 +1,8 @@
-
 import { useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { TeamMemberCard } from '@/components/ui/TeamMemberCard';
-import { Flag, Target, Heart, Users, Globe, LightBulb } from 'lucide-react';
+import { Flag, Target, Heart, Users, Globe, Lightbulb } from 'lucide-react';
 
 const About = () => {
   // Smooth scroll to top on page load
@@ -69,7 +68,7 @@ const About = () => {
       description: 'Nous créons des liens entre artisans et consommateurs à travers les frontières culturelles et géographiques.'
     },
     {
-      icon: <LightBulb className="h-8 w-8 text-terracotta-600" />,
+      icon: <Lightbulb className="h-8 w-8 text-terracotta-600" />,
       title: 'Encourager l\'innovation',
       description: 'Nous soutenons l\'innovation dans l\'artisanat tout en respectant les techniques traditionnelles.'
     },
