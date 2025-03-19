@@ -4,10 +4,12 @@ import { Link } from 'react-router-dom';
 import { Search, ShoppingBag, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { CategoryNavigation } from '@/components/layout/CategoryNavigation';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,13 +21,17 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const toggleCategoryMenu = () => {
+    setIsCategoryMenuOpen(!isCategoryMenuOpen);
+  };
+
   return (
     <header
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out py-4 px-6 md:px-12',
         {
-          'bg-background/90 backdrop-blur-md shadow-sm': isScrolled,
-          'bg-transparent': !isScrolled,
+          'bg-background/90 backdrop-blur-md shadow-sm': isScrolled || isCategoryMenuOpen,
+          'bg-transparent': !isScrolled && !isCategoryMenuOpen,
         }
       )}
     >
@@ -36,14 +42,17 @@ export function Navbar() {
             to="/" 
             className="font-serif text-2xl font-semibold tracking-tight hover:opacity-80 transition-opacity"
           >
-            artisan<span className="text-terracotta-600">link</span>
+            yaad<span className="text-terracotta-600">.com</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/categories" className="text-sm font-medium hover:text-terracotta-600 transition-colors">
+            <button 
+              className="text-sm font-medium hover:text-terracotta-600 transition-colors"
+              onClick={toggleCategoryMenu}
+            >
               Categories
-            </Link>
+            </button>
             <Link to="/artisans" className="text-sm font-medium hover:text-terracotta-600 transition-colors">
               Artisans
             </Link>
@@ -82,17 +91,19 @@ export function Navbar() {
           </Button>
         </div>
 
+        {/* Category Navigation Menu */}
+        {isCategoryMenuOpen && <CategoryNavigation onClose={() => setIsCategoryMenuOpen(false)} />}
+
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden bg-background absolute top-full left-0 right-0 p-6 shadow-lg animate-fade-in">
             <nav className="flex flex-col space-y-4">
-              <Link 
-                to="/categories" 
-                className="text-sm font-medium hover:text-terracotta-600 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <button 
+                className="text-sm font-medium hover:text-terracotta-600 transition-colors text-left"
+                onClick={toggleCategoryMenu}
               >
                 Categories
-              </Link>
+              </button>
               <Link 
                 to="/artisans" 
                 className="text-sm font-medium hover:text-terracotta-600 transition-colors"

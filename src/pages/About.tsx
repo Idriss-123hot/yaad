@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -19,13 +20,13 @@ const About = () => {
       id: 1,
       name: 'Idriss Laroussi',
       role: 'Fondateur & CEO',
-      bio: 'Passionné par l\'artisanat depuis son enfance, Idriss a créé artisanlink pour connecter les artisans du monde entier avec des consommateurs responsables.',
+      bio: 'Passionné par l\'artisanat depuis son enfance, Idriss a créé Yaad pour connecter les artisans du monde entier avec des consommateurs responsables.',
       image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80'
     },
     {
       id: 2,
       name: 'Rita Baniyahya',
-      role: 'Directrice des Partenariats',
+      role: 'Fondatrice & CMO',
       bio: 'Avec plus de 10 ans d\'expérience dans le commerce équitable, Rita développe des relations durables avec les communautés d\'artisans à travers le monde.',
       image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80'
     },
@@ -88,7 +89,7 @@ const About = () => {
           <div className="max-w-7xl mx-auto text-center">
             <h1 className="font-serif text-4xl md:text-5xl font-bold mb-4">Notre Histoire</h1>
             <p className="text-muted-foreground max-w-3xl mx-auto">
-              Découvrez qui nous sommes et pourquoi nous avons créé artisanlink.
+              Découvrez qui nous sommes et pourquoi nous avons créé Yaad.
             </p>
           </div>
         </section>
@@ -101,15 +102,15 @@ const About = () => {
                 <h2 className="font-serif text-3xl font-bold mb-6">Notre Parcours</h2>
                 <div className="space-y-4 text-muted-foreground">
                   <p>
-                    Fondée en 2022, artisanlink est née d'une passion pour l'artisanat authentique et d'une vision 
-                    d'un commerce plus équitable. Notre fondatrice, Sophie Martin, a voyagé à travers le monde, 
+                    Fondée en 2022, Yaad est née d'une passion pour l'artisanat authentique et d'une vision 
+                    d'un commerce plus équitable. Notre fondateur, Idriss Laroussi, a voyagé à travers le monde, 
                     à la rencontre d'artisans talentueux dont les créations exceptionnelles ne trouvaient pas 
                     toujours leur chemin vers un marché international.
                   </p>
                   <p>
-                    Face à ce constat, Sophie a imaginé une plateforme qui permettrait de valoriser ces savoir-faire 
+                    Face à ce constat, Idriss a imaginé une plateforme qui permettrait de valoriser ces savoir-faire 
                     uniques tout en offrant aux consommateurs l'accès à des produits authentiques, durables et 
-                    porteurs d'histoire. L'idée d'artisanlink était née.
+                    porteurs d'histoire. L'idée de Yaad était née.
                   </p>
                   <p>
                     Aujourd'hui, notre équipe multiculturelle travaille avec passion pour connecter des artisans 

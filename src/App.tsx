@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Categories from "./pages/Categories";
 import CategoryDetail from "./pages/CategoryDetail";
+import CategoryDetailWithProducts from "./pages/CategoryDetailWithProducts";
 import Artisans from "./pages/Artisans";
 import ArtisanDetail from "./pages/ArtisanDetail";
 import About from "./pages/About";
@@ -27,6 +28,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/categories/:slug" element={<CategoryDetail />} />
+          <Route path="/categories/:mainCategory/:subCategory" element={<CategoryDetailWithProducts />} />
+          <Route path="/categories/:mainCategory/:subCategory/:product" element={<CategoryDetailWithProducts />} />
           <Route path="/artisans" element={<Artisans />} />
           <Route path="/artisans/:id" element={<ArtisanDetail />} />
           <Route path="/about" element={<About />} />

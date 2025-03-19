@@ -12,7 +12,7 @@ export function Footer() {
           {/* Logo and About */}
           <div className="md:col-span-1">
             <Link to="/" className="font-serif text-2xl font-semibold tracking-tight inline-block mb-4">
-              artisan<span className="text-terracotta-600">link</span>
+              yaad<span className="text-terracotta-600">.com</span>
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
               Connecting artisans with conscious consumers, celebrating craftsmanship and sustainable values.
@@ -109,7 +109,7 @@ export function Footer() {
 
         <div className="border-t border-border/50 mt-12 pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} artisanlink. All rights reserved.
+            © {new Date().getFullYear()} yaad.com. All rights reserved.
           </p>
         </div>
       </div>
