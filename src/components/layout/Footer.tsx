@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Instagram, Twitter, Facebook, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FooterCategoryNav } from './FooterCategoryNav';
 
 export function Footer() {
   return (
@@ -33,31 +34,9 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Links */}
+          {/* Category Navigation - Remplacé par le nouveau composant */}
           <div className="md:col-span-1">
-            <h3 className="font-medium text-sm uppercase tracking-wider mb-4">Explore</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link to="/categories" className="text-sm text-muted-foreground hover:text-terracotta-600 transition-colors">
-                  Categories
-                </Link>
-              </li>
-              <li>
-                <Link to="/artisans" className="text-sm text-muted-foreground hover:text-terracotta-600 transition-colors">
-                  Artisans
-                </Link>
-              </li>
-              <li>
-                <Link to="/blog" className="text-sm text-muted-foreground hover:text-terracotta-600 transition-colors">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-sm text-muted-foreground hover:text-terracotta-600 transition-colors">
-                  Our Story
-                </Link>
-              </li>
-            </ul>
+            <FooterCategoryNav />
           </div>
 
           {/* Information */}
@@ -82,6 +61,21 @@ export function Footer() {
               <li>
                 <Link to="/contact" className="text-sm text-muted-foreground hover:text-terracotta-600 transition-colors">
                   Contact Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/artisans" className="text-sm text-muted-foreground hover:text-terracotta-600 transition-colors">
+                  Artisans
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog" className="text-sm text-muted-foreground hover:text-terracotta-600 transition-colors">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-sm text-muted-foreground hover:text-terracotta-600 transition-colors">
+                  Our Story
                 </Link>
               </li>
             </ul>
