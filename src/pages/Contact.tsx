@@ -63,7 +63,7 @@ const Contact = () => {
   // FAQ items
   const faqItems = [
     {
-      question: "Comment puis-je devenir un artisan sur artisanlink ?",
+      question: "Comment puis-je devenir un artisan sur Yaad ?",
       answer: "Pour devenir un artisan sur notre plateforme, vous devez remplir le formulaire d'inscription disponible dans la section 'Devenir Artisan'. Notre équipe examinera votre candidature et vous contactera dans un délai de 48 heures."
     },
     {
@@ -108,8 +108,8 @@ const Contact = () => {
                 </div>
                 <h3 className="font-medium text-lg mb-2">Email</h3>
                 <p className="text-muted-foreground mb-3">Notre équipe vous répond sous 24h</p>
-                <a href="mailto:contact@artisanlink.com" className="text-terracotta-600 hover:underline">
-                  contact@artisanlink.com
+                <a href="mailto:contact@yaad.com" className="text-terracotta-600 hover:underline">
+                  contact@yaad.com
                 </a>
               </div>
               

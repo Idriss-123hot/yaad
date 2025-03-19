@@ -1,9 +1,12 @@
 
 import { Link } from 'react-router-dom';
-import { SAMPLE_CATEGORIES } from '@/models/types';
 import { cn } from '@/lib/utils';
+import { categoriesData } from '@/data/categories';
 
 export function Categories() {
+  // Prendre les 5 premières catégories principales pour l'affichage
+  const displayCategories = categoriesData.slice(0, 4);
+
   return (
     <section className="py-16 px-6 md:px-12 bg-cream-100">
       <div className="max-w-7xl mx-auto">
@@ -19,22 +22,20 @@ export function Categories() {
 
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {SAMPLE_CATEGORIES.map((category, index) => (
+          {displayCategories.map((category, index) => (
             <Link 
               key={category.id} 
-              to={`/categories/${category.slug}`}
+              to={`/categories/${category.id}`}
               className={cn(
                 "group relative h-80 rounded-lg overflow-hidden hover-lift",
                 index === 0 && "md:col-span-2 md:row-span-2 md:h-auto"
               )}
             >
-              {/* Image */}
-              <div className="absolute inset-0 zoom-image-container">
-                <img 
-                  src={category.image} 
-                  alt={category.name} 
-                  className="zoom-image"
-                />
+              {/* Image - using placeholder since we don't have actual images */}
+              <div className="absolute inset-0 zoom-image-container bg-sage-100">
+                <div className="w-full h-full flex items-center justify-center text-2xl font-serif text-sage-800">
+                  {category.name}
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0 transition-opacity group-hover:opacity-70" />
               </div>
               
@@ -44,7 +45,7 @@ export function Categories() {
                   {category.name}
                 </h3>
                 <p className="text-white/80 text-sm mb-2">
-                  {category.productCount} Products
+                  {category.subcategories.length} Subcategories
                 </p>
                 <span className="inline-block text-sm text-white border-b border-white/30 pb-px group-hover:border-terracotta-300 group-hover:text-terracotta-100 transition-colors">
                   Explore Collection
