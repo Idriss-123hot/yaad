@@ -7,6 +7,7 @@ import { Categories } from '@/components/home/Categories';
 import { FeaturedProducts } from '@/components/home/FeaturedProducts';
 import { ArtisanSpotlight } from '@/components/home/ArtisanSpotlight';
 import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
+import { SearchBar } from '@/components/search/SearchBar';
 
 const Index = () => {
   // Smooth scroll to top on page load
@@ -22,6 +23,12 @@ const Index = () => {
       <Navbar />
       <main className="flex-grow">
         <Hero />
+        
+        {/* Barre de recherche avancée */}
+        <section className="py-12 px-6 md:px-12 bg-cream-50">
+          <SearchBar className="max-w-5xl mx-auto" />
+        </section>
+        
         <FeaturedProducts />
         <div className="exceptional-craftsmanship">
           <Categories />

@@ -1,21 +1,22 @@
-
 // Structure des catégories complète selon l'arborescence demandée
 export const categoriesData = [
   {
     id: "home-decor",
     name: "Home Decor",
+    image: "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&q=80",
     subcategories: [
       {
         id: "dining",
         name: "Dining",
+        image: "https://images.unsplash.com/photo-1615529151169-7b1ff50dc7f2?auto=format&fit=crop&q=80",
         products: [
-          { id: "cups-mugs", name: "Cups & Mugs" },
-          { id: "placemats-coasters-trivets", name: "Placemats, Coasters & Trivets" },
-          { id: "plates-bowls", name: "Plates & Bowls" },
-          { id: "tagines", name: "Tagines" },
-          { id: "teapots-tea-sets", name: "Teapots & Tea Sets" },
-          { id: "trays-boards", name: "Trays & Boards" },
-          { id: "table-linen", name: "Table Linen" },
+          { id: "cups-mugs", name: "Cups & Mugs", image: "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?auto=format&fit=crop&q=80" },
+          { id: "placemats-coasters-trivets", name: "Placemats, Coasters & Trivets", image: "https://images.unsplash.com/photo-1596945886584-a4d5be4d0a47?auto=format&fit=crop&q=80" },
+          { id: "plates-bowls", name: "Plates & Bowls", image: "https://images.unsplash.com/photo-1603199506016-b9a594b593c0?auto=format&fit=crop&q=80" },
+          { id: "tagines", name: "Tagines", image: "https://images.unsplash.com/photo-1584949514490-73fc1a2fad97?auto=format&fit=crop&q=80" },
+          { id: "teapots-tea-sets", name: "Teapots & Tea Sets", image: "https://images.unsplash.com/photo-1594631252845-29fc4cc8cde9?auto=format&fit=crop&q=80" },
+          { id: "trays-boards", name: "Trays & Boards", image: "https://images.unsplash.com/photo-1605333396915-47ed6b68a00e?auto=format&fit=crop&q=80" },
+          { id: "table-linen", name: "Table Linen", image: "https://images.unsplash.com/photo-1606167668584-78701c1d4311?auto=format&fit=crop&q=80" },
         ]
       },
       {
