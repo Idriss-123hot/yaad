@@ -51,16 +51,16 @@ export function Navbar() {
               className="text-sm font-medium hover:text-terracotta-600 transition-colors"
               onClick={toggleCategoryMenu}
             >
-              Categories
+              Nos Produits
             </button>
             <Link to="/artisans" className="text-sm font-medium hover:text-terracotta-600 transition-colors">
-              Artisans
+              Nos Artisans
             </Link>
             <Link to="/about" className="text-sm font-medium hover:text-terracotta-600 transition-colors">
               About
             </Link>
-            <Link to="/contact" className="text-sm font-medium hover:text-terracotta-600 transition-colors">
-              Contact
+            <Link to="/blog" className="text-sm font-medium hover:text-terracotta-600 transition-colors">
+              Blog
             </Link>
           </nav>
 
@@ -102,14 +102,14 @@ export function Navbar() {
                 className="text-sm font-medium hover:text-terracotta-600 transition-colors text-left"
                 onClick={toggleCategoryMenu}
               >
-                Categories
+                Nos Produits
               </button>
               <Link 
                 to="/artisans" 
                 className="text-sm font-medium hover:text-terracotta-600 transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Artisans
+                Nos Artisans
               </Link>
               <Link 
                 to="/about" 
@@ -119,11 +119,11 @@ export function Navbar() {
                 About
               </Link>
               <Link 
-                to="/contact" 
+                to="/blog" 
                 className="text-sm font-medium hover:text-terracotta-600 transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Contact
+                Blog
               </Link>
               <div className="flex items-center space-x-4 pt-2">
                 <Button variant="ghost" size="icon" className="relative hover:bg-terracotta-100">

@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import { Instagram, Twitter, Facebook, Mail } from 'lucide-react';
+import { Instagram, Twitter, Facebook, Mail, MapPin, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FooterCategoryNav } from './FooterCategoryNav';
@@ -34,7 +34,7 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Category Navigation - Remplacé par le nouveau composant */}
+          {/* Category Navigation */}
           <div className="md:col-span-1">
             <FooterCategoryNav />
           </div>
@@ -81,8 +81,30 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Newsletter */}
+          {/* Contact & Newsletter */}
           <div className="md:col-span-1">
+            <h3 className="font-medium text-sm uppercase tracking-wider mb-4">Contact</h3>
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-start">
+                <MapPin className="h-4 w-4 mr-2 mt-1 text-terracotta-600" />
+                <span className="text-sm text-muted-foreground">
+                  123 Craft Street, Marrakech, Morocco
+                </span>
+              </li>
+              <li className="flex items-start">
+                <Mail className="h-4 w-4 mr-2 mt-1 text-terracotta-600" />
+                <a href="mailto:contact@yaad.com" className="text-sm text-muted-foreground hover:text-terracotta-600 transition-colors">
+                  contact@yaad.com
+                </a>
+              </li>
+              <li className="flex items-start">
+                <Phone className="h-4 w-4 mr-2 mt-1 text-terracotta-600" />
+                <a href="tel:+212600000000" className="text-sm text-muted-foreground hover:text-terracotta-600 transition-colors">
+                  +212 600 000 000
+                </a>
+              </li>
+            </ul>
+            
             <h3 className="font-medium text-sm uppercase tracking-wider mb-4">Newsletter</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Join our newsletter to receive updates on new artisans, special offers and upcoming events.

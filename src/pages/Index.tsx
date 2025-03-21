@@ -6,6 +6,7 @@ import { Hero } from '@/components/home/Hero';
 import { Categories } from '@/components/home/Categories';
 import { FeaturedProducts } from '@/components/home/FeaturedProducts';
 import { ArtisanSpotlight } from '@/components/home/ArtisanSpotlight';
+import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
 
 const Index = () => {
   // Smooth scroll to top on page load
@@ -17,15 +18,18 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen tadelakt-background">
+    <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow">
         <Hero />
         <FeaturedProducts />
-        <Categories />
+        <div className="exceptional-craftsmanship">
+          <Categories />
+        </div>
         <ArtisanSpotlight />
       </main>
       <Footer />
+      <FixedNavMenu />
     </div>
   );
 };

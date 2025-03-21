@@ -11,16 +11,16 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative h-screen overflow-hidden pt-16">
-      {/* Background Image */}
+    <section className="relative h-[80vh] overflow-hidden pt-16">
+      {/* Background Image - Modern Moroccan Living Room */}
       <div className="absolute inset-0 z-0">
         <div 
           className="absolute inset-0 bg-gradient-to-r from-background/90 to-background/50 z-10"
           aria-hidden="true"
         />
         <img 
-          src="https://images.unsplash.com/photo-1615529179035-e760f6a2dcee?auto=format&fit=crop&q=90"
-          alt="Artisan craftsmanship"
+          src="https://images.unsplash.com/photo-1576426863848-c21f53c60b19?auto=format&fit=crop&q=90"
+          alt="Modern Moroccan living room with artisanal products"
           className="w-full h-full object-cover object-center"
         />
       </div>
@@ -30,22 +30,22 @@ export function Hero() {
         <div className="max-w-2xl">
           <div className={`opacity-0 ${loaded ? 'animate-slide-down' : ''}`}>
             <span className="inline-block bg-terracotta-100 text-terracotta-800 px-3 py-1 rounded-full text-xs font-medium mb-6">
-              Discover Authentic Craftsmanship
+              Artisanat Marocain Authentique
             </span>
           </div>
           
           <h1 
             className={`font-serif text-4xl md:text-6xl font-bold leading-tight mb-6 opacity-0 ${loaded ? 'animate-slide-down stagger-1' : ''}`}
           >
-            Connecting Artisans <br /> 
-            <span className="text-terracotta-600">with Conscious Consumers</span>
+            L'Art Marocain <br /> 
+            <span className="text-terracotta-600">dans votre intérieur</span>
           </h1>
           
           <p 
             className={`text-lg md:text-xl text-muted-foreground mb-8 opacity-0 ${loaded ? 'animate-slide-down stagger-2' : ''}`}
           >
-            Explore unique handmade products crafted with care, 
-            passion, and traditional techniques by skilled artisans from around the world.
+            Découvrez des produits uniques fabriqués à la main avec soin, 
+            passion et techniques traditionnelles par des artisans marocains talentueux.
           </p>
           
           <div className={`flex flex-col sm:flex-row gap-4 opacity-0 ${loaded ? 'animate-slide-down stagger-3' : ''}`}>
@@ -53,7 +53,7 @@ export function Hero() {
               className="bg-terracotta-600 hover:bg-terracotta-700 text-white px-8 py-6"
               size="lg"
             >
-              Explore Products
+              Explorer Nos Produits
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             <Button 
@@ -61,7 +61,7 @@ export function Hero() {
               className="border-terracotta-200 text-foreground hover:bg-terracotta-50 px-8 py-6"
               size="lg"
             >
-              Meet the Artisans
+              Rencontrer Nos Artisans
             </Button>
           </div>
         </div>

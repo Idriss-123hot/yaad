@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -53,30 +54,41 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.3 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
-      linear-gradient(to right, rgba(245, 236, 228, 0.4), rgba(231, 220, 209, 0.4), rgba(221, 204, 189, 0.4));
-    background-blend-mode: overlay;
+    @apply bg-white text-foreground font-sans antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif tracking-tight;
   }
   
+  /* Simplifié pour un fond plus épuré */
   .tadelakt-background {
+    background-color: white;
+  }
+  
+  /* Style de texture subtile uniquement pour les sections spécifiques */
+  .exceptional-craftsmanship {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .exceptional-craftsmanship::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background-image: 
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.3 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
-      radial-gradient(circle at 30% 70%, rgba(244, 232, 212, 0.7), transparent 70%),
-      radial-gradient(circle at 70% 30%, rgba(232, 204, 179, 0.5), transparent 70%),
-      linear-gradient(to bottom right, rgba(239, 225, 206, 0.5), rgba(212, 187, 163, 0.5), rgba(194, 159, 131, 0.5));
-    background-blend-mode: overlay, screen, multiply, normal;
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
+      linear-gradient(to bottom right, rgba(245, 240, 235, 0.5), rgba(235, 225, 215, 0.5), rgba(225, 210, 195, 0.5));
+    background-blend-mode: overlay;
+    opacity: 0.5;
+    z-index: -1;
   }
   
   .tadelakt-card {
-    background-image: 
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.15 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
-      linear-gradient(to bottom right, rgba(240, 230, 220, 0.9), rgba(225, 210, 195, 0.9));
-    background-blend-mode: overlay;
+    background-color: white;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   }
 }
