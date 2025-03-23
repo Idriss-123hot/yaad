@@ -11,6 +11,7 @@ import { Footer } from '@/components/layout/Footer';
 import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
 import { mapDatabaseProductToProduct } from '@/utils/productMappers';
 import { Product } from '@/models/types';
+import { Json } from '@/integrations/supabase/types';
 
 // Define cart item type
 interface CartItem {
@@ -26,7 +27,9 @@ interface DatabaseCartItem {
   user_id: string;
   product_id: string;
   quantity: number;
-  variations?: Record<string, string>;
+  variations?: Json;
+  created_at: string;
+  updated_at: string;
 }
 
 // Create a hook for cart management
@@ -60,7 +63,7 @@ const useCart = () => {
           if (cartData) {
             // Load product details for each cart item
             const itemsWithProducts = await Promise.all(
-              cartData.map(async (item: DatabaseCartItem) => {
+              cartData.map(async (item: any) => {
                 const { data: productData, error: productError } = await supabase
                   .from('products')
                   .select(`
@@ -77,14 +80,14 @@ const useCart = () => {
                   return {
                     productId: item.product_id,
                     quantity: item.quantity,
-                    variations: item.variations || {},
+                    variations: typeof item.variations === 'object' ? item.variations : {},
                   };
                 }
                 
                 return {
                   productId: item.product_id,
                   quantity: item.quantity,
-                  variations: item.variations || {},
+                  variations: typeof item.variations === 'object' ? item.variations : {},
                   product: productData ? mapDatabaseProductToProduct(productData) : undefined,
                 };
               })

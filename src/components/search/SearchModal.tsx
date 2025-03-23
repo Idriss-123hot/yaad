@@ -58,10 +58,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
       setIsLoading(true);
 
       try {
-        // Use the search edge function with query parameters in the URL instead of params object
+        // Use the search edge function with query parameters in the URL
         const { data, error } = await supabase.functions.invoke('search', {
           method: 'GET',
-          query: { 
+          queryParams: { 
             q: debouncedTerm, 
             type: activeTab 
           }
