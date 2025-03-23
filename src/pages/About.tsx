@@ -123,7 +123,7 @@ const About = () => {
               <div className="order-1 lg:order-2">
                 <div className="relative rounded-lg overflow-hidden aspect-[4/3]">
                   <img 
-                    src="https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80" 
+                    src="https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//professional-artisan-job-workshop.jpg" 
                     alt="Artisan travaillant dans son atelier" 
                     className="w-full h-full object-cover"
                   />
