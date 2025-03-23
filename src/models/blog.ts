@@ -80,7 +80,7 @@ export const SAMPLE_BLOG_POSTS: BlogPost[] = [
       },
       {
         type: 'image',
-        url: 'https://images.unsplash.com/photo-1596636478939-6bf18cafa28f?auto=format&fit=crop&q=80',
+        url: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//artisans%20cuir.jpeg',
         caption: 'Artisan marocain travaillant le cuir dans son atelier de la médina de Fès'
       },
       {
