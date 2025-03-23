@@ -19,7 +19,7 @@ export function Hero() {
           aria-hidden="true"
         />
         <img 
-          src="https://images.unsplash.com/photo-1576426863848-c21f53c60b19?auto=format&fit=crop&q=90"
+          src="https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/sign/yaadhomepage/Photo%20salon%20marocain.jpeg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ5YWFkaG9tZXBhZ2UvUGhvdG8gc2Fsb24gbWFyb2NhaW4uanBlZyIsImlhdCI6MTc0MjcyMjIzMywiZXhwIjoxNzc0MjU4MjMzfQ.wvZWoEAcdTY3hycpzS96FpNsCNpG0PbSArXrgrFMC9U"
           alt="Modern Moroccan living room with artisanal products"
           className="w-full h-full object-cover object-center"
         />

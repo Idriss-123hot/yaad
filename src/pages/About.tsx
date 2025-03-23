@@ -21,7 +21,7 @@ const About = () => {
       name: 'Idriss Laroussi',
       role: 'Fondateur & CEO',
       bio: 'Passionné par l\'artisanat depuis son enfance, Idriss a créé Yaad pour connecter les artisans du monde entier avec des consommateurs responsables.',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80'
+      image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//IMG-20220204-WA0026.jpg'
     },
     {
       id: 2,
