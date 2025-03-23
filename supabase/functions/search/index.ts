@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
     const url = new URL(req.url)
     
-    // Get search parameters
+    // Get search parameters from URL
     const searchQuery = url.searchParams.get('q') || ''
     const type = url.searchParams.get('type') || 'all'
     

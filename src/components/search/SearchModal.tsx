@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,14 +57,11 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
       setIsLoading(true);
 
       try {
-        // Use the search edge function with query parameters in the URL
-        const { data, error } = await supabase.functions.invoke('search', {
-          method: 'GET',
-          queryParams: { 
-            q: debouncedTerm, 
-            type: activeTab 
-          }
-        });
+        // Create a URL with query parameters
+        const url = `search?q=${encodeURIComponent(debouncedTerm)}&type=${encodeURIComponent(activeTab)}`;
+        
+        // Use the search edge function with the URL containing query parameters
+        const { data, error } = await supabase.functions.invoke(url);
 
         if (error) throw error;
 
