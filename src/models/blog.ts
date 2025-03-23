@@ -33,7 +33,7 @@ const authors = {
     id: 'author-1',
     name: 'Idriss Laroussi',
     role: 'Fondateur & CEO',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80'
+    avatar: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//IMG-20220204-WA0026.jpg'
   },
   rita: {
     id: 'author-2',
