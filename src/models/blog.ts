@@ -56,7 +56,7 @@ export const SAMPLE_BLOG_POSTS: BlogPost[] = [
     title: 'Le renouveau de l\'artisanat traditionnel marocain à l\'ère du digital',
     slug: 'renouveau-artisanat-marocain-digital',
     excerpt: 'Comment les artisans marocains adaptent leurs savoir-faire ancestraux aux technologies modernes pour conquérir de nouveaux marchés.',
-    coverImage: 'https://images.unsplash.com/photo-1528372444006-1bfc81acab02?auto=format&fit=crop&q=80',
+    coverImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Transformation-digitale%20artisans.jpeg',
     category: 'Artisanat & Technologie',
     tags: ['Maroc', 'Artisanat', 'E-commerce', 'Tradition'],
     author: authors.idriss,
