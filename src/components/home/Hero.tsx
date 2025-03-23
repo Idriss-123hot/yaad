@@ -28,27 +28,27 @@ export function Hero() {
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col justify-center max-w-7xl mx-auto px-6 md:px-12">
         <div className="max-w-2xl">
-          <div className={`opacity-0 ${loaded ? 'animate-slide-down' : ''}`}>
+          <div className={loaded ? 'animate-fade-in' : ''}>
             <span className="inline-block bg-terracotta-100 text-terracotta-800 px-3 py-1 rounded-full text-xs font-medium mb-6">
               Artisanat Marocain Authentique
             </span>
           </div>
           
           <h1 
-            className={`font-serif text-4xl md:text-6xl font-bold leading-tight mb-6 opacity-0 ${loaded ? 'animate-slide-down stagger-1' : ''}`}
+            className={loaded ? 'font-serif text-4xl md:text-6xl font-bold leading-tight mb-6 animate-fade-in' : 'font-serif text-4xl md:text-6xl font-bold leading-tight mb-6'}
           >
             L'Art Marocain <br /> 
             <span className="text-terracotta-600">dans votre intérieur</span>
           </h1>
           
           <p 
-            className={`text-lg md:text-xl text-muted-foreground mb-8 opacity-0 ${loaded ? 'animate-slide-down stagger-2' : ''}`}
+            className={loaded ? 'text-lg md:text-xl text-muted-foreground mb-8 animate-fade-in' : 'text-lg md:text-xl text-muted-foreground mb-8'}
           >
             Découvrez des produits uniques fabriqués à la main avec soin, 
             passion et techniques traditionnelles par des artisans marocains talentueux.
           </p>
           
-          <div className={`flex flex-col sm:flex-row gap-4 opacity-0 ${loaded ? 'animate-slide-down stagger-3' : ''}`}>
+          <div className={loaded ? 'flex flex-col sm:flex-row gap-4 animate-fade-in' : 'flex flex-col sm:flex-row gap-4'}>
             <Button 
               className="bg-terracotta-600 hover:bg-terracotta-700 text-white px-8 py-6"
               size="lg"
