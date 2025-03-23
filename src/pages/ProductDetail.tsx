@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,45 @@ import { SAMPLE_PRODUCTS, Product } from '@/models/types';
 import { Star, Truck, ShieldCheck, Heart, Share2, ChevronRight, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { categoriesData } from '@/data/categories';
+import { supabase } from '@/integrations/supabase/client';
+
+// Function to fetch a product from Supabase
+const fetchProduct = async (productId: string): Promise<Product | null> => {
+  const { data, error } = await supabase
+    .from('products')
+    .select(`
+      *,
+      artisan:artisan_id(id, name),
+      category:category_id(id, name, slug),
+      product_variations(id, name, options)
+    `)
+    .eq('id', productId)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching product:', error);
+    throw new Error('Failed to fetch product');
+  }
+  
+  return data;
+};
+
+// Function to fetch related products
+const fetchRelatedProducts = async (categoryId: string, currentProductId: string): Promise<Product[]> => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('category_id', categoryId)
+    .neq('id', currentProductId)
+    .limit(4);
+  
+  if (error) {
+    console.error('Error fetching related products:', error);
+    return [];
+  }
+  
+  return data || [];
+};
 
 const ProductDetail = () => {
   const { mainCategory, subCategory, product: productId } = useParams<{ 
@@ -21,34 +61,36 @@ const ProductDetail = () => {
 
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [productData, setProductData] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
-  // Recherche du produit dans les données
+  // Fetch product data using React Query
+  const { data: productData, isLoading, error } = useQuery({
+    queryKey: ['product', productId],
+    queryFn: () => productId ? fetchProduct(productId) : null,
+    enabled: !!productId,
+  });
+
+  // Fetch related products when product data is available
+  useEffect(() => {
+    if (productData?.category_id) {
+      fetchRelatedProducts(productData.category_id, productData.id)
+        .then(setRelatedProducts)
+        .catch(console.error);
+    } else {
+      // If we don't have a real product yet, use sample data
+      const related = SAMPLE_PRODUCTS.filter(p => p.id !== productId)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 4);
+      setRelatedProducts(related);
+    }
+  }, [productData, productId]);
+
+  // Scroll to top when route changes
   useEffect(() => {
     window.scrollTo({
       top: 0,
       behavior: 'smooth',
     });
-
-    // Simulation de chargement
-    setLoading(true);
-    
-    // Dans un cas réel, nous ferions une requête API
-    // Pour la démo, utilisons un produit aléatoire des SAMPLE_PRODUCTS
-    setTimeout(() => {
-      const product = SAMPLE_PRODUCTS[Math.floor(Math.random() * SAMPLE_PRODUCTS.length)];
-      setProductData(product);
-      
-      // Produits connexes (simplement d'autres produits aléatoires)
-      const related = SAMPLE_PRODUCTS.filter(p => p.id !== product.id)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 4);
-      setRelatedProducts(related);
-      
-      setLoading(false);
-    }, 500);
   }, [productId, mainCategory, subCategory]);
 
   // Incrémente la quantité
@@ -85,7 +127,7 @@ const ProductDetail = () => {
   const mainCategoryData = categoriesData.find(cat => cat.id === mainCategory);
   const subCategoryData = mainCategoryData?.subcategories.find(subCat => subCat.id === subCategory);
 
-  // Options de couleur fictives
+  // Options de couleur fictives pour le moment
   const colorOptions = [
     { name: 'Natural', value: 'natural', hex: '#D2B48C' },
     { name: 'Terracotta', value: 'terracotta', hex: '#b06a5b' },
@@ -93,7 +135,7 @@ const ProductDetail = () => {
     { name: 'Green', value: 'green', hex: '#556B2F' },
   ];
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen">
         <Navbar />
@@ -108,7 +150,7 @@ const ProductDetail = () => {
     );
   }
 
-  if (!productData) {
+  if (error || !productData) {
     return (
       <div className="flex flex-col min-h-screen">
         <Navbar />
@@ -181,24 +223,31 @@ const ProductDetail = () => {
                   )}
                 </div>
                 <div className="grid grid-cols-4 gap-4">
-                  {[...Array(4)].map((_, idx) => (
-                    <div 
-                      key={idx} 
-                      className="aspect-square bg-cream-50 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                    >
-                      {productData.images && idx < productData.images.length ? (
+                  {productData.images && productData.images.length > 0 ? (
+                    productData.images.slice(0, 4).map((img, idx) => (
+                      <div 
+                        key={idx} 
+                        className="aspect-square bg-cream-50 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                      >
                         <img 
-                          src={productData.images[idx]} 
+                          src={img} 
                           alt={`${productData.title} - View ${idx + 1}`} 
                           className="w-full h-full object-cover"
                         />
-                      ) : (
+                      </div>
+                    ))
+                  ) : (
+                    [...Array(4)].map((_, idx) => (
+                      <div 
+                        key={idx} 
+                        className="aspect-square bg-cream-50 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                      >
                         <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
                           View {idx + 1}
                         </div>
-                      )}
-                    </div>
-                  ))}
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -216,22 +265,22 @@ const ProductDetail = () => {
                     ))}
                   </div>
                   <span className="ml-2 text-sm text-muted-foreground">
-                    {productData.rating.toFixed(1)} ({productData.reviewCount} avis)
+                    {productData.rating.toFixed(1)} ({productData.review_count} avis)
                   </span>
                 </div>
 
                 {/* Price */}
                 <div className="mb-6">
-                  {productData.discountPrice ? (
+                  {productData.discount_price ? (
                     <div className="flex items-center">
                       <span className="text-2xl font-bold text-terracotta-600">
-                        {productData.discountPrice.toFixed(2)} €
+                        {productData.discount_price.toFixed(2)} €
                       </span>
                       <span className="ml-3 text-lg text-muted-foreground line-through">
                         {productData.price.toFixed(2)} €
                       </span>
                       <span className="ml-3 bg-terracotta-100 text-terracotta-800 px-2 py-1 rounded-full text-xs font-medium">
-                        {Math.round((1 - productData.discountPrice / productData.price) * 100)}% OFF
+                        {Math.round((1 - productData.discount_price / productData.price) * 100)}% OFF
                       </span>
                     </div>
                   ) : (
@@ -339,7 +388,7 @@ const ProductDetail = () => {
                     Partager
                   </button>
                   <Link 
-                    to={`/artisans/${productData.artisanId}`} 
+                    to={`/artisans/${productData.artisan_id}`} 
                     className="text-terracotta-600 hover:underline"
                   >
                     Voir l'artisan
@@ -357,7 +406,7 @@ const ProductDetail = () => {
               <TabsList className="grid grid-cols-3 mb-8">
                 <TabsTrigger value="description">Description</TabsTrigger>
                 <TabsTrigger value="details">Détails du produit</TabsTrigger>
-                <TabsTrigger value="reviews">Avis ({productData.reviewCount})</TabsTrigger>
+                <TabsTrigger value="reviews">Avis ({productData.review_count})</TabsTrigger>
               </TabsList>
               <TabsContent value="description" className="bg-white rounded-lg p-6">
                 <h3 className="font-medium text-lg mb-4">À propos de ce produit</h3>
@@ -377,7 +426,7 @@ const ProductDetail = () => {
                   <div>
                     <p className="font-medium mb-1">Matériaux</p>
                     <p className="text-muted-foreground mb-4">
-                      Argile, émaux naturels
+                      {productData.material || 'Argile, émaux naturels'}
                     </p>
                     <p className="font-medium mb-1">Dimensions</p>
                     <p className="text-muted-foreground mb-4">
@@ -391,7 +440,7 @@ const ProductDetail = () => {
                   <div>
                     <p className="font-medium mb-1">Origine</p>
                     <p className="text-muted-foreground mb-4">
-                      Maroc
+                      {productData.origin || 'Maroc'}
                     </p>
                     <p className="font-medium mb-1">Entretien</p>
                     <p className="text-muted-foreground mb-4">
@@ -406,7 +455,7 @@ const ProductDetail = () => {
               </TabsContent>
               <TabsContent value="reviews" className="bg-white rounded-lg p-6">
                 <div className="flex items-center justify-between mb-8">
-                  <h3 className="font-medium text-lg">Avis clients ({productData.reviewCount})</h3>
+                  <h3 className="font-medium text-lg">Avis clients ({productData.review_count})</h3>
                   <div className="flex items-center">
                     <div className="flex">
                       {[...Array(5)].map((_, i) => (
