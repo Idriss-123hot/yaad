@@ -1,15 +1,23 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingBag, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { CategoryNavigation } from '@/components/layout/CategoryNavigation';
+import { SearchModal } from '@/components/search/SearchModal';
+import { supabase } from '@/integrations/supabase/client';
+import { useCart } from '@/pages/Cart';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [session, setSession] = useState(null);
+  const { getCartCount } = useCart();
+  const cartCount = getCartCount();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,8 +29,42 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    // Get current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const toggleCategoryMenu = () => {
     setIsCategoryMenuOpen(!isCategoryMenuOpen);
+  };
+
+  const toggleSearchModal = () => {
+    setIsSearchModalOpen(!isSearchModalOpen);
+  };
+
+  const handleCartClick = () => {
+    navigate('/cart');
+  };
+
+  const handleAuthClick = () => {
+    if (session) {
+      // If logged in, show user menu or profile page
+      // For now, just sign out
+      supabase.auth.signOut();
+    } else {
+      navigate('/auth');
+    }
   };
 
   return (
@@ -66,17 +108,37 @@ export function Navbar() {
 
           {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="relative hover:bg-terracotta-100">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative hover:bg-terracotta-100"
+              onClick={toggleSearchModal}
+            >
               <Search className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="relative hover:bg-terracotta-100">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative hover:bg-terracotta-100"
+              onClick={handleCartClick}
+            >
               <ShoppingBag className="h-5 w-5" />
-              <span className="absolute top-0 right-0 w-4 h-4 bg-terracotta-600 text-white rounded-full text-[10px] flex items-center justify-center">
-                0
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute top-0 right-0 w-4 h-4 bg-terracotta-600 text-white rounded-full text-[10px] flex items-center justify-center">
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
+              )}
             </Button>
-            <Button variant="ghost" size="icon" className="relative hover:bg-terracotta-100">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative hover:bg-terracotta-100"
+              onClick={handleAuthClick}
+            >
               <User className="h-5 w-5" />
+              {session && (
+                <span className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full"></span>
+              )}
             </Button>
           </div>
 
@@ -126,23 +188,57 @@ export function Navbar() {
                 Blog
               </Link>
               <div className="flex items-center space-x-4 pt-2">
-                <Button variant="ghost" size="icon" className="relative hover:bg-terracotta-100">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="relative hover:bg-terracotta-100"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    toggleSearchModal();
+                  }}
+                >
                   <Search className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" className="relative hover:bg-terracotta-100">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="relative hover:bg-terracotta-100"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleCartClick();
+                  }}
+                >
                   <ShoppingBag className="h-5 w-5" />
-                  <span className="absolute top-0 right-0 w-4 h-4 bg-terracotta-600 text-white rounded-full text-[10px] flex items-center justify-center">
-                    0
-                  </span>
+                  {cartCount > 0 && (
+                    <span className="absolute top-0 right-0 w-4 h-4 bg-terracotta-600 text-white rounded-full text-[10px] flex items-center justify-center">
+                      {cartCount > 99 ? '99+' : cartCount}
+                    </span>
+                  )}
                 </Button>
-                <Button variant="ghost" size="icon" className="relative hover:bg-terracotta-100">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="relative hover:bg-terracotta-100"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleAuthClick();
+                  }}
+                >
                   <User className="h-5 w-5" />
+                  {session && (
+                    <span className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full"></span>
+                  )}
                 </Button>
               </div>
             </nav>
           </div>
         )}
       </div>
+
+      {/* Search Modal */}
+      {isSearchModalOpen && (
+        <SearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
+      )}
     </header>
   );
 }
