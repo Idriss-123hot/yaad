@@ -13,6 +13,7 @@ import { Star, Truck, ShieldCheck, Heart, Share2, ChevronRight, Minus, Plus, Sho
 import { toast } from '@/hooks/use-toast';
 import { categoriesData } from '@/data/categories';
 import { supabase } from '@/integrations/supabase/client';
+import { DatabaseProduct, mapDatabaseProductToProduct, mapDatabaseProductsToProducts } from '@/utils/productMappers';
 
 // Function to fetch a product from Supabase
 const fetchProduct = async (productId: string): Promise<Product | null> => {
@@ -32,7 +33,7 @@ const fetchProduct = async (productId: string): Promise<Product | null> => {
     throw new Error('Failed to fetch product');
   }
   
-  return data;
+  return data ? mapDatabaseProductToProduct(data as DatabaseProduct) : null;
 };
 
 // Function to fetch related products
@@ -49,7 +50,7 @@ const fetchRelatedProducts = async (categoryId: string, currentProductId: string
     return [];
   }
   
-  return data || [];
+  return data ? mapDatabaseProductsToProducts(data as DatabaseProduct[]) : [];
 };
 
 const ProductDetail = () => {
@@ -72,10 +73,19 @@ const ProductDetail = () => {
 
   // Fetch related products when product data is available
   useEffect(() => {
-    if (productData?.category_id) {
-      fetchRelatedProducts(productData.category_id, productData.id)
-        .then(setRelatedProducts)
-        .catch(console.error);
+    if (productData && productData.category) {
+      const dbCategoryId = (productData as any)?.category_id;
+      if (dbCategoryId) {
+        fetchRelatedProducts(dbCategoryId, productData.id)
+          .then(setRelatedProducts)
+          .catch(console.error);
+      } else {
+        // If we don't have a real product yet, use sample data
+        const related = SAMPLE_PRODUCTS.filter(p => p.id !== productId)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 4);
+        setRelatedProducts(related);
+      }
     } else {
       // If we don't have a real product yet, use sample data
       const related = SAMPLE_PRODUCTS.filter(p => p.id !== productId)
@@ -265,22 +275,22 @@ const ProductDetail = () => {
                     ))}
                   </div>
                   <span className="ml-2 text-sm text-muted-foreground">
-                    {productData.rating.toFixed(1)} ({productData.review_count} avis)
+                    {productData.rating.toFixed(1)} ({productData.reviewCount} avis)
                   </span>
                 </div>
 
                 {/* Price */}
                 <div className="mb-6">
-                  {productData.discount_price ? (
+                  {productData.discountPrice ? (
                     <div className="flex items-center">
                       <span className="text-2xl font-bold text-terracotta-600">
-                        {productData.discount_price.toFixed(2)} €
+                        {productData.discountPrice.toFixed(2)} €
                       </span>
                       <span className="ml-3 text-lg text-muted-foreground line-through">
                         {productData.price.toFixed(2)} €
                       </span>
                       <span className="ml-3 bg-terracotta-100 text-terracotta-800 px-2 py-1 rounded-full text-xs font-medium">
-                        {Math.round((1 - productData.discount_price / productData.price) * 100)}% OFF
+                        {Math.round((1 - productData.discountPrice / productData.price) * 100)}% OFF
                       </span>
                     </div>
                   ) : (
@@ -388,7 +398,7 @@ const ProductDetail = () => {
                     Partager
                   </button>
                   <Link 
-                    to={`/artisans/${productData.artisan_id}`} 
+                    to={`/artisans/${productData.artisanId}`} 
                     className="text-terracotta-600 hover:underline"
                   >
                     Voir l'artisan
@@ -406,7 +416,7 @@ const ProductDetail = () => {
               <TabsList className="grid grid-cols-3 mb-8">
                 <TabsTrigger value="description">Description</TabsTrigger>
                 <TabsTrigger value="details">Détails du produit</TabsTrigger>
-                <TabsTrigger value="reviews">Avis ({productData.review_count})</TabsTrigger>
+                <TabsTrigger value="reviews">Avis ({productData.reviewCount})</TabsTrigger>
               </TabsList>
               <TabsContent value="description" className="bg-white rounded-lg p-6">
                 <h3 className="font-medium text-lg mb-4">À propos de ce produit</h3>
@@ -426,7 +436,7 @@ const ProductDetail = () => {
                   <div>
                     <p className="font-medium mb-1">Matériaux</p>
                     <p className="text-muted-foreground mb-4">
-                      {productData.material || 'Argile, émaux naturels'}
+                      {(productData as any)?.material || 'Argile, émaux naturels'}
                     </p>
                     <p className="font-medium mb-1">Dimensions</p>
                     <p className="text-muted-foreground mb-4">
@@ -440,7 +450,7 @@ const ProductDetail = () => {
                   <div>
                     <p className="font-medium mb-1">Origine</p>
                     <p className="text-muted-foreground mb-4">
-                      {productData.origin || 'Maroc'}
+                      {(productData as any)?.origin || 'Maroc'}
                     </p>
                     <p className="font-medium mb-1">Entretien</p>
                     <p className="text-muted-foreground mb-4">
@@ -455,7 +465,7 @@ const ProductDetail = () => {
               </TabsContent>
               <TabsContent value="reviews" className="bg-white rounded-lg p-6">
                 <div className="flex items-center justify-between mb-8">
-                  <h3 className="font-medium text-lg">Avis clients ({productData.review_count})</h3>
+                  <h3 className="font-medium text-lg">Avis clients ({productData.reviewCount})</h3>
                   <div className="flex items-center">
                     <div className="flex">
                       {[...Array(5)].map((_, i) => (

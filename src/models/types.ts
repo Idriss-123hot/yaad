@@ -1,4 +1,3 @@
-
 export interface Product {
   id: string;
   title: string;
@@ -15,6 +14,8 @@ export interface Product {
   reviewCount: number;
   featured?: boolean;
   createdAt: Date;
+  material?: string;
+  origin?: string;
 }
 
 export interface ProductVariation {
@@ -96,7 +97,9 @@ export const SAMPLE_PRODUCTS: Product[] = [
     rating: 4.8,
     reviewCount: 24,
     featured: true,
-    createdAt: new Date('2023-09-15')
+    createdAt: new Date('2023-09-15'),
+    material: 'ceramic',
+    origin: 'handcrafted'
   },
   {
     id: '2',
@@ -111,7 +114,9 @@ export const SAMPLE_PRODUCTS: Product[] = [
     rating: 4.9,
     reviewCount: 18,
     featured: true,
-    createdAt: new Date('2023-10-01')
+    createdAt: new Date('2023-10-01'),
+    material: 'wool',
+    origin: 'handwoven'
   },
   {
     id: '3',
@@ -127,7 +132,9 @@ export const SAMPLE_PRODUCTS: Product[] = [
     rating: 4.7,
     reviewCount: 32,
     featured: true,
-    createdAt: new Date('2023-08-22')
+    createdAt: new Date('2023-08-22'),
+    material: 'wood',
+    origin: 'sustainable'
   },
   {
     id: '4',
@@ -142,7 +149,9 @@ export const SAMPLE_PRODUCTS: Product[] = [
     rating: 4.9,
     reviewCount: 41,
     featured: true,
-    createdAt: new Date('2023-10-10')
+    createdAt: new Date('2023-10-10'),
+    material: 'silver',
+    origin: 'handcrafted'
   }
 ];
 
