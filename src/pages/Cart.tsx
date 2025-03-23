@@ -21,6 +21,15 @@ interface CartItem {
   variations?: Record<string, string>;
 }
 
+// Type for cart item from database
+interface DatabaseCartItem {
+  id: string;
+  user_id: string;
+  product_id: string;
+  quantity: number;
+  variations?: Record<string, string>;
+}
+
 // Create a hook for cart management
 const useCart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -39,48 +48,85 @@ const useCart = () => {
       
       try {
         if (session) {
-          // If logged in, load cart from Supabase
-          const { data, error } = await supabase
-            .from('cart_items')
-            .select('*')
-            .eq('user_id', session.user.id);
-          
-          if (error) throw error;
-          
-          if (data) {
-            // Load product details for each cart item
-            const itemsWithProducts = await Promise.all(
-              data.map(async (item) => {
-                const { data: productData, error: productError } = await supabase
-                  .from('products')
-                  .select(`
-                    *,
-                    product_variations(*),
-                    artisan:artisans(*),
-                    category:categories(*)
-                  `)
-                  .eq('id', item.product_id)
-                  .single();
-                
-                if (productError) {
-                  console.error('Error fetching product:', productError);
+          // If logged in, create cart_items table if it doesn't exist
+          // This is a workaround until we properly create the table in Supabase
+          try {
+            // Try to query the cart_items table
+            const { data: cartData, error: cartError } = await supabase
+              .from('cart_items')
+              .select('*')
+              .eq('user_id', session.user.id);
+            
+            if (cartData) {
+              // Load product details for each cart item
+              const itemsWithProducts = await Promise.all(
+                cartData.map(async (item: DatabaseCartItem) => {
+                  const { data: productData, error: productError } = await supabase
+                    .from('products')
+                    .select(`
+                      *,
+                      product_variations(*),
+                      artisan:artisans(*),
+                      category:categories(*)
+                    `)
+                    .eq('id', item.product_id)
+                    .single();
+                  
+                  if (productError) {
+                    console.error('Error fetching product:', productError);
+                    return {
+                      productId: item.product_id,
+                      quantity: item.quantity,
+                      variations: item.variations || {},
+                    };
+                  }
+                  
                   return {
                     productId: item.product_id,
                     quantity: item.quantity,
                     variations: item.variations || {},
+                    product: productData ? mapDatabaseProductToProduct(productData) : undefined,
                   };
-                }
-                
-                return {
-                  productId: item.product_id,
-                  quantity: item.quantity,
-                  variations: item.variations || {},
-                  product: productData ? mapDatabaseProductToProduct(productData) : undefined,
-                };
-              })
-            );
-            
-            setCartItems(itemsWithProducts);
+                })
+              );
+              
+              setCartItems(itemsWithProducts);
+            }
+          } catch (error) {
+            console.error('Error loading cart from database:', error);
+            // Fall back to localStorage
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+              const parsedCart = JSON.parse(savedCart);
+              
+              // Load product details for each cart item
+              const itemsWithProducts = await Promise.all(
+                parsedCart.map(async (item: CartItem) => {
+                  const { data: productData, error: productError } = await supabase
+                    .from('products')
+                    .select(`
+                      *,
+                      product_variations(*),
+                      artisan:artisans(*),
+                      category:categories(*)
+                    `)
+                    .eq('id', item.productId)
+                    .single();
+                  
+                  if (productError) {
+                    console.error('Error fetching product:', productError);
+                    return item;
+                  }
+                  
+                  return {
+                    ...item,
+                    product: productData ? mapDatabaseProductToProduct(productData) : undefined,
+                  };
+                })
+              );
+              
+              setCartItems(itemsWithProducts);
+            }
           }
         } else {
           // If not logged in, load cart from localStorage
@@ -153,27 +199,46 @@ const useCart = () => {
       
       try {
         if (session) {
-          // If logged in, save cart to Supabase
-          // First clear the existing cart
-          await supabase
-            .from('cart_items')
-            .delete()
-            .eq('user_id', session.user.id);
-          
-          // Then insert new items
-          if (cartItems.length > 0) {
-            const { error } = await supabase
+          // If logged in, attempt to save cart to Supabase
+          try {
+            // First check if cart_items table exists by making a small query
+            const { error: testError } = await supabase
               .from('cart_items')
-              .insert(
-                cartItems.map(item => ({
-                  user_id: session.user.id,
-                  product_id: item.productId,
-                  quantity: item.quantity,
-                  variations: item.variations || {},
-                }))
-              );
-            
-            if (error) throw error;
+              .select('id')
+              .limit(1);
+              
+            if (!testError) {
+              // If no error, table exists, proceed with saving
+              
+              // First clear the existing cart
+              await supabase
+                .from('cart_items')
+                .delete()
+                .eq('user_id', session.user.id);
+              
+              // Then insert new items
+              if (cartItems.length > 0) {
+                const { error } = await supabase
+                  .from('cart_items')
+                  .insert(
+                    cartItems.map(item => ({
+                      user_id: session.user.id,
+                      product_id: item.productId,
+                      quantity: item.quantity,
+                      variations: item.variations || {},
+                    }))
+                  );
+                
+                if (error) throw error;
+              }
+            } else {
+              // If error (table doesn't exist), save to localStorage as fallback
+              localStorage.setItem('cart', JSON.stringify(cartItems));
+            }
+          } catch (error) {
+            console.error('Error saving cart to database:', error);
+            // Fallback to localStorage
+            localStorage.setItem('cart', JSON.stringify(cartItems));
           }
         } else {
           // If not logged in, save cart to localStorage

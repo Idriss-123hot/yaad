@@ -1,86 +1,81 @@
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
-import { corsHeaders } from '../_shared/cors.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.6'
+import { corsHeaders } from '../_shared/cors.ts'
+import { Database } from '../_shared/types.ts'
 
-// Create a Supabase client with the auth key for public access
-const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Only allow GET requests
-    if (req.method !== 'GET') {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), { 
-        status: 405,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+    // Create Supabase client
+    const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+    const url = new URL(req.url)
+    
+    // Get search parameters
+    const searchQuery = url.searchParams.get('q') || ''
+    const type = url.searchParams.get('type') || 'all'
+    
+    if (!searchQuery || searchQuery.length < 2) {
+      return new Response(
+        JSON.stringify({ products: [], artisans: [] }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      )
     }
 
-    // Get search term from URL search params
-    const url = new URL(req.url);
-    const searchTerm = url.searchParams.get('q') || '';
-    const type = url.searchParams.get('type') || 'all'; // 'all', 'products', 'artisans'
+    const results: { products?: any[], artisans?: any[] } = {}
     
-    if (!searchTerm) {
-      return new Response(JSON.stringify({ error: 'Search term is required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    console.log(`Searching for: ${searchTerm}, type: ${type}`);
-    
-    const results: { products?: any[], artisans?: any[] } = {};
-
-    // Search products if requested
+    // Search for products
     if (type === 'all' || type === 'products') {
       const { data: products, error: productsError } = await supabase
         .from('products')
         .select(`
           *,
-          artisan:artisans(name, profile_photo),
-          category:categories(name, slug)
+          product_variations(*),
+          artisan:artisans(*),
+          category:categories(*)
         `)
-        .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,material.ilike.%${searchTerm}%,origin.ilike.%${searchTerm}%`)
-        .limit(10);
+        .textSearch('search_vector', searchQuery)
+        .limit(type === 'all' ? 4 : 20)
       
-      if (productsError) {
-        console.error('Error searching products:', productsError);
-      } else {
-        results.products = products;
-      }
+      if (productsError) throw productsError
+      results.products = products
     }
-
-    // Search artisans if requested
+    
+    // Search for artisans
     if (type === 'all' || type === 'artisans') {
       const { data: artisans, error: artisansError } = await supabase
         .from('artisans')
         .select('*')
-        .or(`name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`)
-        .limit(10);
+        .or(`name.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`)
+        .limit(type === 'all' ? 4 : 20)
       
-      if (artisansError) {
-        console.error('Error searching artisans:', artisansError);
-      } else {
-        results.artisans = artisans;
-      }
+      if (artisansError) throw artisansError
+      results.artisans = artisans
     }
 
-    return new Response(JSON.stringify(results), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify(results),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
+      }
+    )
   } catch (error) {
-    console.error('Error during search:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
+      }
+    )
   }
-});
+})

@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -58,10 +58,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
       setIsLoading(true);
 
       try {
-        // Use the search edge function
+        // Use the search edge function with params instead of query
         const { data, error } = await supabase.functions.invoke('search', {
           method: 'GET',
-          query: { q: debouncedTerm, type: activeTab },
+          params: { q: debouncedTerm, type: activeTab }
         });
 
         if (error) throw error;
@@ -104,6 +104,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden flex flex-col p-0">
+        <DialogTitle className="sr-only">Search</DialogTitle>
         <div className="p-4 border-b">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
