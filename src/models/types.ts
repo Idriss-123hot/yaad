@@ -54,7 +54,7 @@ export const SAMPLE_CATEGORIES: Category[] = [
     name: 'Ceramics & Pottery',
     slug: 'ceramics-pottery',
     description: 'Handcrafted ceramic pieces and artisanal pottery',
-    image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&q=80',
+    image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//small-terracotta-ceramic-vase-handmade-in-morocco.jpeg',
     productCount: 128
   },
   {
