@@ -82,7 +82,7 @@ export function CategoryNavigation({ onClose }: CategoryNavigationProps) {
                   ?.products.map((product) => (
                     <Link
                       key={product.id}
-                      to={`/categories/${activeMainCategory}/${activeSubCategory}/${product.id}`}
+                      to={`/search?category=${activeMainCategory}&subcategory=${activeSubCategory}&product=${product.id}`}
                       className="px-6 py-2 text-sm hover:bg-cream-50 hover:text-terracotta-600 transition-colors flex items-center"
                       onClick={onClose}
                     >
@@ -95,11 +95,15 @@ export function CategoryNavigation({ onClose }: CategoryNavigationProps) {
           )}
         </div>
 
-        {/* Featured or Promotional Content */}
+        {/* View all products link */}
         <div className="p-6 bg-cream-50 text-center">
-          <p className="text-sm font-medium text-terracotta-600">
-            Free shipping on orders over $100
-          </p>
+          <Link 
+            to="/search" 
+            className="text-sm font-medium text-terracotta-600 hover:underline"
+            onClick={onClose}
+          >
+            View All Products
+          </Link>
         </div>
       </div>
     </div>

@@ -5,24 +5,45 @@ import { useState, useEffect } from 'react';
 
 export function Hero() {
   const [loaded, setLoaded] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Array of banner images to rotate through
+  const bannerImages = [
+    "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/sign/yaadhomepage/Photo%20salon%20marocain.jpeg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ5YWFkaG9tZXBhZ2UvUGhvdG8gc2Fsb24gbWFyb2NhaW4uanBlZyIsImlhdCI6MTc0MjcyMjIzMywiZXhwIjoxNzc0MjU4MjMzfQ.wvZWoEAcdTY3hycpzS96FpNsCNpG0PbSArXrgrFMC9U",
+    "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/sign/yaadhomepage/Cusine%20Marocaine.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ5YWFkaG9tZXBhZ2UvQ3VzaW5lIE1hcm9jYWluZS5wbmciLCJpYXQiOjE3NDI3MjMzNDgsImV4cCI6MTc3NDI1OTM0OH0.lpjfeptVjCzU19i59pgvceax2fDAzctwosKf4iEc5TI",
+    "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/sign/yaadhomepage/Chambre%20Marocaine.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ5YWFkaG9tZXBhZ2UvQ2hhbWJyZSBNYXJvY2FpbmUucG5nIiwiaWF0IjoxNzQyNzIzMzc4LCJleHAiOjE3NzQyNTkzNzh9.lk7lIfYnu6D-zR7BZyKcPvd9Xmh5t8KG3BWKDxLigL8"
+  ];
 
   useEffect(() => {
     setLoaded(true);
+    
+    // Set up image rotation every 3 seconds
+    const intervalId = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % bannerImages.length);
+    }, 3000);
+    
+    // Clear interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
-    <section className="relative h-[80vh] overflow-hidden pt-16">
-      {/* Background Image - Modern Moroccan Living Room */}
+    <section className="relative h-[56vh] overflow-hidden pt-12">
+      {/* Background Image with Rotation */}
       <div className="absolute inset-0 z-0">
         <div 
           className="absolute inset-0 bg-gradient-to-r from-background/90 to-background/50 z-10"
           aria-hidden="true"
         />
-        <img 
-          src="https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/sign/yaadhomepage/Photo%20salon%20marocain.jpeg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ5YWFkaG9tZXBhZ2UvUGhvdG8gc2Fsb24gbWFyb2NhaW4uanBlZyIsImlhdCI6MTc0MjcyMjIzMywiZXhwIjoxNzc0MjU4MjMzfQ.wvZWoEAcdTY3hycpzS96FpNsCNpG0PbSArXrgrFMC9U"
-          alt="Modern Moroccan living room with artisanal products"
-          className="w-full h-full object-cover object-center"
-        />
+        {bannerImages.map((src, index) => (
+          <img 
+            key={index}
+            src={src}
+            alt={`Moroccan interior design ${index + 1}`}
+            className={`w-full h-full object-cover object-center transition-opacity duration-1000 absolute inset-0 ${
+              currentImageIndex === index ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        ))}
       </div>
 
       {/* Content */}
@@ -35,14 +56,14 @@ export function Hero() {
           </div>
           
           <h1 
-            className={loaded ? 'font-serif text-4xl md:text-6xl font-bold leading-tight mb-6 animate-fade-in' : 'font-serif text-4xl md:text-6xl font-bold leading-tight mb-6'}
+            className={loaded ? 'font-serif text-3xl md:text-5xl font-bold leading-tight mb-6 animate-fade-in' : 'font-serif text-3xl md:text-5xl font-bold leading-tight mb-6'}
           >
             L'Art Marocain <br /> 
             <span className="text-terracotta-600">dans votre intérieur</span>
           </h1>
           
           <p 
-            className={loaded ? 'text-lg md:text-xl text-muted-foreground mb-8 animate-fade-in' : 'text-lg md:text-xl text-muted-foreground mb-8'}
+            className={loaded ? 'text-lg md:text-xl text-muted-foreground mb-6 animate-fade-in' : 'text-lg md:text-xl text-muted-foreground mb-6'}
           >
             Découvrez des produits uniques fabriqués à la main avec soin, 
             passion et techniques traditionnelles par des artisans marocains talentueux.

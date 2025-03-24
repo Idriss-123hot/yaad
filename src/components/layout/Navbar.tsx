@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { CategoryNavigation } from '@/components/layout/CategoryNavigation';
 import { SearchModal } from '@/components/search/SearchModal';
+import { LanguageSelector } from '@/components/layout/LanguageSelector'; 
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/pages/Cart';
 
@@ -70,7 +71,7 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out py-4 px-6 md:px-12',
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out py-3 px-6 md:px-12',
         {
           'bg-background/90 backdrop-blur-md shadow-sm': isScrolled || isCategoryMenuOpen,
           'bg-transparent': !isScrolled && !isCategoryMenuOpen,
@@ -108,6 +109,7 @@ export function Navbar() {
 
           {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
+            <LanguageSelector />
             <Button 
               variant="ghost" 
               size="icon" 
@@ -188,6 +190,7 @@ export function Navbar() {
                 Blog
               </Link>
               <div className="flex items-center space-x-4 pt-2">
+                <LanguageSelector />
                 <Button 
                   variant="ghost" 
                   size="icon" 

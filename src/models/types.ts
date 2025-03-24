@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   title: string;
@@ -91,7 +92,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     price: 89.99,
     category: 'Ceramics & Pottery',
     tags: ['vase', 'ceramics', 'home decor'],
-    images: ['https://images.unsplash.com/photo-1578749556568-bc2c481b8230?auto=format&fit=crop&q=80'],
+    images: ['https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//small-terracotta-ceramic-vase-handmade-in-morocco.jpeg'],
     stock: 5,
     artisanId: '1',
     rating: 4.8,
@@ -108,7 +109,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     price: 149.99,
     category: 'Textiles & Fabrics',
     tags: ['blanket', 'wool', 'handwoven'],
-    images: ['https://images.unsplash.com/photo-1612546958210-6c6c2c221919?auto=format&fit=crop&q=80'],
+    images: ['https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//berber-plaid-with-white-pompoms-and-pink-stripes.jpeg'],
     stock: 3,
     artisanId: '2',
     rating: 4.9,
@@ -126,7 +127,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     discountPrice: 49.99,
     category: 'Woodworking',
     tags: ['kitchen', 'serving', 'wood'],
-    images: ['https://images.unsplash.com/photo-1633953142937-de17f8f59f32?auto=format&fit=crop&q=80'],
+    images: ['https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-281478.webp'],
     stock: 8,
     artisanId: '3',
     rating: 4.7,
@@ -143,7 +144,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     price: 79.99,
     category: 'Jewelry',
     tags: ['earrings', 'silver', 'accessories'],
-    images: ['https://images.unsplash.com/photo-1630019852942-7a3660ade834?auto=format&fit=crop&q=80'],
+    images: ['https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-doreilles-oufla-boucles-doreilles-417821_1024x1024@2x.jpeg'],
     stock: 12,
     artisanId: '4',
     rating: 4.9,
