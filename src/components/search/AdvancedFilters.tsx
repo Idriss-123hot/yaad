@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { 
@@ -17,8 +17,10 @@ import {
 } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { categoriesData } from '@/data/categories';
 import { SAMPLE_ARTISANS } from '@/models/types';
+import { SearchFilters } from '@/services/searchService';
 import {
   Tag,
   User,
@@ -26,20 +28,45 @@ import {
   Package,
   MapPin,
   GemIcon,
-  EuroIcon
+  EuroIcon,
+  Star
 } from 'lucide-react';
-import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
+import { Label } from '@/components/ui/label';
 
 interface AdvancedFiltersProps {
-  onApply: () => void;
+  onApply: (filters: Partial<SearchFilters>) => void;
+  initialFilters?: Partial<SearchFilters>;
 }
 
-export function AdvancedFilters({ onApply }: AdvancedFiltersProps) {
-  const [priceRange, setPriceRange] = useState([0, 500]);
-  const form = useForm();
+export function AdvancedFilters({ onApply, initialFilters = {} }: AdvancedFiltersProps) {
+  // Category states
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(initialFilters.category);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>(
+    initialFilters.subcategory ? [initialFilters.subcategory] : []
+  );
   
-  // Liste des matériaux
+  // Artisan state
+  const [selectedArtisans, setSelectedArtisans] = useState<string[]>(
+    initialFilters.artisans || []
+  );
+  
+  // Price range state
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    initialFilters.minPrice !== undefined ? initialFilters.minPrice : 0,
+    initialFilters.maxPrice !== undefined ? initialFilters.maxPrice : 500
+  ]);
+  
+  // Rating state
+  const [selectedRating, setSelectedRating] = useState<number | undefined>(
+    initialFilters.rating
+  );
+  
+  // Delivery time state
+  const [selectedDelivery, setSelectedDelivery] = useState<string | undefined>(
+    initialFilters.delivery
+  );
+  
+  // Materials
   const materials = [
     { id: 'wood', label: 'Bois' },
     { id: 'leather', label: 'Cuir' },
@@ -50,8 +77,8 @@ export function AdvancedFilters({ onApply }: AdvancedFiltersProps) {
     { id: 'clay', label: 'Argile' },
     { id: 'glass', label: 'Verre' }
   ];
-
-  // Liste des origines géographiques
+  
+  // Geographical origins
   const origins = [
     { id: 'marrakech', label: 'Marrakech' },
     { id: 'fes', label: 'Fès' },
@@ -62,32 +89,102 @@ export function AdvancedFilters({ onApply }: AdvancedFiltersProps) {
     { id: 'tangier', label: 'Tanger' },
     { id: 'tetouan', label: 'Tétouan' }
   ];
-
-  // Options de délai de fabrication
+  
+  // Fabrication times
   const fabricationTimes = [
-    { id: 'ready', label: 'Prêt à expédier (1-3 jours)' },
-    { id: 'fast', label: 'Fabrication rapide (3-7 jours)' },
-    { id: 'standard', label: 'Fabrication standard (7-14 jours)' },
-    { id: 'custom', label: 'Sur-mesure (14+ jours)' }
+    { id: 'express', label: 'Prêt à expédier (1-3 jours)' },
+    { id: 'standard', label: 'Fabrication standard (3-7 jours)' },
+    { id: 'economy', label: 'Sur-mesure (7+ jours)' }
   ];
 
+  // Update selected category
+  const handleCategoryChange = (categoryId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedCategory(categoryId);
+      // Reset subcategories when main category changes
+      setSelectedSubcategories([]);
+    } else {
+      setSelectedCategory(undefined);
+    }
+  };
+  
+  // Update selected subcategories
+  const handleSubcategoryChange = (subcategoryId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedSubcategories(prev => [...prev, subcategoryId]);
+    } else {
+      setSelectedSubcategories(prev => prev.filter(id => id !== subcategoryId));
+    }
+  };
+  
+  // Update selected artisans
+  const handleArtisanChange = (artisanId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedArtisans(prev => [...prev, artisanId]);
+    } else {
+      setSelectedArtisans(prev => prev.filter(id => id !== artisanId));
+    }
+  };
+  
+  // Reset all filters
   const handleReset = () => {
+    setSelectedCategory(undefined);
+    setSelectedSubcategories([]);
+    setSelectedArtisans([]);
     setPriceRange([0, 500]);
-    form.reset();
+    setSelectedRating(undefined);
+    setSelectedDelivery(undefined);
   };
-
+  
+  // Apply filters
   const handleApplyFilters = () => {
-    console.log('Applied filters:', {
-      priceRange,
-      form: form.getValues()
-    });
-    onApply();
+    const filters: Partial<SearchFilters> = {
+      category: selectedCategory,
+      subcategory: selectedSubcategories.length > 0 ? selectedSubcategories[0] : undefined,
+      artisans: selectedArtisans.length > 0 ? selectedArtisans : undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      rating: selectedRating,
+      delivery: selectedDelivery,
+    };
+    
+    onApply(filters);
   };
+  
+  // Update when initialFilters change
+  useEffect(() => {
+    if (initialFilters.category !== undefined) {
+      setSelectedCategory(initialFilters.category);
+    }
+    
+    if (initialFilters.subcategory !== undefined) {
+      setSelectedSubcategories([initialFilters.subcategory]);
+    }
+    
+    if (initialFilters.artisans !== undefined) {
+      setSelectedArtisans(initialFilters.artisans);
+    }
+    
+    if (initialFilters.minPrice !== undefined || initialFilters.maxPrice !== undefined) {
+      setPriceRange([
+        initialFilters.minPrice !== undefined ? initialFilters.minPrice : 0,
+        initialFilters.maxPrice !== undefined ? initialFilters.maxPrice : 500
+      ]);
+    }
+    
+    if (initialFilters.rating !== undefined) {
+      setSelectedRating(initialFilters.rating);
+    }
+    
+    if (initialFilters.delivery !== undefined) {
+      setSelectedDelivery(initialFilters.delivery);
+    }
+  }, [initialFilters]);
 
   return (
-    <Form {...form}>
-      <form className="space-y-6 py-4">
-        {/* Catégorie & Sous-catégorie */}
+    <div className="space-y-6 py-4">
+      {/* Catégorie & Sous-catégorie */}
+      <Accordion type="multiple" className="w-full" defaultValue={["categories"]}>
         <AccordionItem value="categories" className="border-b">
           <AccordionTrigger className="flex items-center py-4">
             <div className="flex items-center">
@@ -97,35 +194,55 @@ export function AdvancedFilters({ onApply }: AdvancedFiltersProps) {
           </AccordionTrigger>
           <AccordionContent>
             <div className="pl-6 pr-2 py-2 space-y-4">
-              <Accordion type="multiple" className="w-full">
+              <div className="space-y-2">
                 {categoriesData.map((category) => (
-                  <AccordionItem key={category.id} value={category.id}>
-                    <AccordionTrigger className="py-2 text-sm">
+                  <div key={category.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`category-${category.id}`} 
+                      checked={selectedCategory === category.id}
+                      onCheckedChange={(checked) => 
+                        handleCategoryChange(category.id, checked === true)
+                      }
+                    />
+                    <label
+                      htmlFor={`category-${category.id}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
                       {category.name}
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-2 pl-4">
-                        {category.subcategories.map((subcategory) => (
-                          <div key={subcategory.id} className="flex items-center space-x-2">
-                            <Checkbox id={subcategory.id} />
-                            <label
-                              htmlFor={subcategory.id}
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              {subcategory.name}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
+                    </label>
+                  </div>
                 ))}
-              </Accordion>
+              </div>
+              
+              {selectedCategory && (
+                <div className="mt-4 pl-4 space-y-2">
+                  <p className="text-sm font-medium mb-2">Sous-catégories</p>
+                  {categoriesData
+                    .find(cat => cat.id === selectedCategory)
+                    ?.subcategories.map((subCategory) => (
+                      <div key={subCategory.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`subcategory-${subCategory.id}`}
+                          checked={selectedSubcategories.includes(subCategory.id)}
+                          onCheckedChange={(checked) => 
+                            handleSubcategoryChange(subCategory.id, checked === true)
+                          }
+                        />
+                        <label
+                          htmlFor={`subcategory-${subCategory.id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {subCategory.name}
+                        </label>
+                      </div>
+                    ))}
+                </div>
+              )}
             </div>
           </AccordionContent>
         </AccordionItem>
 
-        {/* Artisan */}
+        {/* Artisans */}
         <AccordionItem value="artisans" className="border-b">
           <AccordionTrigger className="flex items-center py-4">
             <div className="flex items-center">
@@ -137,7 +254,13 @@ export function AdvancedFilters({ onApply }: AdvancedFiltersProps) {
             <div className="pl-6 pr-2 py-2 space-y-2 max-h-60 overflow-y-auto">
               {SAMPLE_ARTISANS.map((artisan) => (
                 <div key={artisan.id} className="flex items-center space-x-2">
-                  <Checkbox id={`artisan-${artisan.id}`} />
+                  <Checkbox 
+                    id={`artisan-${artisan.id}`}
+                    checked={selectedArtisans.includes(artisan.id)}
+                    onCheckedChange={(checked) => 
+                      handleArtisanChange(artisan.id, checked === true)
+                    }
+                  />
                   <label
                     htmlFor={`artisan-${artisan.id}`}
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -165,7 +288,6 @@ export function AdvancedFilters({ onApply }: AdvancedFiltersProps) {
                 <span>{priceRange[1]} €</span>
               </div>
               <Slider
-                defaultValue={[0, 500]}
                 max={1000}
                 step={10}
                 value={priceRange}
@@ -174,36 +296,56 @@ export function AdvancedFilters({ onApply }: AdvancedFiltersProps) {
             </div>
           </AccordionContent>
         </AccordionItem>
-
-        {/* Disponibilité */}
-        <AccordionItem value="availability" className="border-b">
+        
+        {/* Customer Rating - NEW */}
+        <AccordionItem value="rating" className="border-b">
           <AccordionTrigger className="flex items-center py-4">
             <div className="flex items-center">
-              <Package className="h-4 w-4 mr-2" />
-              <span>Disponibilité</span>
+              <Star className="h-4 w-4 mr-2" />
+              <span>Avis clients</span>
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="pl-6 pr-2 py-2 space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="in-stock" />
-                <label
-                  htmlFor="in-stock"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  En stock
-                </label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="on-order" />
-                <label
-                  htmlFor="on-order"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Sur commande
-                </label>
-              </div>
+            <RadioGroup 
+              className="pl-6 pr-2 py-2 space-y-2"
+              value={selectedRating?.toString()}
+              onValueChange={(value) => setSelectedRating(parseInt(value))}
+            >
+              {[4, 3, 2, 1].map((rating) => (
+                <div key={rating} className="flex items-center space-x-2">
+                  <RadioGroupItem value={rating.toString()} id={`rating-${rating}`} />
+                  <Label htmlFor={`rating-${rating}`} className="flex items-center">
+                    {rating}+ <Star className="h-3 w-3 ml-1 fill-yellow-500 text-yellow-500" />
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Délai de livraison - UPDATED */}
+        <AccordionItem value="delivery" className="border-b">
+          <AccordionTrigger className="flex items-center py-4">
+            <div className="flex items-center">
+              <Clock className="h-4 w-4 mr-2" />
+              <span>Délai de livraison</span>
             </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <RadioGroup 
+              className="pl-6 pr-2 py-2 space-y-2"
+              value={selectedDelivery}
+              onValueChange={setSelectedDelivery}
+            >
+              {fabricationTimes.map((time) => (
+                <div key={time.id} className="flex items-center space-x-2">
+                  <RadioGroupItem value={time.id} id={`time-${time.id}`} />
+                  <Label htmlFor={`time-${time.id}`}>
+                    {time.label}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
           </AccordionContent>
         </AccordionItem>
 
@@ -256,52 +398,27 @@ export function AdvancedFilters({ onApply }: AdvancedFiltersProps) {
             </div>
           </AccordionContent>
         </AccordionItem>
+      </Accordion>
 
-        {/* Délai de fabrication */}
-        <AccordionItem value="fabrication" className="border-b">
-          <AccordionTrigger className="flex items-center py-4">
-            <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-2" />
-              <span>Délai de fabrication</span>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent>
-            <div className="pl-6 pr-2 py-2 space-y-2">
-              {fabricationTimes.map((time) => (
-                <div key={time.id} className="flex items-center space-x-2">
-                  <Checkbox id={`time-${time.id}`} />
-                  <label
-                    htmlFor={`time-${time.id}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {time.label}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
+      <Separator />
 
-        <Separator />
-
-        <div className="flex justify-between">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={handleReset}
-          >
-            Réinitialiser
-          </Button>
-          <Button 
-            type="button" 
-            className="bg-terracotta-600 hover:bg-terracotta-700 text-white"
-            onClick={handleApplyFilters}
-          >
-            Appliquer les filtres
-          </Button>
-        </div>
-      </form>
-    </Form>
+      <div className="flex justify-between">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={handleReset}
+        >
+          Réinitialiser
+        </Button>
+        <Button 
+          type="button" 
+          className="bg-terracotta-600 hover:bg-terracotta-700 text-white"
+          onClick={handleApplyFilters}
+        >
+          Appliquer les filtres
+        </Button>
+      </div>
+    </div>
   );
 }
 

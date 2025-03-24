@@ -1,112 +1,70 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
 import { categoriesData } from '@/data/categories';
 import { cn } from '@/lib/utils';
+import { Link, useNavigate } from 'react-router-dom';
 
-interface CategoryNavigationProps {
-  onClose: () => void;
-}
+export function CategoryNavigation() {
+  const [openCategory, setOpenCategory] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-export function CategoryNavigation({ onClose }: CategoryNavigationProps) {
-  const [activeMainCategory, setActiveMainCategory] = useState<string | null>(null);
-  const [activeSubCategory, setActiveSubCategory] = useState<string | null>(null);
-
-  const handleMainCategoryHover = (category: string) => {
-    setActiveMainCategory(category);
-    setActiveSubCategory(null);
+  const handleNavigateToCategory = (categoryId: string) => {
+    navigate(`/search?category=${categoryId}`);
   };
 
-  const handleSubCategoryHover = (subCategory: string) => {
-    setActiveSubCategory(subCategory);
+  const handleNavigateToSubcategory = (categoryId: string, subcategoryId: string) => {
+    navigate(`/search?category=${categoryId}&subcategory=${subcategoryId}`);
   };
 
   return (
-    <div 
-      className="absolute left-0 right-0 top-full bg-white shadow-lg border-t z-50 animate-fade-in"
-      onMouseLeave={onClose}
-    >
-      <div className="max-w-7xl mx-auto">
-        <div className="flex">
-          {/* Main Categories */}
-          <div className="w-1/4 py-6 border-r">
-            <ul className="space-y-1">
-              {categoriesData.map((category) => (
-                <li key={category.id}>
-                  <button
-                    className={cn(
-                      "w-full text-left px-6 py-2 text-sm hover:bg-cream-50 hover:text-terracotta-600 transition-colors",
-                      activeMainCategory === category.id && "bg-cream-50 text-terracotta-600"
-                    )}
-                    onMouseEnter={() => handleMainCategoryHover(category.id)}
-                  >
-                    {category.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Sub Categories */}
-          {activeMainCategory && (
-            <div className="w-1/4 py-6 border-r">
-              <ul className="space-y-1">
-                {categoriesData
-                  .find(cat => cat.id === activeMainCategory)
-                  ?.subcategories.map((subCategory) => (
-                    <li key={subCategory.id}>
-                      <button
-                        className={cn(
-                          "w-full text-left px-6 py-2 text-sm hover:bg-cream-50 hover:text-terracotta-600 transition-colors",
-                          activeSubCategory === subCategory.id && "bg-cream-50 text-terracotta-600"
-                        )}
-                        onMouseEnter={() => handleSubCategoryHover(subCategory.id)}
-                      >
-                        {subCategory.name}
-                      </button>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Products Categories */}
-          {activeSubCategory && (
-            <div className="w-2/4 py-6">
-              <div className="grid grid-cols-2 gap-2">
-                {categoriesData
-                  .find(cat => cat.id === activeMainCategory)
-                  ?.subcategories
-                  .find(subCat => subCat.id === activeSubCategory)
-                  ?.products.map((product) => (
+    <NavigationMenu className="hidden lg:flex">
+      <NavigationMenuList>
+        {categoriesData.map((category) => (
+          <NavigationMenuItem key={category.id}>
+            <NavigationMenuTrigger 
+              onClick={() => setOpenCategory(openCategory === category.id ? null : category.id)}
+              className={cn(
+                navigationMenuTriggerStyle(),
+                "bg-transparent text-white hover:bg-white/20 hover:text-white focus:bg-white/20 data-[active]:bg-white/20 data-[state=open]:bg-white/20"
+              )}
+            >
+              {category.name} <ChevronDown className="ml-1 h-3 w-3" />
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid gap-3 p-4 w-[400px] md:w-[500px] lg:grid-cols-2">
+                <li className="col-span-2">
+                  <NavigationMenuLink asChild>
                     <Link
-                      key={product.id}
-                      to={`/search?category=${activeMainCategory}&subcategory=${activeSubCategory}&product=${product.id}`}
-                      className="px-6 py-2 text-sm hover:bg-cream-50 hover:text-terracotta-600 transition-colors flex items-center"
-                      onClick={onClose}
+                      to={`/search?category=${category.id}`}
+                      className="flex items-center select-none space-y-1 rounded-md bg-terracotta-50 p-3 leading-none no-underline outline-none transition-colors hover:bg-terracotta-100 hover:text-terracotta-900 focus:bg-terracotta-100 focus:text-terracotta-900"
                     >
-                      <ChevronRight className="h-3 w-3 mr-2 text-terracotta-600" />
-                      {product.name}
+                      <div className="text-sm font-medium leading-none">Tous les {category.name}</div>
+                      <div className="text-sm line-clamp-2 text-muted-foreground">
+                        Découvrez notre collection complète
+                      </div>
                     </Link>
-                  ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* View all products link */}
-        <div className="p-6 bg-cream-50 text-center">
-          <Link 
-            to="/search" 
-            className="text-sm font-medium text-terracotta-600 hover:underline"
-            onClick={onClose}
-          >
-            View All Products
-          </Link>
-        </div>
-      </div>
-    </div>
+                  </NavigationMenuLink>
+                </li>
+                {category.subcategories.map((subcategory) => (
+                  <li key={subcategory.id}>
+                    <NavigationMenuLink asChild>
+                      <Link
+                        to={`/search?category=${category.id}&subcategory=${subcategory.id}`}
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        <div className="text-sm font-medium leading-none">{subcategory.name}</div>
+                      </Link>
+                    </NavigationMenuLink>
+                  </li>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        ))}
+      </NavigationMenuList>
+    </NavigationMenu>
   );
 }
 

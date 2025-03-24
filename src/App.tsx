@@ -20,7 +20,14 @@ import Auth from "./pages/Auth";
 import Cart from "./pages/Cart";
 import Search from "./pages/Search";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
