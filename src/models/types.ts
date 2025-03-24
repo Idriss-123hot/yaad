@@ -1,4 +1,3 @@
-
 export interface Product {
   id: string;
   title: string;
@@ -46,6 +45,11 @@ export interface Category {
   description?: string;
   image: string;
   productCount: number;
+}
+
+// Define the ProductWithArtisan type that combines a Product with its associated Artisan
+export interface ProductWithArtisan extends Product {
+  artisan?: Artisan;
 }
 
 // Sample data for our initial UI
