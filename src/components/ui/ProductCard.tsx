@@ -1,128 +1,80 @@
 
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Product } from '@/models/types';
-import { cn } from '@/lib/utils';
+import { cn, getImageWithFallback } from '@/lib/utils';
+import { ProductWithArtisan } from '@/models/types';
+import { Star } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface ProductCardProps {
-  product: Product;
-  variant?: 'default' | 'horizontal';
+  product: ProductWithArtisan;
   className?: string;
 }
 
-export function ProductCard({ product, variant = 'default', className }: ProductCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const hasDiscount = product.discountPrice !== undefined;
+export function ProductCard({ product, className }: ProductCardProps) {
+  const { id, title, price, discountPrice, rating, reviewCount, images, artisan } = product;
+  
+  const firstImage = images && images.length > 0 ? images[0] : undefined;
+  const imageUrl = getImageWithFallback(firstImage);
+  
+  const artisanName = artisan?.name || 'Artisan Marocain';
   
   return (
-    <div 
+    <Link 
+      to={`/products/${id}`}
       className={cn(
-        'group bg-white rounded-lg overflow-hidden transition-all duration-300 hover:shadow-md',
-        variant === 'horizontal' ? 'flex flex-row' : 'flex flex-col',
+        "group flex flex-col overflow-hidden rounded-lg transition-all duration-300",
         className
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Product Image */}
-      <div className={cn(
-        'relative aspect-square overflow-hidden',
-        variant === 'horizontal' ? 'w-1/3' : 'w-full'
-      )}>
-        <Link to={`/products/${product.id}`}>
-          <div className="zoom-image-container">
-            <img 
-              src={product.images[0]} 
-              alt={product.title} 
-              className="zoom-image"
-            />
-          </div>
-        </Link>
+      <div className="aspect-square overflow-hidden rounded-lg bg-muted mb-3 relative">
+        <img
+          src={imageUrl}
+          alt={title}
+          className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+          onError={(e) => {
+            e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+          }}
+        />
         
-        {/* Wishlist button */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/90"
-        >
-          <Heart className="h-4 w-4 text-gray-600" />
-          <span className="sr-only">Add to wishlist</span>
-        </Button>
-
-        {/* Discount tag */}
-        {hasDiscount && (
-          <span className="absolute top-3 left-3 bg-terracotta-600 text-white text-xs font-medium px-2 py-1 rounded">
-            Sale
-          </span>
-        )}
-      </div>
-
-      {/* Product Info */}
-      <div className={cn(
-        'flex flex-col p-4',
-        variant === 'horizontal' ? 'w-2/3' : 'w-full'
-      )}>
-        <span className="text-xs text-muted-foreground mb-1">{product.category}</span>
-        <Link to={`/products/${product.id}`} className="group-hover:text-terracotta-600 transition-colors">
-          <h3 className="font-medium text-base mb-2 line-clamp-1">{product.title}</h3>
-        </Link>
-        
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex items-center">
-            {[...Array(5)].map((_, index) => (
-              <svg 
-                key={index} 
-                className={`w-3 h-3 ${index < Math.floor(product.rating) ? 'text-amber-500' : 'text-gray-300'}`} 
-                fill="currentColor" 
-                viewBox="0 0 20 20"
-              >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            ))}
-          </div>
-          <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
-        </div>
-
-        {variant === 'horizontal' && (
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-            {product.description}
-          </p>
-        )}
-
-        <div className="mt-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {hasDiscount ? (
-              <>
-                <span className="font-medium text-terracotta-600">
-                  ${product.discountPrice?.toFixed(2)}
-                </span>
-                <span className="text-sm text-muted-foreground line-through">
-                  ${product.price.toFixed(2)}
-                </span>
-              </>
-            ) : (
-              <span className="font-medium">
-                ${product.price.toFixed(2)}
-              </span>
-            )}
-          </div>
-          
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className={cn(
-              "p-1 rounded-full transition-all",
-              isHovered ? "bg-terracotta-600 text-white" : "bg-terracotta-50 text-terracotta-600"
-            )}
+        {discountPrice && (
+          <Badge 
+            className="absolute top-2 left-2 bg-terracotta-600/90 hover:bg-terracotta-600"
           >
-            <ShoppingBag className="h-4 w-4" />
-            <span className="sr-only">Add to cart</span>
-          </Button>
+            -{Math.round(((price - discountPrice) / price) * 100)}%
+          </Badge>
+        )}
+      </div>
+      
+      {/* Product Info */}
+      <div className="flex-1 flex flex-col">
+        <h3 className="font-medium text-base line-clamp-2 mb-1 group-hover:text-terracotta-600">
+          {title}
+        </h3>
+        <p className="text-sm text-muted-foreground mb-2">
+          Par {artisanName}
+        </p>
+        <div className="flex items-center mt-auto">
+          <div className="flex items-center">
+            <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+            <span className="text-sm font-medium ml-1">{rating?.toFixed(1) || "4.5"}</span>
+            <span className="text-xs text-muted-foreground ml-1">
+              ({reviewCount || "0"})
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between mt-2">
+          {discountPrice ? (
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-medium">{discountPrice}€</span>
+              <span className="text-sm text-muted-foreground line-through">{price}€</span>
+            </div>
+          ) : (
+            <span className="text-lg font-medium">{price}€</span>
+          )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

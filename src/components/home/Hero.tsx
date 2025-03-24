@@ -2,6 +2,7 @@
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 export function Hero() {
   const [loaded, setLoaded] = useState(false);
@@ -9,9 +10,9 @@ export function Hero() {
 
   // Array of banner images to rotate through
   const bannerImages = [
-    "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/sign/yaadhomepage/Photo%20salon%20marocain.jpeg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ5YWFkaG9tZXBhZ2UvUGhvdG8gc2Fsb24gbWFyb2NhaW4uanBlZyIsImlhdCI6MTc0MjcyMjIzMywiZXhwIjoxNzc0MjU4MjMzfQ.wvZWoEAcdTY3hycpzS96FpNsCNpG0PbSArXrgrFMC9U",
-    "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/sign/yaadhomepage/Cusine%20Marocaine.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ5YWFkaG9tZXBhZ2UvQ3VzaW5lIE1hcm9jYWluZS5wbmciLCJpYXQiOjE3NDI3MjMzNDgsImV4cCI6MTc3NDI1OTM0OH0.lpjfeptVjCzU19i59pgvceax2fDAzctwosKf4iEc5TI",
-    "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/sign/yaadhomepage/Chambre%20Marocaine.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ5YWFkaG9tZXBhZ2UvQ2hhbWJyZSBNYXJvY2FpbmUucG5nIiwiaWF0IjoxNzQyNzIzMzc4LCJleHAiOjE3NzQyNTkzNzh9.lk7lIfYnu6D-zR7BZyKcPvd9Xmh5t8KG3BWKDxLigL8"
+    "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/yaadhomepage/Photo%20salon%20marocain.jpeg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ5YWFkaG9tZXBhZ2UvUGhvdG8gc2Fsb24gbWFyb2NhaW4uanBlZyIsImlhdCI6MTc0MjcyMjIzMywiZXhwIjoxNzc0MjU4MjMzfQ.wvZWoEAcdTY3hycpzS96FpNsCNpG0PbSArXrgrFMC9U",
+    "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/yaadhomepage/Cusine%20Marocaine.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ5YWFkaG9tZXBhZ2UvQ3VzaW5lIE1hcm9jYWluZS5wbmciLCJpYXQiOjE3NDI3MjMzNDgsImV4cCI6MTc3NDI1OTM0OH0.lpjfeptVjCzU19i59pgvceax2fDAzctwosKf4iEc5TI",
+    "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/yaadhomepage/Chambre%20Marocaine.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ5YWFkaG9tZXBhZ2UvQ2hhbWJyZSBNYXJvY2FpbmUucG5nIiwiaWF0IjoxNzQyNzIzMzc4LCJleHAiOjE3NzQyNTkzNzh9.lk7lIfYnu6D-zR7BZyKcPvd9Xmh5t8KG3BWKDxLigL8"
   ];
 
   useEffect(() => {
@@ -27,9 +28,9 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative h-[56vh] overflow-hidden pt-12">
-      {/* Background Image with Rotation */}
-      <div className="absolute inset-0 z-0">
+    <section className="relative h-[56vh] overflow-hidden pt-8">
+      {/* Background Image with Rotation - Adjusted position */}
+      <div className="absolute inset-0 z-0 top-[-15%]">
         <div 
           className="absolute inset-0 bg-gradient-to-r from-background/90 to-background/50 z-10"
           aria-hidden="true"
@@ -70,20 +71,24 @@ export function Hero() {
           </p>
           
           <div className={loaded ? 'flex flex-col sm:flex-row gap-4 animate-fade-in' : 'flex flex-col sm:flex-row gap-4'}>
-            <Button 
-              className="bg-terracotta-600 hover:bg-terracotta-700 text-white px-8 py-6"
-              size="lg"
-            >
-              Explorer Nos Produits
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              className="border-terracotta-200 text-foreground hover:bg-terracotta-50 px-8 py-6"
-              size="lg"
-            >
-              Rencontrer Nos Artisans
-            </Button>
+            <Link to="/search">
+              <Button 
+                className="bg-terracotta-600 hover:bg-terracotta-700 text-white px-8 py-6 w-full sm:w-auto"
+                size="lg"
+              >
+                Explorer Nos Produits
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <Link to="/artisans">
+              <Button 
+                variant="outline" 
+                className="border-terracotta-200 text-foreground hover:bg-terracotta-50 px-8 py-6 w-full sm:w-auto"
+                size="lg"
+              >
+                Rencontrer Nos Artisans
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

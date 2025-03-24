@@ -1,6 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import { categoriesData } from '@/data/categories';
+import { getImageWithFallback } from '@/lib/utils';
 
 export function Categories() {
   return (
@@ -24,9 +25,12 @@ export function Categories() {
               className="group relative overflow-hidden rounded-xl h-60 lg:h-72 hover-lift"
             >
               <img
-                src={category.image}
+                src={getImageWithFallback(category.image)}
                 alt={category.name}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                onError={(e) => {
+                  e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
               <div className="absolute bottom-4 left-4 text-white">

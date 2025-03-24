@@ -25,3 +25,8 @@ export function debounce<T extends (...args: any[]) => any>(
     timeout = setTimeout(later, wait);
   };
 }
+
+// Add a utility function for handling image fallbacks
+export const getImageWithFallback = (imageUrl: string | undefined) => {
+  return imageUrl || "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+};

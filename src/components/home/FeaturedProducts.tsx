@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { Link } from 'react-router-dom';
+import { getImageWithFallback } from '@/lib/utils';
 
 // Updated product data with real images
 const FEATURED_PRODUCTS = [
