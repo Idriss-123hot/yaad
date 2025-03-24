@@ -29,10 +29,18 @@ export function Hero() {
     return () => clearInterval(intervalId);
   }, []);
 
+  // Fonction pour précharger les images
+  useEffect(() => {
+    bannerImages.forEach((url) => {
+      const img = new Image();
+      img.src = url;
+    });
+  }, []);
+
   return (
-    <section className="relative h-[56vh] overflow-hidden pt-8">
-      {/* Background Image with Rotation - Adjusted position */}
-      <div className="absolute inset-0 z-0 top-[-15%]">
+    <section className="relative h-[65vh] overflow-hidden pt-8">
+      {/* Background Image with Rotation - Réajustement de la position */}
+      <div className="absolute inset-0 z-0 top-[-5%] md:top-[-10%]">
         <div 
           className="absolute inset-0 bg-gradient-to-r from-background/90 to-background/50 z-10"
           aria-hidden="true"
@@ -40,12 +48,15 @@ export function Hero() {
         {bannerImages.map((src, index) => (
           <img 
             key={index}
-            src={getImageWithFallback(src)}
+            src={src}
             alt={`Moroccan interior design ${index + 1}`}
-            className={`w-full h-full object-cover object-center transition-opacity duration-1000 absolute inset-0 ${
+            className={`w-full h-[120%] object-cover object-center transition-opacity duration-1000 absolute inset-0 ${
               currentImageIndex === index ? 'opacity-100' : 'opacity-0'
             }`}
-            onError={() => setImageError(true)}
+            onError={(e) => {
+              console.error("Error loading image:", src);
+              e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+            }}
           />
         ))}
       </div>

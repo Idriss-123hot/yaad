@@ -26,7 +26,16 @@ export function debounce<T extends (...args: any[]) => any>(
   };
 }
 
-// Add a utility function for handling image fallbacks
+// Add a utility function for handling image fallbacks with enhanced error handling
 export const getImageWithFallback = (imageUrl: string | undefined) => {
-  return imageUrl || "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+  if (!imageUrl) {
+    console.log("No image URL provided, returning fallback");
+    return "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+  }
+  
+  // Clean URL from any tokens if present
+  const cleanUrl = imageUrl.split('?')[0];
+  console.log("Using image URL:", cleanUrl);
+  
+  return cleanUrl;
 };
