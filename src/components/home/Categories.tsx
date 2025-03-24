@@ -1,3 +1,4 @@
+
 import { Link } from 'react-router-dom';
 import { categoriesData } from '@/data/categories';
 
@@ -23,7 +24,7 @@ export function Categories() {
               className="group relative overflow-hidden rounded-xl h-60 lg:h-72 hover-lift"
             >
               <img
-                src={category.imageUrl}
+                src={category.image}
                 alt={category.name}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               />

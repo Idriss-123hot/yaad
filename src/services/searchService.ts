@@ -43,14 +43,14 @@ const searchProductsWithEdgeFunction = async (filters: SearchFilters): Promise<{
     const { q, category, subcategory, minPrice, maxPrice, rating, delivery, artisans, sort, page = 1, limit = 20 } = filters;
     
     // Build URL for the edge function
-    const url = new URL(`${supabase.supabaseUrl}/functions/v1/search`);
+    const url = new URL(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/search`);
     
     if (q) url.searchParams.append('q', q);
     url.searchParams.append('type', 'products');
     
     const response = await fetch(url.toString(), {
       headers: {
-        'Authorization': `Bearer ${supabase.supabaseKey}`,
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
       },
     });
