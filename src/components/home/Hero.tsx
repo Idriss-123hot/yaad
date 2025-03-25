@@ -3,35 +3,48 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getImageWithFallback } from '@/lib/utils';
+
+// =====================================================
+// CONFIGURATION DES IMAGES - ZONE MODIFIABLE
+// =====================================================
+// Changez simplement les URLs ci-dessous pour modifier les images du carrousel
+// Format: chaque URL doit pointer vers une image valide
+// ATTENTION: Ne modifiez que les URLs entre guillemets
+const HEADER_IMAGES = [
+  "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/yaadhomepage/Photo%20salon%20marocain.jpeg",
+  "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/yaadhomepage/Cusine%20Marocaine.png",
+  "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/yaadhomepage/Chambre%20Marocaine.png"
+];
+
+// Image de secours en cas d'erreur de chargement
+const FALLBACK_IMAGE = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+
+// Intervalle de rotation des images (en millisecondes)
+const ROTATION_INTERVAL = 3000; // 3 secondes
+// =====================================================
+// FIN DE LA ZONE MODIFIABLE
+// =====================================================
 
 export function Hero() {
   const [loaded, setLoaded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [imageError, setImageError] = useState(false);
 
-  // Array of banner images to rotate through
-  const bannerImages = [
-    "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/yaadhomepage/Photo%20salon%20marocain.jpeg",
-    "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/yaadhomepage/Cusine%20Marocaine.png",
-    "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/yaadhomepage/Chambre%20Marocaine.png"
-  ];
-
+  // Configuration de la rotation automatique des images
   useEffect(() => {
     setLoaded(true);
     
-    // Set up image rotation every 3 seconds
+    // Démarrage de la rotation automatique
     const intervalId = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % bannerImages.length);
-    }, 3000);
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % HEADER_IMAGES.length);
+    }, ROTATION_INTERVAL);
     
-    // Clear interval on component unmount
+    // Nettoyage de l'intervalle lors du démontage du composant
     return () => clearInterval(intervalId);
   }, []);
 
-  // Fonction pour précharger les images
+  // Préchargement des images pour une transition plus fluide
   useEffect(() => {
-    bannerImages.forEach((url) => {
+    HEADER_IMAGES.forEach((url) => {
       const img = new Image();
       img.src = url;
     });
@@ -39,29 +52,32 @@ export function Hero() {
 
   return (
     <section className="relative h-[65vh] overflow-hidden pt-8">
-      {/* Background Image with Rotation - Réajustement de la position */}
+      {/* Carrousel d'images en arrière-plan */}
       <div className="absolute inset-0 z-0 top-[-5%] md:top-[-10%]">
+        {/* Dégradé pour améliorer la lisibilité du texte */}
         <div 
           className="absolute inset-0 bg-gradient-to-r from-background/90 to-background/50 z-10"
           aria-hidden="true"
         />
-        {bannerImages.map((src, index) => (
+        
+        {/* Images du carrousel */}
+        {HEADER_IMAGES.map((src, index) => (
           <img 
             key={index}
             src={src}
-            alt={`Moroccan interior design ${index + 1}`}
+            alt={`Intérieur marocain ${index + 1}`}
             className={`w-full h-[120%] object-cover object-center transition-opacity duration-1000 absolute inset-0 ${
               currentImageIndex === index ? 'opacity-100' : 'opacity-0'
             }`}
             onError={(e) => {
-              console.error("Error loading image:", src);
-              e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+              console.error("Erreur de chargement de l'image:", src);
+              e.currentTarget.src = FALLBACK_IMAGE;
             }}
           />
         ))}
       </div>
 
-      {/* Content */}
+      {/* Contenu principal */}
       <div className="relative z-10 h-full flex flex-col justify-center max-w-7xl mx-auto px-6 md:px-12">
         <div className="max-w-2xl">
           <div className={loaded ? 'animate-fade-in' : ''}>
@@ -107,7 +123,7 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Scroll indicator */}
+      {/* Indicateur de défilement */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
         <div className="w-8 h-12 rounded-full border-2 border-terracotta-300 flex items-start justify-center p-2">
           <div className="w-1 h-3 bg-terracotta-500 rounded-full" />
