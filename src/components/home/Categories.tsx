@@ -3,7 +3,21 @@ import { Link } from 'react-router-dom';
 import { categoriesData } from '@/data/categories';
 import { getImageWithFallback } from '@/lib/utils';
 
+// Images d'inspiration marocaine pour chaque catégorie principale
+const CATEGORY_IMAGES = {
+  "home-decor": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Photo%20salon%20marocain.jpeg",
+  "women": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-doreilles-oufla-boucles-doreilles-417821_1024x1024@2x.jpeg",
+  "men": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//berber-plaid-with-white-pompoms-and-pink-stripes.jpeg",
+  "skincare": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-281478.webp",
+  "gourmet": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Cusine%20Marocaine.png"
+};
+
 export function Categories() {
+  // Fonction pour obtenir l'image personnalisée pour chaque catégorie
+  const getCategoryImage = (categoryId: string) => {
+    return CATEGORY_IMAGES[categoryId as keyof typeof CATEGORY_IMAGES] || getImageWithFallback(undefined);
+  };
+
   return (
     <section className="py-16 px-6 md:px-12">
       <div className="max-w-7xl mx-auto">
@@ -25,7 +39,7 @@ export function Categories() {
               className="group relative overflow-hidden rounded-xl h-60 lg:h-72 hover-lift"
             >
               <img
-                src={getImageWithFallback(category.image)}
+                src={getCategoryImage(category.id)}
                 alt={category.name}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                 onError={(e) => {

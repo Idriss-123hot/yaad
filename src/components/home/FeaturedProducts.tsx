@@ -3,12 +3,11 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { Link } from 'react-router-dom';
-import { getImageWithFallback } from '@/lib/utils';
 
-// Updated product data with real images
+// Données des produits mis en avant avec IDs uniques et routes correctes
 const FEATURED_PRODUCTS = [
   {
-    id: '1',
+    id: 'ceramic-vase',
     title: 'Handmade Ceramic Vase',
     description: 'A beautiful handcrafted ceramic vase with natural glaze finish.',
     price: 89.99,
@@ -23,7 +22,7 @@ const FEATURED_PRODUCTS = [
     createdAt: new Date('2023-09-15')
   },
   {
-    id: '2',
+    id: 'wool-blanket',
     title: 'Hand-woven Wool Blanket',
     description: 'Luxurious hand-woven wool blanket using traditional techniques.',
     price: 149.99,
@@ -38,7 +37,7 @@ const FEATURED_PRODUCTS = [
     createdAt: new Date('2023-10-01')
   },
   {
-    id: '3',
+    id: 'wooden-serving-board',
     title: 'Handcrafted Wooden Serving Board',
     description: 'Elegant serving board made from sustainable hardwood.',
     price: 59.99,
@@ -54,7 +53,7 @@ const FEATURED_PRODUCTS = [
     createdAt: new Date('2023-08-22')
   },
   {
-    id: '4',
+    id: 'silver-earrings',
     title: 'Artisanal Silver Earrings',
     description: 'Delicate silver earrings handcrafted by skilled artisans.',
     price: 79.99,
@@ -69,6 +68,9 @@ const FEATURED_PRODUCTS = [
     createdAt: new Date('2023-10-10')
   }
 ];
+
+// Code exporté pour être réutilisé dans les pages produits
+export { FEATURED_PRODUCTS };
 
 export function FeaturedProducts() {
   return (

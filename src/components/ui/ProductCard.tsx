@@ -4,6 +4,7 @@ import { cn, getImageWithFallback } from '@/lib/utils';
 import { ProductWithArtisan } from '@/models/types';
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { FEATURED_PRODUCTS } from '@/components/home/FeaturedProducts';
 
 interface ProductCardProps {
   product: ProductWithArtisan;
@@ -18,9 +19,13 @@ export function ProductCard({ product, className }: ProductCardProps) {
   
   const artisanName = artisan?.name || 'Artisan Marocain';
   
+  // Vérifier si c'est un produit mis en avant pour déterminer la route correcte
+  const isFeaturedProduct = FEATURED_PRODUCTS.some(p => p.id === id);
+  const productLink = isFeaturedProduct ? `/featured/${id}` : `/products/${id}`;
+  
   return (
     <Link 
-      to={`/products/${id}`}
+      to={productLink}
       className={cn(
         "group flex flex-col overflow-hidden rounded-lg transition-all duration-300",
         className
