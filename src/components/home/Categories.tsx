@@ -13,7 +13,7 @@ export function Categories() {
           </span>
           <h2 className="font-serif text-3xl md:text-4xl font-bold">Moroccan Artisanal Products</h2>
           <p className="mt-4 text-muted-foreground max-w-3xl mx-auto">
-            Discover the rich heritage and exceptional craftsmanship of Morocco through our carefully curated collection of authentic handcrafted products.
+            Découvrez le riche patrimoine et le savoir-faire exceptionnel du Maroc à travers notre collection soigneusement sélectionnée de produits artisanaux authentiques.
           </p>
         </div>
 
