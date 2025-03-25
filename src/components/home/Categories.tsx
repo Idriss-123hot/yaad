@@ -9,7 +9,7 @@ export function Categories() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <span className="inline-block bg-terracotta-100 text-terracotta-800 px-3 py-1 rounded-full text-xs font-medium mb-3">
-            Browse by Category
+            Rechercher par catégories
           </span>
           <h2 className="font-serif text-3xl md:text-4xl font-bold">Moroccan Artisanal Products</h2>
           <p className="mt-4 text-muted-foreground max-w-3xl mx-auto">
