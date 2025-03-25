@@ -11,7 +11,7 @@ export function Categories() {
           <span className="inline-block bg-terracotta-100 text-terracotta-800 px-3 py-1 rounded-full text-xs font-medium mb-3">
             Rechercher par catégories
           </span>
-          <h2 className="font-serif text-3xl md:text-4xl font-bold">Moroccan Artisanal Products</h2>
+          <h2 className="font-serif text-3xl md:text-4xl font-bold">Produits de l'Artisanat Marocain</h2>
           <p className="mt-4 text-muted-foreground max-w-3xl mx-auto">
             Découvrez le riche patrimoine et le savoir-faire exceptionnel du Maroc à travers notre collection soigneusement sélectionnée de produits artisanaux authentiques.
           </p>
