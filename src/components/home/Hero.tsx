@@ -11,9 +11,9 @@ import { Link } from 'react-router-dom';
 // Format: chaque URL doit pointer vers une image valide
 // ATTENTION: Ne modifiez que les URLs entre guillemets
 const HEADER_IMAGES = [
-  "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/yaadhomepage/Photo%20salon%20marocain.jpeg",
-  "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/yaadhomepage/Cusine%20Marocaine.png",
-  "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/yaadhomepage/Chambre%20Marocaine.png"
+  "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Photo%20salon%20marocain.jpeg",
+  "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Cusine%20Marocaine.png",
+  "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Chambre%20Marocaine.png"
 ];
 
 // Image de secours en cas d'erreur de chargement
