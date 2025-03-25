@@ -16,6 +16,7 @@ import BlogPost from './pages/BlogPost';
 import Auth from './pages/Auth';
 import NotFound from './pages/NotFound';
 import CategoryDetailWithProducts from './pages/CategoryDetailWithProducts';
+import { Toaster } from './components/ui/toaster';
 
 import './App.css';
 
@@ -40,6 +41,7 @@ function App() {
         <Route path="/artisans/:id" element={<ArtisanDetail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <Toaster />
     </Router>
   );
 }
