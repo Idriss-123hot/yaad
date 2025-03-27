@@ -18,7 +18,6 @@ const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<ProductWithArtisan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
   
   const query = searchParams.get('q') || '';
   const category = searchParams.get('category') || '';
@@ -50,7 +49,7 @@ const Search = () => {
   const activeCategoryData = categoriesData.find(c => c.id === category);
   const activeSubcategoryData = activeCategoryData?.subcategories?.find(s => s.id === subcategory);
   
-  // Handle filter application
+  // Handle filter application - now automatic without button click
   const handleFilterApply = (filters: any) => {
     // Update search params based on filters
     const newParams = new URLSearchParams(searchParams);
@@ -101,7 +100,7 @@ const Search = () => {
               {/* Search Bar */}
               <SearchBar initialQuery={query} />
               
-              {/* Filter Toggle */}
+              {/* Search Info */}
               <div className="flex justify-between items-center mt-4">
                 <div>
                   <h1 className="text-xl font-medium">
@@ -116,15 +115,6 @@ const Search = () => {
                     {products.length} produits trouvés
                   </p>
                 </div>
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-1"
-                >
-                  <SlidersHorizontal className="h-4 w-4 mr-1" />
-                  Filtres
-                </Button>
               </div>
             </div>
           </div>
@@ -134,16 +124,21 @@ const Search = () => {
         <section className="py-8 px-6 md:px-12">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              {/* Filters Sidebar */}
-              {showFilters && (
-                <aside className="md:block">
-                  <h2 className="font-medium text-lg mb-4">Filtres</h2>
-                  <AdvancedFilters onApply={handleFilterApply} />
-                </aside>
-              )}
+              {/* Filters Sidebar - Now Always Visible */}
+              <aside className="md:block">
+                <h2 className="font-medium text-lg mb-4">Filtres</h2>
+                <AdvancedFilters 
+                  onApply={handleFilterApply}
+                  initialFilters={{
+                    q: query,
+                    category: category,
+                    subcategory: subcategory
+                  }}
+                />
+              </aside>
               
               {/* Products Grid */}
-              <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 ${showFilters ? 'md:col-span-3' : 'md:col-span-4'}`}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:col-span-3">
                 {loading ? (
                   [...Array(6)].map((_, i) => (
                     <div key={i} className="aspect-square bg-gray-100 rounded-lg animate-pulse"></div>

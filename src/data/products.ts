@@ -103,17 +103,32 @@ export const generateCategoryProducts = (): ProductWithArtisan[] => {
 // Generate all the products
 export const PRODUCTS = generateCategoryProducts();
 
-// Helper function to get products by main category and subcategory
+// Helper function to get products by main category and subcategory - updated to support multiple subcategories
 export const getProductsByCategory = (mainCategory?: string, subcategory?: string): ProductWithArtisan[] => {
   if (!mainCategory) {
     return PRODUCTS;
   }
   
+  // Show all products in the main category if no subcategory filter
   if (!subcategory) {
     return PRODUCTS.filter(product => product.mainCategory === mainCategory);
   }
   
-  return PRODUCTS.filter(product => product.mainCategory === mainCategory && product.subcategory === subcategory);
+  // For backward compatibility
+  const subcategories = subcategory.split(',');
+  
+  // If multiple subcategories, show all products from any of the selected subcategories
+  if (subcategories.length > 1) {
+    return PRODUCTS.filter(
+      product => product.mainCategory === mainCategory && 
+                subcategories.includes(product.subcategory || '')
+    );
+  }
+  
+  // Single subcategory case
+  return PRODUCTS.filter(
+    product => product.mainCategory === mainCategory && product.subcategory === subcategory
+  );
 };
 
 // Helper to get a product by ID

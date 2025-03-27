@@ -97,6 +97,19 @@ export function AdvancedFilters({ onApply, initialFilters = {} }: AdvancedFilter
     { id: 'economy', label: 'Sur-mesure (7+ jours)' }
   ];
 
+  // Apply filters automatically when selections change
+  useEffect(() => {
+    applyFilters();
+  }, [selectedCategory, selectedSubcategories, selectedArtisans, selectedRating, selectedDelivery]);
+
+  // Also apply filters when price range changes (with debounce)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      applyFilters();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [priceRange]);
+
   // Update selected category
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     if (checked) {
@@ -108,7 +121,7 @@ export function AdvancedFilters({ onApply, initialFilters = {} }: AdvancedFilter
     }
   };
   
-  // Update selected subcategories
+  // Update selected subcategories - now allows multiple selections
   const handleSubcategoryChange = (subcategoryId: string, checked: boolean) => {
     if (checked) {
       setSelectedSubcategories(prev => [...prev, subcategoryId]);
@@ -126,7 +139,7 @@ export function AdvancedFilters({ onApply, initialFilters = {} }: AdvancedFilter
     }
   };
   
-  // Reset all filters
+  // Reset all filters and apply immediately
   const handleReset = () => {
     setSelectedCategory(undefined);
     setSelectedSubcategories([]);
@@ -134,10 +147,13 @@ export function AdvancedFilters({ onApply, initialFilters = {} }: AdvancedFilter
     setPriceRange([0, 500]);
     setSelectedRating(undefined);
     setSelectedDelivery(undefined);
+    
+    // Apply empty filters
+    onApply({});
   };
   
-  // Apply filters
-  const handleApplyFilters = () => {
+  // Apply filters automatically - called by useEffect hooks
+  const applyFilters = () => {
     const filters: Partial<SearchFilters> = {
       category: selectedCategory,
       subcategory: selectedSubcategories.length > 0 ? selectedSubcategories[0] : undefined,
@@ -297,7 +313,7 @@ export function AdvancedFilters({ onApply, initialFilters = {} }: AdvancedFilter
           </AccordionContent>
         </AccordionItem>
         
-        {/* Customer Rating - NEW */}
+        {/* Customer Rating */}
         <AccordionItem value="rating" className="border-b">
           <AccordionTrigger className="flex items-center py-4">
             <div className="flex items-center">
@@ -323,7 +339,7 @@ export function AdvancedFilters({ onApply, initialFilters = {} }: AdvancedFilter
           </AccordionContent>
         </AccordionItem>
 
-        {/* Délai de livraison - UPDATED */}
+        {/* Délai de livraison */}
         <AccordionItem value="delivery" className="border-b">
           <AccordionTrigger className="flex items-center py-4">
             <div className="flex items-center">
@@ -402,20 +418,14 @@ export function AdvancedFilters({ onApply, initialFilters = {} }: AdvancedFilter
 
       <Separator />
 
-      <div className="flex justify-between">
+      <div className="flex justify-center">
         <Button 
           type="button" 
           variant="outline" 
           onClick={handleReset}
+          className="w-full"
         >
-          Réinitialiser
-        </Button>
-        <Button 
-          type="button" 
-          className="bg-terracotta-600 hover:bg-terracotta-700 text-white"
-          onClick={handleApplyFilters}
-        >
-          Appliquer les filtres
+          Réinitialiser tous les filtres
         </Button>
       </div>
     </div>

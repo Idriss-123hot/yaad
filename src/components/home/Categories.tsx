@@ -46,10 +46,11 @@ export function Categories() {
                   e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+              {/* Darker overlay for better text visibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
               <div className="absolute bottom-4 left-4 text-white">
-                <h3 className="font-semibold text-lg">{category.name}</h3>
-                <p className="text-sm text-terracotta-100 group-hover:underline">Explore Collection</p>
+                <h3 className="font-semibold text-lg text-white drop-shadow-md">{category.name}</h3>
+                <p className="text-sm text-white group-hover:underline">Explore Collection</p>
               </div>
             </Link>
           ))}
