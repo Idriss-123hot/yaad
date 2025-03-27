@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, Filter, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,7 @@ import { SearchFilters } from '@/services/searchService';
 
 interface SearchBarProps {
   className?: string;
-  initialSearchTerm?: string;
+  initialQuery?: string;
   onSearch?: (term: string) => void;
   onFilterApply?: (filters: Partial<SearchFilters>) => void;
   isCompact?: boolean;
@@ -24,18 +23,18 @@ interface SearchBarProps {
 
 export function SearchBar({ 
   className = "", 
-  initialSearchTerm = "", 
+  initialQuery = "", 
   onSearch, 
   onFilterApply,
   isCompact = false
 }: SearchBarProps) {
-  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [searchTerm, setSearchTerm] = useState(initialQuery);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    setSearchTerm(initialSearchTerm);
-  }, [initialSearchTerm]);
+    setSearchTerm(initialQuery);
+  }, [initialQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +42,6 @@ export function SearchBar({
     if (onSearch) {
       onSearch(searchTerm);
     } else {
-      // Navigate to search page with query param if no onSearch provided
       const params = new URLSearchParams();
       if (searchTerm) params.set('q', searchTerm);
       navigate(`/search?${params.toString()}`);
@@ -63,11 +61,9 @@ export function SearchBar({
     if (onFilterApply) {
       onFilterApply(filters);
     } else {
-      // Navigate to search page with filter params if no onFilterApply provided
       const params = new URLSearchParams();
       if (searchTerm) params.set('q', searchTerm);
       
-      // Add other filters to params
       if (filters.category) params.set('category', filters.category);
       if (filters.subcategory) params.set('subcategory', filters.subcategory);
       if (filters.artisans?.length) params.set('artisan', filters.artisans[0]);

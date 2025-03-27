@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 const Search = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<ProductWithArtisan[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -49,6 +49,20 @@ const Search = () => {
   // Get the category and subcategory names for display
   const activeCategoryData = categoriesData.find(c => c.id === category);
   const activeSubcategoryData = activeCategoryData?.subcategories?.find(s => s.id === subcategory);
+  
+  // Handle filter application
+  const handleFilterApply = (filters: any) => {
+    // Update search params based on filters
+    const newParams = new URLSearchParams(searchParams);
+    
+    if (filters.category) newParams.set('category', filters.category);
+    else newParams.delete('category');
+    
+    if (filters.subcategory) newParams.set('subcategory', filters.subcategory);
+    else newParams.delete('subcategory');
+    
+    setSearchParams(newParams);
+  };
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -124,7 +138,7 @@ const Search = () => {
               {showFilters && (
                 <aside className="md:block">
                   <h2 className="font-medium text-lg mb-4">Filtres</h2>
-                  <AdvancedFilters />
+                  <AdvancedFilters onApply={handleFilterApply} />
                 </aside>
               )}
               
