@@ -1,151 +1,105 @@
 
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { ProductCard } from '@/components/ui/ProductCard';
-import { SAMPLE_PRODUCTS, Product } from '@/models/types';
-import { Star, Truck, ShieldCheck, Heart, Share2, ChevronRight, Minus, Plus, ShoppingCart } from 'lucide-react';
+import { 
+  ChevronRight,
+  Star,
+  ShoppingCart,
+  Heart,
+  Share2,
+  Truck,
+  ShieldCheck,
+  Minus,
+  Plus,
+  ArrowLeft
+} from 'lucide-react';
+import { ProductWithArtisan } from '@/models/types';
+import { getProductById, PRODUCTS } from '@/data/products';
+import { SAMPLE_ARTISANS } from '@/models/types';
 import { toast } from '@/hooks/use-toast';
-import { categoriesData } from '@/data/categories';
-import { supabase } from '@/integrations/supabase/client';
-import { DatabaseProduct, mapDatabaseProductToProduct, mapDatabaseProductsToProducts } from '@/utils/productMappers';
-
-// Function to fetch a product from Supabase
-const fetchProduct = async (productId: string): Promise<Product | null> => {
-  const { data, error } = await supabase
-    .from('products')
-    .select(`
-      *,
-      artisan:artisan_id(id, name),
-      category:category_id(id, name, slug),
-      product_variations(id, name, options)
-    `)
-    .eq('id', productId)
-    .single();
-  
-  if (error) {
-    console.error('Error fetching product:', error);
-    throw new Error('Failed to fetch product');
-  }
-  
-  return data ? mapDatabaseProductToProduct(data as DatabaseProduct) : null;
-};
-
-// Function to fetch related products
-const fetchRelatedProducts = async (categoryId: string, currentProductId: string): Promise<Product[]> => {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('category_id', categoryId)
-    .neq('id', currentProductId)
-    .limit(4);
-  
-  if (error) {
-    console.error('Error fetching related products:', error);
-    return [];
-  }
-  
-  return data ? mapDatabaseProductsToProducts(data as DatabaseProduct[]) : [];
-};
+import { ProductCard } from '@/components/ui/ProductCard';
 
 const ProductDetail = () => {
-  const { mainCategory, subCategory, product: productId } = useParams<{ 
-    mainCategory: string;
-    subCategory: string;
-    product: string;
-  }>();
-
+  const { productId } = useParams<{ productId: string }>();
+  const [product, setProduct] = useState<ProductWithArtisan | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState('');
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-
-  // Fetch product data using React Query
-  const { data: productData, isLoading, error } = useQuery({
-    queryKey: ['product', productId],
-    queryFn: () => productId ? fetchProduct(productId) : null,
-    enabled: !!productId,
-  });
-
-  // Fetch related products when product data is available
+  const [relatedProducts, setRelatedProducts] = useState<ProductWithArtisan[]>([]);
+  const navigate = useNavigate();
+  
   useEffect(() => {
-    if (productData && productData.category) {
-      const dbCategoryId = (productData as any)?.category_id;
-      if (dbCategoryId) {
-        fetchRelatedProducts(dbCategoryId, productData.id)
-          .then(setRelatedProducts)
-          .catch(console.error);
-      } else {
-        // If we don't have a real product yet, use sample data
-        const related = SAMPLE_PRODUCTS.filter(p => p.id !== productId)
-          .sort(() => 0.5 - Math.random())
-          .slice(0, 4);
-        setRelatedProducts(related);
-      }
-    } else {
-      // If we don't have a real product yet, use sample data
-      const related = SAMPLE_PRODUCTS.filter(p => p.id !== productId)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 4);
-      setRelatedProducts(related);
+    if (!productId) {
+      setError("Product ID is missing");
+      setLoading(false);
+      return;
     }
-  }, [productData, productId]);
-
-  // Scroll to top when route changes
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
+    
+    try {
+      const fetchedProduct = getProductById(productId);
+      
+      if (!fetchedProduct) {
+        setError("Product not found");
+        setLoading(false);
+        return;
+      }
+      
+      // Add artisan data to the product
+      const artisanData = SAMPLE_ARTISANS.find(artisan => artisan.id === fetchedProduct.artisanId);
+      const productWithArtisan = {...fetchedProduct, artisan: artisanData};
+      
+      setProduct(productWithArtisan);
+      
+      // Get related products (same category)
+      const related = PRODUCTS
+        .filter(p => 
+          p.id !== productId && 
+          p.mainCategory === productWithArtisan.mainCategory
+        )
+        .slice(0, 4);
+      
+      setRelatedProducts(related);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching product:", err);
+      setError("Failed to load product details");
+      setLoading(false);
+    }
+  }, [productId]);
+  
+  const handleAddToCart = () => {
+    toast({
+      title: "Produit ajouté au panier",
+      description: `${quantity} × ${product?.title} a été ajouté à votre panier.`,
     });
-  }, [productId, mainCategory, subCategory]);
-
-  // Incrémente la quantité
+  };
+  
+  const handleAddToWishlist = () => {
+    toast({
+      title: "Produit ajouté aux favoris",
+      description: "Vous pouvez consulter votre liste de favoris dans votre compte."
+    });
+  };
+  
   const incrementQuantity = () => {
     if (quantity < 10) {
       setQuantity(quantity + 1);
     }
   };
 
-  // Décrémente la quantité
   const decrementQuantity = () => {
     if (quantity > 1) {
       setQuantity(quantity - 1);
     }
   };
-
-  // Ajouter au panier
-  const addToCart = () => {
-    toast({
-      title: "Produit ajouté au panier",
-      description: `Vous avez ajouté ${quantity} ${productData?.title} à votre panier.`,
-    });
-  };
-
-  // Ajouter aux favoris
-  const addToWishlist = () => {
-    toast({
-      title: "Produit ajouté aux favoris",
-      description: "Vous pouvez consulter votre liste de favoris dans votre compte."
-    });
-  };
-
-  // Trouver la catégorie et sous-catégorie
-  const mainCategoryData = categoriesData.find(cat => cat.id === mainCategory);
-  const subCategoryData = mainCategoryData?.subcategories.find(subCat => subCat.id === subCategory);
-
-  // Options de couleur fictives pour le moment
-  const colorOptions = [
-    { name: 'Natural', value: 'natural', hex: '#D2B48C' },
-    { name: 'Terracotta', value: 'terracotta', hex: '#b06a5b' },
-    { name: 'Blue', value: 'blue', hex: '#4682B4' },
-    { name: 'Green', value: 'green', hex: '#556B2F' },
-  ];
-
-  if (isLoading) {
+  
+  if (loading) {
     return (
       <div className="flex flex-col min-h-screen">
         <Navbar />
@@ -156,11 +110,12 @@ const ProductDetail = () => {
           </div>
         </main>
         <Footer />
+        <FixedNavMenu />
       </div>
     );
   }
-
-  if (error || !productData) {
+  
+  if (error || !product) {
     return (
       <div className="flex flex-col min-h-screen">
         <Navbar />
@@ -171,15 +126,16 @@ const ProductDetail = () => {
               Désolé, le produit que vous recherchez n'existe pas.
             </p>
             <Button asChild>
-              <Link to="/categories">Voir toutes les catégories</Link>
+              <Link to="/">Retour à l'accueil</Link>
             </Button>
           </div>
         </main>
         <Footer />
+        <FixedNavMenu />
       </div>
     );
   }
-
+  
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -189,26 +145,26 @@ const ProductDetail = () => {
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center text-sm text-muted-foreground overflow-x-auto whitespace-nowrap">
               <Link to="/" className="hover:text-terracotta-600 transition-colors">
-                Home
+                Accueil
               </Link>
               <ChevronRight className="h-4 w-4 mx-2" />
-              {mainCategoryData && (
+              {product.mainCategory && (
                 <>
-                  <Link to={`/categories/${mainCategory}`} className="hover:text-terracotta-600 transition-colors">
-                    {mainCategoryData.name}
+                  <Link to={`/categories/${product.mainCategory}`} className="hover:text-terracotta-600 transition-colors">
+                    {product.category}
                   </Link>
                   <ChevronRight className="h-4 w-4 mx-2" />
                 </>
               )}
-              {subCategoryData && (
+              {product.subcategory && (
                 <>
-                  <Link to={`/categories/${mainCategory}/${subCategory}`} className="hover:text-terracotta-600 transition-colors">
-                    {subCategoryData.name}
+                  <Link to={`/categories/${product.mainCategory}/${product.subcategory}`} className="hover:text-terracotta-600 transition-colors">
+                    {product.subcategory}
                   </Link>
                   <ChevronRight className="h-4 w-4 mx-2" />
                 </>
               )}
-              <span className="text-foreground truncate max-w-[200px]">{productData.title}</span>
+              <span className="text-foreground truncate max-w-[200px]">{product.title}</span>
             </div>
           </div>
         </section>
@@ -220,108 +176,78 @@ const ProductDetail = () => {
               {/* Product Images */}
               <div className="space-y-4">
                 <div className="aspect-square bg-cream-50 rounded-lg overflow-hidden">
-                  {productData.images && productData.images.length > 0 ? (
-                    <img 
-                      src={productData.images[0]} 
-                      alt={productData.title} 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      Product Image
-                    </div>
-                  )}
+                  <img 
+                    src={product.images[currentImageIndex]} 
+                    alt={product.title} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+                    }}
+                  />
                 </div>
                 <div className="grid grid-cols-4 gap-4">
-                  {productData.images && productData.images.length > 0 ? (
-                    productData.images.slice(0, 4).map((img, idx) => (
-                      <div 
-                        key={idx} 
-                        className="aspect-square bg-cream-50 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                      >
-                        <img 
-                          src={img} 
-                          alt={`${productData.title} - View ${idx + 1}`} 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))
-                  ) : (
-                    [...Array(4)].map((_, idx) => (
-                      <div 
-                        key={idx} 
-                        className="aspect-square bg-cream-50 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                      >
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
-                          View {idx + 1}
-                        </div>
-                      </div>
-                    ))
-                  )}
+                  {product.images.map((img, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`aspect-square bg-cream-50 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity ${currentImageIndex === idx ? 'ring-2 ring-terracotta-600' : ''}`}
+                      onClick={() => setCurrentImageIndex(idx)}
+                    >
+                      <img 
+                        src={img} 
+                        alt={`${product.title} - View ${idx + 1}`} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+                        }}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
 
               {/* Product Info */}
               <div>
                 {/* Title & Rating */}
-                <h1 className="font-serif text-3xl font-bold mb-2">{productData.title}</h1>
+                <h1 className="font-serif text-3xl font-bold mb-2">{product.title}</h1>
                 <div className="flex items-center mb-4">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
                       <Star 
                         key={i}
-                        className={`h-4 w-4 ${i < Math.floor(productData.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
+                        className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
                       />
                     ))}
                   </div>
                   <span className="ml-2 text-sm text-muted-foreground">
-                    {productData.rating.toFixed(1)} ({productData.reviewCount} avis)
+                    {product.rating.toFixed(1)} ({product.reviewCount} avis)
                   </span>
                 </div>
 
                 {/* Price */}
                 <div className="mb-6">
-                  {productData.discountPrice ? (
+                  {product.discountPrice ? (
                     <div className="flex items-center">
                       <span className="text-2xl font-bold text-terracotta-600">
-                        {productData.discountPrice.toFixed(2)} €
+                        {product.discountPrice.toFixed(2)} €
                       </span>
                       <span className="ml-3 text-lg text-muted-foreground line-through">
-                        {productData.price.toFixed(2)} €
+                        {product.price.toFixed(2)} €
                       </span>
                       <span className="ml-3 bg-terracotta-100 text-terracotta-800 px-2 py-1 rounded-full text-xs font-medium">
-                        {Math.round((1 - productData.discountPrice / productData.price) * 100)}% OFF
+                        {Math.round((1 - product.discountPrice / product.price) * 100)}% OFF
                       </span>
                     </div>
                   ) : (
                     <span className="text-2xl font-bold text-terracotta-600">
-                      {productData.price.toFixed(2)} €
+                      {product.price.toFixed(2)} €
                     </span>
                   )}
                 </div>
 
                 {/* Description */}
                 <p className="text-muted-foreground mb-6">
-                  {productData.description}
+                  {product.description}
                 </p>
-
-                {/* Color Options */}
-                <div className="mb-6">
-                  <p className="font-medium mb-2">Couleur</p>
-                  <div className="flex space-x-3">
-                    {colorOptions.map((color) => (
-                      <button
-                        key={color.value}
-                        onClick={() => setSelectedColor(color.value)}
-                        className={`w-8 h-8 rounded-full border-2 ${selectedColor === color.value ? 'border-terracotta-600' : 'border-transparent'}`}
-                        style={{ backgroundColor: color.hex }}
-                        title={color.name}
-                      >
-                        <span className="sr-only">{color.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
 
                 {/* Quantity Selector */}
                 <div className="mb-6">
@@ -345,7 +271,7 @@ const ProductDetail = () => {
                       </button>
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      {productData.stock} en stock
+                      {product.stock} en stock
                     </span>
                   </div>
                 </div>
@@ -353,14 +279,14 @@ const ProductDetail = () => {
                 {/* Add to Cart & Wishlist */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-8">
                   <Button 
-                    onClick={addToCart}
+                    onClick={handleAddToCart}
                     className="flex-1 bg-terracotta-600 hover:bg-terracotta-700 text-white"
                   >
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Ajouter au panier
                   </Button>
                   <Button 
-                    onClick={addToWishlist}
+                    onClick={handleAddToWishlist}
                     variant="outline"
                     className="flex-1"
                   >
@@ -398,7 +324,7 @@ const ProductDetail = () => {
                     Partager
                   </button>
                   <Link 
-                    to={`/artisans/${productData.artisanId}`} 
+                    to={`/artisans/${product.artisanId}`} 
                     className="text-terracotta-600 hover:underline"
                   >
                     Voir l'artisan
@@ -416,12 +342,12 @@ const ProductDetail = () => {
               <TabsList className="grid grid-cols-3 mb-8">
                 <TabsTrigger value="description">Description</TabsTrigger>
                 <TabsTrigger value="details">Détails du produit</TabsTrigger>
-                <TabsTrigger value="reviews">Avis ({productData.reviewCount})</TabsTrigger>
+                <TabsTrigger value="reviews">Avis ({product.reviewCount})</TabsTrigger>
               </TabsList>
               <TabsContent value="description" className="bg-white rounded-lg p-6">
                 <h3 className="font-medium text-lg mb-4">À propos de ce produit</h3>
                 <p className="text-muted-foreground mb-4">
-                  {productData.description}
+                  {product.description}
                 </p>
                 <p className="text-muted-foreground mb-4">
                   Ce produit est fabriqué à la main par des artisans talentueux au Maroc. Chaque pièce est unique et peut présenter de légères variations dans la couleur, la taille et la forme, ce qui témoigne de son authenticité et de son caractère artisanal.
@@ -436,25 +362,25 @@ const ProductDetail = () => {
                   <div>
                     <p className="font-medium mb-1">Matériaux</p>
                     <p className="text-muted-foreground mb-4">
-                      {(productData as any)?.material || 'Argile, émaux naturels'}
+                      {product.material || 'Matériaux authentiques marocains'}
                     </p>
                     <p className="font-medium mb-1">Dimensions</p>
                     <p className="text-muted-foreground mb-4">
-                      H: 20 cm, L: 15 cm, P: 15 cm
+                      Varie selon le produit
                     </p>
                     <p className="font-medium mb-1">Poids</p>
                     <p className="text-muted-foreground">
-                      0.8 kg
+                      Varie selon le produit
                     </p>
                   </div>
                   <div>
                     <p className="font-medium mb-1">Origine</p>
                     <p className="text-muted-foreground mb-4">
-                      {(productData as any)?.origin || 'Maroc'}
+                      {product.origin || 'Maroc'}
                     </p>
                     <p className="font-medium mb-1">Entretien</p>
                     <p className="text-muted-foreground mb-4">
-                      Nettoyage à l'eau savonneuse, ne pas mettre au lave-vaisselle
+                      Varie selon le produit
                     </p>
                     <p className="font-medium mb-1">Fait à la main</p>
                     <p className="text-muted-foreground">
@@ -465,21 +391,21 @@ const ProductDetail = () => {
               </TabsContent>
               <TabsContent value="reviews" className="bg-white rounded-lg p-6">
                 <div className="flex items-center justify-between mb-8">
-                  <h3 className="font-medium text-lg">Avis clients ({productData.reviewCount})</h3>
+                  <h3 className="font-medium text-lg">Avis clients ({product.reviewCount})</h3>
                   <div className="flex items-center">
                     <div className="flex">
                       {[...Array(5)].map((_, i) => (
                         <Star 
                           key={i}
-                          className={`h-5 w-5 ${i < Math.floor(productData.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
+                          className={`h-5 w-5 ${i < Math.floor(product.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
                         />
                       ))}
                     </div>
-                    <span className="ml-2 font-medium">{productData.rating.toFixed(1)}/5</span>
+                    <span className="ml-2 font-medium">{product.rating.toFixed(1)}/5</span>
                   </div>
                 </div>
                 
-                {/* Reviews */}
+                {/* Sample Reviews */}
                 <div className="space-y-6">
                   {[...Array(3)].map((_, idx) => (
                     <div key={idx} className="border-b pb-6 last:border-0 last:pb-0">
@@ -531,6 +457,7 @@ const ProductDetail = () => {
         </section>
       </main>
       <Footer />
+      <FixedNavMenu />
     </div>
   );
 };

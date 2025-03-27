@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   title: string;
@@ -16,6 +17,8 @@ export interface Product {
   createdAt: Date;
   material?: string;
   origin?: string;
+  mainCategory?: string;
+  subcategory?: string;
 }
 
 export interface ProductVariation {
