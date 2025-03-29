@@ -18,12 +18,23 @@ import NotFound from './pages/NotFound';
 import CategoryDetailWithProducts from './pages/CategoryDetailWithProducts';
 import { Toaster } from './components/ui/toaster';
 
+// Admin Routes
+import AdminLogin from './pages/admin/Login';
+import AdminDashboard from './pages/admin/Dashboard';
+import ArtisansList from './pages/admin/artisans/ArtisansList';
+import NewArtisan from './pages/admin/artisans/NewArtisan';
+
+// Artisan Routes
+import ArtisanLogin from './pages/artisan/Login';
+import ArtisanDashboard from './pages/artisan/Dashboard';
+
 import './App.css';
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/about" element={<About />} />
@@ -39,6 +50,17 @@ function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/artisans" element={<Artisans />} />
         <Route path="/artisans/:id" element={<ArtisanDetail />} />
+        
+        {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/artisans" element={<ArtisansList />} />
+        <Route path="/admin/artisans/new" element={<NewArtisan />} />
+        
+        {/* Artisan Routes */}
+        <Route path="/artisan/login" element={<ArtisanLogin />} />
+        <Route path="/artisan/dashboard" element={<ArtisanDashboard />} />
+        
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
