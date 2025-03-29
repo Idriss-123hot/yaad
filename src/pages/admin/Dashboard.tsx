@@ -1,115 +1,95 @@
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { DashboardStats } from '@/components/admin/DashboardStats';
 import { RecentActivity } from '@/components/admin/RecentActivity';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowUpRight, Users, ShoppingBag } from 'lucide-react';
 
-export default function AdminDashboard() {
-  const [loading, setLoading] = useState(true);
-  const [username, setUsername] = useState('');
-  const { toast } = useToast();
+export default function Dashboard() {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          navigate('/admin/login');
-          return;
-        }
-        
-        // Check if user has admin role
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('role, first_name, last_name')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (error) throw error;
-        
-        if (data?.role !== 'admin') {
-          // Not authorized, redirect to login
-          await supabase.auth.signOut();
-          navigate('/admin/login');
-          return;
-        }
-        
-        setUsername(data.first_name ? `${data.first_name} ${data.last_name || ''}` : session.user.email);
-      } catch (error) {
-        console.error('Session check error:', error);
-        navigate('/admin/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkSession();
-    
-    // Set up inactivity tracker for auto logout
-    let inactivityTimer: number;
-    
-    const resetInactivityTimer = () => {
-      window.clearTimeout(inactivityTimer);
-      inactivityTimer = window.setTimeout(() => {
-        supabase.auth.signOut().then(() => {
-          toast({
-            title: 'Session expired',
-            description: 'You have been logged out due to inactivity',
-          });
-          navigate('/admin/login');
-        });
-      }, 30 * 60 * 1000); // 30 minutes
-    };
-    
-    // Events that reset the timer
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-    events.forEach(event => {
-      document.addEventListener(event, resetInactivityTimer);
-    });
-    
-    resetInactivityTimer();
-    
-    return () => {
-      window.clearTimeout(inactivityTimer);
-      events.forEach(event => {
-        document.removeEventListener(event, resetInactivityTimer);
-      });
-    };
-  }, [navigate, toast]);
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-terracotta-600"></div>
-      </div>
-    );
-  }
 
   return (
     <AdminLayout>
-      <div className="p-6">
-        <div className="mb-8 flex items-center justify-between">
+      <div className="p-6 space-y-6">
+        <div className="flex flex-col justify-between space-y-2 md:flex-row md:items-center md:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, {username}</p>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Overview of your marketplace
+            </p>
           </div>
-          <Button 
-            onClick={() => navigate('/admin/artisans/new')}
-            className="bg-terracotta-600 hover:bg-terracotta-700"
-          >
-            Create New Artisan
-          </Button>
         </div>
-        
+
         <DashboardStats />
-        
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-4">
+              <Users className="h-8 w-8 text-terracotta-600" />
+              <div>
+                <CardTitle>Artisan Management</CardTitle>
+                <CardDescription>
+                  Create and manage artisan accounts
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm">
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Add new artisan accounts</li>
+                  <li>Edit artisan profiles and details</li>
+                  <li>Review artisan products</li>
+                  <li>Track artisan performance</li>
+                </ul>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button
+                onClick={() => navigate('/admin/artisans')}
+                className="w-full gap-1 bg-terracotta-600 hover:bg-terracotta-700"
+              >
+                Manage Artisans
+                <ArrowUpRight className="h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-4">
+              <ShoppingBag className="h-8 w-8 text-terracotta-600" />
+              <div>
+                <CardTitle>Product Management</CardTitle>
+                <CardDescription>
+                  Add and manage products in your marketplace
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm">
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Add new products to the marketplace</li>
+                  <li>Edit product details and pricing</li>
+                  <li>Manage categories and tags</li>
+                  <li>Track product performance</li>
+                </ul>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button
+                onClick={() => navigate('/admin/products')}
+                className="w-full gap-1 bg-terracotta-600 hover:bg-terracotta-700"
+              >
+                Manage Products
+                <ArrowUpRight className="h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
           <RecentActivity title="Recent Artisans" type="artisans" />
           <RecentActivity title="Recent Products" type="products" />
         </div>

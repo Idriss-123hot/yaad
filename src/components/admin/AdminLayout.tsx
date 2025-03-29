@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
+import { SessionTimeout } from '@/components/shared/SessionTimeout';
+import { checkAdminRole } from '@/utils/authUtils';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -16,20 +18,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   useEffect(() => {
     const checkAdmin = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const isAdmin = await checkAdminRole();
       
-      if (!session) {
-        navigate('/admin/login');
-        return;
-      }
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-      
-      if (error || data?.role !== 'admin') {
+      if (!isAdmin) {
         navigate('/admin/login');
         return;
       }
@@ -50,6 +41,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      <SessionTimeout redirectPath="/admin/login" />
       <AdminSidebar open={sidebarOpen} setOpen={setSidebarOpen} />
       
       <div className="flex flex-1 flex-col overflow-hidden">

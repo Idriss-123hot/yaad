@@ -245,6 +245,44 @@ export type Database = {
           },
         ]
       }
+      product_edits: {
+        Row: {
+          created_at: string
+          edit_type: string
+          id: string
+          new_values: Json | null
+          previous_values: Json | null
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          edit_type: string
+          id?: string
+          new_values?: Json | null
+          previous_values?: Json | null
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          edit_type?: string
+          id?: string
+          new_values?: Json | null
+          previous_values?: Json | null
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_edits_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_variations: {
         Row: {
           created_at: string

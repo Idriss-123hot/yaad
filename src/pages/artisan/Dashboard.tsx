@@ -1,204 +1,211 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
 import { ArtisanLayout } from '@/components/artisan/ArtisanLayout';
-import { ShoppingBag, LineChart, BarChart4 } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+import { ShoppingBag, Star, Activity, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { getCurrentArtisanId } from '@/utils/authUtils';
 
 export default function ArtisanDashboard() {
   const [loading, setLoading] = useState(true);
-  const [artisanData, setArtisanData] = useState<any>(null);
   const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalViews: 0,
-    averageRating: 0,
+    productCount: 0,
+    avgRating: 0,
+    recentOrders: 0,
   });
-  const { toast } = useToast();
+  const [artisanName, setArtisanName] = useState('');
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    const checkSession = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        setLoading(true);
+        const artisanId = await getCurrentArtisanId();
         
-        if (!session) {
-          navigate('/artisan/login');
+        if (!artisanId) {
+          toast({
+            title: 'Error',
+            description: 'Could not retrieve your artisan profile',
+            variant: 'destructive',
+          });
           return;
         }
-        
-        // Check if user has artisan role and get artisan data
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('role, id, first_name, last_name')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (profileError) throw profileError;
-        
-        if (profileData?.role !== 'artisan') {
-          // Not authorized, redirect to login
-          await supabase.auth.signOut();
-          navigate('/artisan/login');
-          return;
-        }
-        
+
         // Get artisan details
-        const { data: artisan, error: artisanError } = await supabase
+        const { data: artisanData, error: artisanError } = await supabase
           .from('artisans')
-          .select('*')
-          .eq('user_id', session.user.id)
+          .select('name')
+          .eq('id', artisanId)
           .single();
         
         if (artisanError) throw artisanError;
-        
-        setArtisanData(artisan);
-        
-        // Get product stats
+        setArtisanName(artisanData.name);
+
+        // Get product count
         const { count: productCount, error: productError } = await supabase
           .from('products')
           .select('*', { count: 'exact', head: true })
-          .eq('artisan_id', artisan.id);
+          .eq('artisan_id', artisanId);
         
         if (productError) throw productError;
+
+        // Get average rating
+        const { data: ratingData, error: ratingError } = await supabase
+          .from('artisans')
+          .select('rating')
+          .eq('id', artisanId)
+          .single();
         
-        // In a real app, we would get these from analytics
-        // Here we're just using placeholder data
+        if (ratingError) throw ratingError;
+
+        // For this example, we'll use a placeholder for recent orders
+        // In a real application, you would fetch this from an orders table
+
         setStats({
-          totalProducts: productCount || 0,
-          totalViews: Math.floor(Math.random() * 1000),
-          averageRating: artisan.rating || 0,
+          productCount: productCount || 0,
+          avgRating: ratingData.rating || 0,
+          recentOrders: 0, // Placeholder
         });
       } catch (error) {
-        console.error('Session check error:', error);
-        navigate('/artisan/login');
+        console.error('Error fetching dashboard data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load dashboard data',
+          variant: 'destructive',
+        });
       } finally {
         setLoading(false);
       }
     };
-    
-    checkSession();
-    
-    // Set up inactivity tracker for auto logout
-    let inactivityTimer: number;
-    
-    const resetInactivityTimer = () => {
-      window.clearTimeout(inactivityTimer);
-      inactivityTimer = window.setTimeout(() => {
-        supabase.auth.signOut().then(() => {
-          toast({
-            title: 'Session expired',
-            description: 'You have been logged out due to inactivity',
-          });
-          navigate('/artisan/login');
-        });
-      }, 30 * 60 * 1000); // 30 minutes
-    };
-    
-    // Events that reset the timer
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-    events.forEach(event => {
-      document.addEventListener(event, resetInactivityTimer);
-    });
-    
-    resetInactivityTimer();
-    
-    return () => {
-      window.clearTimeout(inactivityTimer);
-      events.forEach(event => {
-        document.removeEventListener(event, resetInactivityTimer);
-      });
-    };
-  }, [navigate, toast]);
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-terracotta-600"></div>
-      </div>
-    );
-  }
+    fetchDashboardData();
+  }, [toast]);
 
   return (
     <ArtisanLayout>
       <div className="p-6">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Welcome, {artisanData?.name}</h1>
-            <p className="text-muted-foreground">
-              Manage your products and track your performance
-            </p>
-          </div>
-          <Button 
-            onClick={() => navigate('/artisan/products/new')}
-            className="bg-terracotta-600 hover:bg-terracotta-700"
-          >
-            Add New Product
-          </Button>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Welcome back, {artisanName || 'Artisan'}</h1>
+          <p className="text-muted-foreground">
+            Manage your products and track your performance
+          </p>
         </div>
-        
-        <div className="grid gap-4 md:grid-cols-3">
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Products</CardTitle>
               <ShoppingBag className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalProducts}</div>
-              <CardDescription>
-                {stats.totalProducts < 20 
-                  ? `You can add ${20 - stats.totalProducts} more products`
-                  : 'You have reached the maximum limit'}
-              </CardDescription>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Product Views</CardTitle>
-              <LineChart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalViews}</div>
-              <CardDescription>Total product views this month</CardDescription>
+              <div className="text-2xl font-bold">
+                {loading ? (
+                  <div className="h-8 w-12 animate-pulse rounded bg-gray-200" />
+                ) : (
+                  stats.productCount
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {stats.productCount >= 20 ? 'Maximum limit reached' : `${20 - stats.productCount} more available`}
+              </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
-              <BarChart4 className="h-4 w-4 text-muted-foreground" />
+              <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.averageRating.toFixed(1)}/5.0</div>
-              <CardDescription>Based on {artisanData?.review_count || 0} reviews</CardDescription>
+              <div className="text-2xl font-bold">
+                {loading ? (
+                  <div className="h-8 w-12 animate-pulse rounded bg-gray-200" />
+                ) : (
+                  stats.avgRating.toFixed(1)
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Based on customer reviews
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Recent Orders</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {loading ? (
+                  <div className="h-8 w-12 animate-pulse rounded bg-gray-200" />
+                ) : (
+                  stats.recentOrders
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                In the last 30 days
+              </p>
             </CardContent>
           </Card>
         </div>
-        
-        <div className="mt-8">
-          <h2 className="mb-4 text-xl font-semibold">Recent Products</h2>
-          {/* Product list would go here, implementing in future code */}
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground">
-              Start adding your handcrafted products to showcase your work to customers.
-            </p>
-            <Button 
-              className="mt-4 bg-terracotta-600 hover:bg-terracotta-700"
-              onClick={() => navigate('/artisan/products/new')}
-            >
-              Add Your First Product
-            </Button>
-          </Card>
+
+        <div className="flex justify-center md:justify-start mb-8">
+          <Button 
+            onClick={() => navigate('/artisan/products/new')}
+            className="bg-terracotta-600 hover:bg-terracotta-700"
+            disabled={stats.productCount >= 20}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add New Product
+          </Button>
         </div>
+
+        {/* Placeholder for recent activity or products list */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Products</CardTitle>
+            <CardDescription>
+              Manage and update your product listings
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-2">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-12 animate-pulse rounded bg-gray-200" />
+                ))}
+              </div>
+            ) : stats.productCount === 0 ? (
+              <div className="text-center py-8">
+                <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium">No products yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Add your first product to start selling
+                </p>
+                <Button 
+                  onClick={() => navigate('/artisan/products/new')}
+                  variant="outline"
+                >
+                  Create Product
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Button 
+                  onClick={() => navigate('/artisan/products')}
+                  variant="outline"
+                >
+                  View All Products
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </ArtisanLayout>
   );

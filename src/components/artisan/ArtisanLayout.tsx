@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ArtisanSidebar } from './ArtisanSidebar';
 import { ArtisanHeader } from './ArtisanHeader';
+import { SessionTimeout } from '@/components/shared/SessionTimeout';
+import { checkArtisanRole } from '@/utils/authUtils';
 
 interface ArtisanLayoutProps {
   children: React.ReactNode;
@@ -16,20 +18,9 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
 
   useEffect(() => {
     const checkArtisan = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const isArtisan = await checkArtisanRole();
       
-      if (!session) {
-        navigate('/artisan/login');
-        return;
-      }
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-      
-      if (error || data?.role !== 'artisan') {
+      if (!isArtisan) {
         navigate('/artisan/login');
         return;
       }
@@ -50,6 +41,7 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      <SessionTimeout redirectPath="/artisan/login" />
       <ArtisanSidebar open={sidebarOpen} setOpen={setSidebarOpen} />
       
       <div className="flex flex-1 flex-col overflow-hidden">
