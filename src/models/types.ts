@@ -166,13 +166,13 @@ export const SAMPLE_PRODUCTS: Product[] = [
 export const SAMPLE_ARTISANS: Artisan[] = [
   {
     id: '1',
-    name: 'Elena Martinez',
-    bio: 'Ceramicist with 15 years of experience specializing in minimalist designs inspired by nature.',
-    location: 'Barcelona, Spain',
-    profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80',
+    name: 'Aicha Lakhdar',
+    bio: 'Artisanne ceramicistte avec 15 and d'experiences et une specialisation dans les designs minimalistes inspirés de la ntaure.',
+    location: 'Rabat, Maroc',
+    profileImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/profiles//belle-jeune-femme-marocaine-boucles-700-33015688.jpeg',
     galleryImages: [
-      'https://images.unsplash.com/photo-1578749556568-bc2c481b8230?auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&q=80'
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//ceramique%20marocaine.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//ceramique%20marocaine%202.jpeg'
     ],
     rating: 4.9,
     reviewCount: 87,
@@ -182,9 +182,9 @@ export const SAMPLE_ARTISANS: Artisan[] = [
   },
   {
     id: '2',
-    name: 'Thomas Wei',
+    name: 'Karim Belouz',
     bio: 'Textile artist specializing in hand-woven pieces using traditional looms and organic materials.',
-    location: 'Portland, USA',
+    location: 'Cacablanca, Maroc',
     profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80',
     galleryImages: [
       'https://images.unsplash.com/photo-1612546958210-6c6c2c221919?auto=format&fit=crop&q=80',
