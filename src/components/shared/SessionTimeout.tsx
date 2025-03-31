@@ -36,8 +36,8 @@ export function SessionTimeout({ redirectPath }: SessionTimeoutProps) {
         // Logout the user
         supabase.auth.signOut().then(() => {
           toast({
-            title: 'Session expired',
-            description: 'You have been logged out due to inactivity',
+            title: 'Session expirée',
+            description: 'Vous avez été déconnecté après 30 minutes d\'inactivité',
           });
           
           navigate(redirectPath);

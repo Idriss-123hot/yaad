@@ -1,6 +1,7 @@
 
+
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { updateLastActivity, checkAdminRole } from '@/utils/authUtils';
 
 const formSchema = z.object({
@@ -61,8 +62,8 @@ export default function AdminLogin() {
         await supabase.auth.signOut();
         
         toast({
-          title: 'Access denied',
-          description: 'You do not have admin privileges',
+          title: 'Accès refusé',
+          description: 'Vous n\'avez pas les privilèges administrateur',
           variant: 'destructive',
         });
         
@@ -74,8 +75,8 @@ export default function AdminLogin() {
       updateLastActivity();
       
       toast({
-        title: 'Welcome back',
-        description: 'You have successfully logged in',
+        title: 'Bienvenue',
+        description: 'Vous êtes maintenant connecté en tant qu\'administrateur',
       });
       
       navigate('/admin/dashboard');
@@ -83,8 +84,8 @@ export default function AdminLogin() {
       console.error('Login error:', error);
       
       toast({
-        title: 'Login failed',
-        description: error instanceof Error ? error.message : 'Invalid email or password',
+        title: 'Erreur de connexion',
+        description: error instanceof Error ? error.message : 'Email ou mot de passe invalide',
         variant: 'destructive',
       });
     } finally {
@@ -94,74 +95,91 @@ export default function AdminLogin() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Admin Login</CardTitle>
-          <CardDescription className="text-center">
-            Enter your credentials to access the admin dashboard
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="admin@example.com" 
-                        {...field} 
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="••••••••" 
-                        {...field} 
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <div className="w-full max-w-md space-y-6">
+        <Link to="/" className="inline-block">
+          <Button variant="ghost" className="mb-2">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour à l'accueil
+          </Button>
+        </Link>
+
+        <Card>
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">Admin Login</CardTitle>
+            <CardDescription className="text-center">
+              Entrez vos identifiants pour accéder au tableau de bord administrateur
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="admin@example.com" 
+                          {...field} 
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mot de passe</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="password" 
+                          placeholder="••••••••" 
+                          {...field} 
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button 
+                  type="submit" 
+                  className="w-full bg-terracotta-600 hover:bg-terracotta-700"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Connexion...
+                    </>
+                  ) : (
+                    'Se connecter'
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-3">
+            <p className="text-xs text-center text-muted-foreground w-full">
+              Accès réservé aux administrateurs autorisés uniquement
+            </p>
+            <Link to="/artisan/login" className="w-full">
               <Button 
-                type="submit" 
-                className="w-full bg-terracotta-600 hover:bg-terracotta-700"
-                disabled={isLoading}
+                variant="link" 
+                className="w-full text-sm text-terracotta-600"
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  'Sign in'
-                )}
+                Accéder à l'espace artisan
               </Button>
-            </form>
-          </Form>
-        </CardContent>
-        <CardFooter>
-          <p className="text-xs text-center text-muted-foreground w-full">
-            Access restricted to authorized administrators only
-          </p>
-        </CardFooter>
-      </Card>
+            </Link>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }

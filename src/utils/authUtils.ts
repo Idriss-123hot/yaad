@@ -1,5 +1,7 @@
 
+
 import { supabase } from '@/integrations/supabase/client';
+import bcrypt from 'bcryptjs';
 
 // Function to check if the user session is expired (30 minutes)
 export const isSessionExpired = (lastActivity: string | null): boolean => {
@@ -68,3 +70,11 @@ export const getCurrentArtisanId = async (): Promise<string | null> => {
   
   return data.id;
 };
+
+// Helper function to hash password (for demonstration purposes only)
+// In real applications, this would be handled by Supabase Auth directly
+export const hashPassword = async (password: string): Promise<string> => {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
+};
+

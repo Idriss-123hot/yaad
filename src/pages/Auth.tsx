@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,10 +16,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Users, Shield } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
+import { updateLastActivity } from '@/utils/authUtils';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -47,6 +48,8 @@ export default function Auth() {
       (event, session) => {
         setSession(session);
         if (session) {
+          // Update last activity timestamp when logged in
+          updateLastActivity();
           navigate('/');
         }
       }
@@ -220,14 +223,40 @@ export default function Auth() {
                     </Button>
                   </form>
                 </CardContent>
-                <CardFooter className="flex justify-center">
+                <CardFooter className="flex flex-col space-y-4">
                   <Button 
                     variant="link" 
-                    className="text-sm text-muted-foreground hover:text-terracotta-600"
+                    className="text-sm text-muted-foreground hover:text-terracotta-600 w-full"
                     onClick={() => setIsLogin(false)}
                   >
                     Vous n'avez pas de compte ? Inscrivez-vous
                   </Button>
+                  
+                  <Separator />
+                  
+                  <div className="flex flex-col w-full space-y-2">
+                    <p className="text-sm text-center font-medium">Accès professionnel</p>
+                    <div className="flex gap-2 w-full">
+                      <Link to="/admin/login" className="flex-1">
+                        <Button 
+                          variant="outline" 
+                          className="w-full gap-2 border-terracotta-600 text-terracotta-600 hover:bg-terracotta-50"
+                        >
+                          <Shield size={16} />
+                          Admin
+                        </Button>
+                      </Link>
+                      <Link to="/artisan/login" className="flex-1">
+                        <Button 
+                          variant="outline" 
+                          className="w-full gap-2 border-terracotta-600 text-terracotta-600 hover:bg-terracotta-50"
+                        >
+                          <Users size={16} />
+                          Artisan
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
                 </CardFooter>
               </Card>
             </TabsContent>
@@ -325,14 +354,40 @@ export default function Auth() {
                     </Button>
                   </form>
                 </CardContent>
-                <CardFooter className="flex justify-center">
+                <CardFooter className="flex flex-col space-y-4">
                   <Button 
                     variant="link" 
-                    className="text-sm text-muted-foreground hover:text-terracotta-600"
+                    className="text-sm text-muted-foreground hover:text-terracotta-600 w-full"
                     onClick={() => setIsLogin(true)}
                   >
                     Vous avez déjà un compte ? Connectez-vous
                   </Button>
+                  
+                  <Separator />
+                  
+                  <div className="flex flex-col w-full space-y-2">
+                    <p className="text-sm text-center font-medium">Accès professionnel</p>
+                    <div className="flex gap-2 w-full">
+                      <Link to="/admin/login" className="flex-1">
+                        <Button 
+                          variant="outline" 
+                          className="w-full gap-2 border-terracotta-600 text-terracotta-600 hover:bg-terracotta-50"
+                        >
+                          <Shield size={16} />
+                          Admin
+                        </Button>
+                      </Link>
+                      <Link to="/artisan/login" className="flex-1">
+                        <Button 
+                          variant="outline" 
+                          className="w-full gap-2 border-terracotta-600 text-terracotta-600 hover:bg-terracotta-50"
+                        >
+                          <Users size={16} />
+                          Artisan
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
                 </CardFooter>
               </Card>
             </TabsContent>
