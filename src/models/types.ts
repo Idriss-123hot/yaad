@@ -164,22 +164,24 @@ export const SAMPLE_PRODUCTS: Product[] = [
 ];
 
 export const SAMPLE_ARTISANS: Artisan[] = [
-  {
-    id: '1',
-    name: 'Aicha Lakhdar',
-    bio: "Artisane ceramiciste avec 15 and d'experiences et une specialisation dans les designs minimalistes inspirés de la nature.",
-    location: 'Rabat, Maroc',
-    profileImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/profiles//belle-jeune-femme-marocaine-boucles-700-33015688.jpeg',
-    galleryImages: [
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//ceramique%20marocaine.jpeg',
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//ceramique%20marocaine%202.jpeg'
-    ],
-    rating: 4.9,
-    reviewCount: 87,
-    productCount: 24,
-    featured: true,
-    joinedDate: new Date('2022-03-15')
-  },
+  export const SAMPLE_ARTISANS: Artisan[] = [
+    {
+      id: '1',
+      name: 'Aicha Lakhdar',
+      bio: "Artisane céramiste avec 15 ans d'expérience et une spécialisation dans les designs minimalistes inspirés de la nature.",
+      location: 'Rabat, Maroc',
+      profileImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/profiles//belle-jeune-femme-marocaine-boucles-700-33015688.jpeg',
+      galleryImages: [
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//ceramique%20marocaine.jpeg',
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//ceramique%20marocaine%202.jpeg'
+      ],
+      rating: 4.9,
+      reviewCount: 87,
+      productCount: 24,
+      featured: true,
+      joinedDate: new Date('2022-03-15')
+    },
+
   {
     id: '2',
     name: 'Karim Belouz',
