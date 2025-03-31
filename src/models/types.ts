@@ -167,7 +167,7 @@ export const SAMPLE_ARTISANS: Artisan[] = [
   {
     id: '1',
     name: 'Aicha Lakhdar',
-    bio: 'Artisanne ceramicistte avec 15 and d'experiences et une specialisation dans les designs minimalistes inspirés de la ntaure.',
+    bio: "Artisane ceramiciste avec 15 and d'experiences et une specialisation dans les designs minimalistes inspirés de la nature.",
     location: 'Rabat, Maroc',
     profileImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/profiles//belle-jeune-femme-marocaine-boucles-700-33015688.jpeg',
     galleryImages: [
