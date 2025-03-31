@@ -114,10 +114,10 @@ export const SAMPLE_ARTISANS: Artisan[] = [
     name: 'Elena Martinez',
     bio: 'Ceramicist with 15 years of experience specializing in minimalist designs inspired by nature.',
     location: 'Barcelona, Spain',
-    profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80',
+    profileImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/profiles//belle-jeune-femme-marocaine-boucles-700-33015688.jpeg',
     galleryImages: [
-      'https://images.unsplash.com/photo-1578749556568-bc2c481b8230?auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&q=80'
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//ceramique%20marocaine.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//ceramique%20marocaine%202.jpeg'
     ],
     rating: 4.9,
     reviewCount: 87,
