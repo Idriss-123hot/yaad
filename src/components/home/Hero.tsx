@@ -39,7 +39,7 @@ export function Hero() {
   };
 
   return (
-    <section className="relative w-full h-[80vh] mt-16">
+    <section className="relative w-full h-[80vh] mt-20">
       {/* Full-width slider without transparency */}
       <div className="absolute inset-0 w-full h-full overflow-hidden">
         {slides.map((slide, index) => (
@@ -54,9 +54,9 @@ export function Hero() {
               alt={slide.title}
               className="w-full h-full object-cover"
             />
-            {/* Colored background for text for better readability */}
+            {/* Encadrement solide pour le texte (sans transparence) */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center max-w-xl p-6 bg-white/80 rounded-lg shadow-lg backdrop-blur-sm">
+              <div className="text-center max-w-xl p-8 bg-white rounded-lg shadow-lg">
                 <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4 text-terracotta-800">
                   {slide.title}
                 </h1>
@@ -79,7 +79,7 @@ export function Hero() {
       <Button
         variant="outline"
         size="icon"
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white rounded-full h-12 w-12 z-10"
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full h-12 w-12 z-10 shadow-md"
         onClick={prevSlide}
       >
         <ArrowLeft className="h-6 w-6" />
@@ -88,7 +88,7 @@ export function Hero() {
       <Button
         variant="outline"
         size="icon"
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white rounded-full h-12 w-12 z-10"
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white rounded-full h-12 w-12 z-10 shadow-md"
         onClick={nextSlide}
       >
         <ArrowRight className="h-6 w-6" />
@@ -101,8 +101,8 @@ export function Hero() {
           <button
             key={index}
             className={`w-3 h-3 rounded-full transition-colors ${
-              currentSlide === index ? 'bg-terracotta-600' : 'bg-white/50 hover:bg-white'
-            }`}
+              currentSlide === index ? 'bg-terracotta-600' : 'bg-white hover:bg-white/80'
+            } shadow-sm`}
             onClick={() => setCurrentSlide(index)}
             aria-label={`Aller à la diapositive ${index + 1}`}
           />
