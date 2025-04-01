@@ -9,6 +9,7 @@ import FeaturedProductDetail from './pages/FeaturedProductDetail';
 import Artisans from './pages/Artisans';
 import ArtisanDetail from './pages/ArtisanDetail';
 import Cart from './pages/Cart';
+import Favorites from './pages/Favorites';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Blog from './pages/Blog';
@@ -42,6 +43,7 @@ function App() {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/favorites" element={<Favorites />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/categories/:mainCategory" element={<CategoryDetail />} />
         <Route path="/categories/:mainCategory/:subCategory" element={<CategoryDetailWithProducts />} />

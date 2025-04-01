@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, User, Menu, X } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, X, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { CategoryNavigation } from '@/components/layout/CategoryNavigation';
@@ -16,6 +16,7 @@ export function Navbar() {
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [session, setSession] = useState(null);
+  const [favoriteCount, setFavoriteCount] = useState(0);
   const { getCartCount } = useCart();
   const cartCount = getCartCount();
   const navigate = useNavigate();
@@ -43,8 +44,19 @@ export function Navbar() {
       }
     );
 
+    // Fetch favorites count if user is logged in
+    if (session) {
+      fetchFavoritesCount();
+    }
+
     return () => subscription.unsubscribe();
-  }, []);
+  }, [session]);
+
+  const fetchFavoritesCount = async () => {
+    // This is a placeholder for actual favorites functionality
+    // You would fetch the actual count from Supabase here
+    setFavoriteCount(Math.floor(Math.random() * 5)); // Temporary random count for demonstration
+  };
 
   const toggleCategoryMenu = () => {
     setIsCategoryMenuOpen(!isCategoryMenuOpen);
@@ -56,6 +68,10 @@ export function Navbar() {
 
   const handleCartClick = () => {
     navigate('/cart');
+  };
+
+  const handleFavoritesClick = () => {
+    navigate('/favorites');
   };
 
   const handleAuthClick = () => {
@@ -100,7 +116,7 @@ export function Navbar() {
               Nos Artisans
             </Link>
             <Link to="/about" className="text-sm font-medium hover:text-terracotta-600 transition-colors">
-              About
+              À propos
             </Link>
             <Link to="/blog" className="text-sm font-medium hover:text-terracotta-600 transition-colors">
               Blog
@@ -117,6 +133,19 @@ export function Navbar() {
               onClick={toggleSearchModal}
             >
               <Search className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative hover:bg-terracotta-100"
+              onClick={handleFavoritesClick}
+            >
+              <Heart className="h-5 w-5" />
+              {favoriteCount > 0 && (
+                <span className="absolute top-0 right-0 w-4 h-4 bg-terracotta-600 text-white rounded-full text-[10px] flex items-center justify-center">
+                  {favoriteCount > 99 ? '99+' : favoriteCount}
+                </span>
+              )}
             </Button>
             <Button 
               variant="ghost" 
@@ -180,7 +209,7 @@ export function Navbar() {
                 className="text-sm font-medium hover:text-terracotta-600 transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                About
+                À propos
               </Link>
               <Link 
                 to="/blog" 
@@ -201,6 +230,22 @@ export function Navbar() {
                   }}
                 >
                   <Search className="h-5 w-5" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="relative hover:bg-terracotta-100"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleFavoritesClick();
+                  }}
+                >
+                  <Heart className="h-5 w-5" />
+                  {favoriteCount > 0 && (
+                    <span className="absolute top-0 right-0 w-4 h-4 bg-terracotta-600 text-white rounded-full text-[10px] flex items-center justify-center">
+                      {favoriteCount > 99 ? '99+' : favoriteCount}
+                    </span>
+                  )}
                 </Button>
                 <Button 
                   variant="ghost" 
