@@ -8,21 +8,21 @@ export function Hero() {
   
   const slides = [
     {
-      image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//ceramique%20marocaine.jpeg',
+      image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Photo%20salon%20marocain.jpeg',
       title: 'Artisanat Authentique',
       subtitle: 'Découvrez notre collection exclusive d\'artisanat marocain',
       cta: 'Explorer',
       link: '/categories',
     },
     {
-      image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//traditional-moroccan-rugs.jpeg',
+      image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Cusine%20Marocaine.png',
       title: 'Tapis Berbères',
       subtitle: 'Des motifs traditionnels tissés à la main par nos artisans',
       cta: 'Découvrir',
       link: '/categories/textiles-fabrics',
     },
     {
-      image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//moroccan-pottery-workshop.jpeg',
+      image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Chambre%20Marocaine.png',
       title: 'Savoir-Faire Marocain',
       subtitle: 'Rencontrez nos artisans passionnés et leur expertise',
       cta: 'Rencontrer',

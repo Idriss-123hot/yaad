@@ -6,7 +6,6 @@ import { Hero } from '@/components/home/Hero';
 import { Categories } from '@/components/home/Categories';
 import { FeaturedProducts } from '@/components/home/FeaturedProducts';
 import { ArtisanSpotlight } from '@/components/home/ArtisanSpotlight';
-import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
 import { SearchBar } from '@/components/search/SearchBar';
 
 const Index = () => {
@@ -36,7 +35,6 @@ const Index = () => {
         <ArtisanSpotlight />
       </main>
       <Footer />
-      <FixedNavMenu />
     </div>
   );
 };
