@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/models/types';
+import { mapDatabaseProductToProduct } from '@/utils/productMappers';
 
 export default function Favorites() {
   const [favorites, setFavorites] = useState<Product[]>([]);
@@ -37,11 +38,14 @@ export default function Favorites() {
       // For now, just use some sample products
       const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select('*, artisan:artisans(*), category:categories(*)')
         .limit(4);
         
       if (error) throw error;
-      setFavorites(data || []);
+      
+      // Map the database products to our app's Product model
+      const mappedProducts = data?.map(mapDatabaseProductToProduct) || [];
+      setFavorites(mappedProducts);
     } catch (error) {
       console.error('Error fetching favorites:', error);
     } finally {
