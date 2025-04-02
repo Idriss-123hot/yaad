@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { X, Home, ShoppingBag, BarChart2, Settings } from 'lucide-react';
@@ -14,14 +13,18 @@ export function ArtisanSidebar({ open, setOpen }: ArtisanSidebarProps) {
   const location = useLocation();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // Close sidebar when clicking outside on mobile
+  // Navigation de la sidebar avec traductions
+  const navigation = [
+    { name: 'Tableau de bord', href: '/artisan/dashboard', icon: Home },
+    { name: 'Mes Produits', href: '/artisan/products', icon: ShoppingBag },
+    { name: 'Statistiques', href: '/artisan/statistics', icon: BarChart2 },
+    { name: 'Paramètres', href: '/artisan/settings', icon: Settings },
+  ];
+
+  // Fermeture de la sidebar en cliquant à l'extérieur (mobile)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        open &&
-        sidebarRef.current &&
-        !sidebarRef.current.contains(event.target as Node)
-      ) {
+      if (open && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
     };
@@ -32,21 +35,14 @@ export function ArtisanSidebar({ open, setOpen }: ArtisanSidebarProps) {
     };
   }, [open, setOpen]);
 
-  // Close sidebar when route changes on mobile
+  // Fermeture automatique lors du changement de route
   useEffect(() => {
     setOpen(false);
   }, [location.pathname, setOpen]);
 
-  const navigation = [
-    { name: 'Dashboard', href: '/artisan/dashboard', icon: Home },
-    { name: 'My Products', href: '/artisan/products', icon: ShoppingBag },
-    { name: 'Statistics', href: '/artisan/statistics', icon: BarChart2 },
-    { name: 'Settings', href: '/artisan/settings', icon: Settings },
-  ];
-
   return (
     <>
-      {/* Mobile backdrop */}
+      {/* Overlay mobile */}
       {open && (
         <div
           className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
@@ -54,7 +50,7 @@ export function ArtisanSidebar({ open, setOpen }: ArtisanSidebarProps) {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Contenu principal de la sidebar */}
       <div
         ref={sidebarRef}
         className={cn(
@@ -62,19 +58,22 @@ export function ArtisanSidebar({ open, setOpen }: ArtisanSidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
+        {/* En-tête de la sidebar */}
         <div className="flex h-16 items-center justify-between border-b px-4">
-          <h2 className="text-xl font-bold text-terracotta-800">Artisan Portal</h2>
+          <h2 className="text-xl font-bold text-terracotta-800">Portail Artisan</h2>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setOpen(false)}
             className="md:hidden"
+            aria-label="Fermer le menu"
           >
             <X className="h-5 w-5" />
-            <span className="sr-only">Close menu</span>
+            <span className="sr-only">Fermer le menu</span>
           </Button>
         </div>
 
+        {/* Liens de navigation */}
         <nav className="mt-5 px-2">
           <div className="space-y-1">
             {navigation.map((item) => {
@@ -89,6 +88,7 @@ export function ArtisanSidebar({ open, setOpen }: ArtisanSidebarProps) {
                       ? 'bg-terracotta-100 text-terracotta-800'
                       : 'text-gray-700 hover:bg-gray-100'
                   )}
+                  aria-current={isActive ? 'page' : undefined}
                 >
                   <item.icon
                     className={cn(
