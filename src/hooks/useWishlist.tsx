@@ -34,28 +34,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
 
-  // Check if wishlist table exists
-  const checkWishlistTable = async (): Promise<boolean> => {
-    try {
-      // Try to query the system catalog to check if the table exists
-      const { error } = await supabase
-        .from('products') // Use a known table to avoid type errors
-        .select('*')
-        .limit(1)
-        .abortSignal(new AbortController().signal);
-      
-      if (error) {
-        console.error('Error checking for products table:', error);
-        return false;
-      }
-      
-      return true;
-    } catch (e) {
-      console.error('Error checking for table:', e);
-      return false;
-    }
-  };
-
   // Load wishlist on mount and when user changes
   useEffect(() => {
     const loadWishlist = async () => {
@@ -63,15 +41,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       
       try {
         if (isAuthenticated && user) {
-          // Check if we can access the database correctly first
-          const canAccessDb = await checkWishlistTable();
-          
-          if (!canAccessDb) {
-            console.log('Cannot access database properly, using localStorage');
-            loadFromLocalStorage();
-            return;
-          }
-          
           // For now, we'll store wishlist items in localStorage
           // In a production app, you would implement the wishlist table in Supabase
           loadFromLocalStorage();
@@ -92,11 +61,60 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       if (savedWishlist) {
         try {
           const parsedWishlist = JSON.parse(savedWishlist);
-          setWishlistItems(parsedWishlist);
+          
+          // Fetch product details for each item
+          fetchProductDetails(parsedWishlist);
         } catch (e) {
           console.error('Error parsing wishlist from localStorage:', e);
           setWishlistItems([]);
         }
+      } else {
+        setWishlistItems([]);
+      }
+    };
+    
+    // Helper function to fetch product details for wishlist items
+    const fetchProductDetails = async (items: WishlistItem[]) => {
+      if (items.length === 0) {
+        setWishlistItems([]);
+        return;
+      }
+      
+      try {
+        const itemsWithProducts = await Promise.all(
+          items.map(async (item) => {
+            try {
+              const { data: productData, error: productError } = await supabase
+                .from('products')
+                .select(`
+                  *,
+                  product_variations(*),
+                  artisan:artisans(*),
+                  category:categories(*)
+                `)
+                .eq('id', item.productId)
+                .maybeSingle();
+              
+              if (productError) {
+                console.error('Error fetching product:', productError);
+                return item;
+              }
+              
+              return {
+                ...item,
+                product: productData ? mapDatabaseProductToProduct(productData) : undefined,
+              };
+            } catch (error) {
+              console.error(`Error fetching product ${item.productId}:`, error);
+              return item;
+            }
+          })
+        );
+        
+        setWishlistItems(itemsWithProducts);
+      } catch (error) {
+        console.error('Error fetching product details:', error);
+        setWishlistItems(items);
       }
     };
     
@@ -105,28 +123,11 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   
   // Save wishlist whenever it changes
   useEffect(() => {
-    const saveWishlist = async () => {
-      if (loading) return;
-      
-      try {
-        if (isAuthenticated && user) {
-          // For now, we'll store wishlist items in localStorage
-          // In a production app, you would implement the wishlist table in Supabase
-          localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
-        } else {
-          // If not logged in, save wishlist to localStorage
-          localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
-        }
-      } catch (error) {
-        console.error('Error saving wishlist:', error);
-        
-        // Fallback to localStorage
-        localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
-      }
-    };
+    if (loading) return;
     
-    saveWishlist();
-  }, [wishlistItems, loading, user, isAuthenticated]);
+    // Save to localStorage regardless of authentication status
+    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+  }, [wishlistItems, loading]);
   
   // Add item to wishlist
   const addToWishlist = async (productId: string) => {
@@ -167,7 +168,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
           category:categories(*)
         `)
         .eq('id', productId)
-        .single();
+        .maybeSingle();
       
       if (productError) {
         console.error('Error fetching product:', productError);

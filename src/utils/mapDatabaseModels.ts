@@ -28,15 +28,28 @@ export function mapDatabaseArtisanToArtisan(dbArtisan: Database['public']['Table
 
 // Map database product to our app's Product model
 export function mapDatabaseProductToProduct(dbProduct: DatabaseProduct): ProductWithArtisan {
+  const categoryName = dbProduct.category?.name || '';
+  const categorySlug = dbProduct.category?.slug || '';
+  
+  // Extract main category and subcategory from the slug if available
+  let mainCategory = '';
+  let subcategory = '';
+  
+  if (categorySlug) {
+    const slugParts = categorySlug.split('-');
+    mainCategory = slugParts[0] || '';
+    subcategory = slugParts.slice(1).join('-') || '';
+  }
+  
   return {
     id: dbProduct.id,
     title: dbProduct.title,
     description: dbProduct.description || '',
     price: dbProduct.price,
     discountPrice: dbProduct.discount_price || undefined,
-    category: dbProduct.category?.name || '',
-    mainCategory: '', // These will be populated if available
-    subcategory: '',
+    category: categoryName,
+    mainCategory: mainCategory,
+    subcategory: subcategory,
     tags: dbProduct.tags || [],
     images: dbProduct.images || [],
     stock: dbProduct.stock,

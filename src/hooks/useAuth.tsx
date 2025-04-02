@@ -40,11 +40,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session && session.user) {
           try {
             // Get user profile data
-            const { data: profileData } = await supabase
+            const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
-              .single();
+              .maybeSingle();
+            
+            if (profileError) {
+              console.error('Error fetching profile:', profileError);
+            }
             
             // Set user state with profile data
             setUser({
@@ -54,6 +58,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               lastName: profileData?.last_name,
               role: profileData?.role,
             });
+            
+            // Check if there's an intended action in localStorage
+            const intendedAction = localStorage.getItem('intended_action');
+            if (intendedAction) {
+              try {
+                const action = JSON.parse(intendedAction);
+                if (action.type === 'add_to_cart' && action.data) {
+                  // We'll handle this in the useCart hook
+                }
+                if (action.type === 'add_to_wishlist' && action.data) {
+                  // We'll handle this in the useWishlist hook
+                }
+                // Clear the intended action after processing
+                localStorage.removeItem('intended_action');
+              } catch (e) {
+                console.error('Error parsing intended action:', e);
+              }
+            }
           } catch (error) {
             // If profile fetch failed, still set basic user data
             setUser({
@@ -77,11 +99,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session && session.user) {
           try {
             // Get user profile data
-            const { data: profileData } = await supabase
+            const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
-              .single();
+              .maybeSingle();
+            
+            if (profileError) {
+              console.error('Error fetching profile:', profileError);
+            }
             
             // Set user state with profile data
             setUser({
@@ -116,12 +142,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Sign in function
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
+      
+      console.log('Sign in successful:', data);
 
       toast({
         title: 'Connexion réussie',
@@ -130,9 +158,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       navigate('/');
     } catch (error: any) {
+      console.error('Sign in error:', error);
+      
       toast({
         title: 'Erreur de connexion',
-        description: error.message,
+        description: error.message || 'Une erreur est survenue lors de la connexion',
         variant: 'destructive',
       });
     }
@@ -141,7 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Sign up function
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -153,15 +183,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) throw error;
+      
+      console.log('Sign up successful:', data);
 
       toast({
         title: 'Inscription réussie',
         description: 'Votre compte a été créé avec succès.',
       });
     } catch (error: any) {
+      console.error('Sign up error:', error);
+      
       toast({
         title: 'Erreur d\'inscription',
-        description: error.message,
+        description: error.message || 'Une erreur est survenue lors de l\'inscription',
         variant: 'destructive',
       });
     }
@@ -184,7 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       toast({
         title: 'Erreur de déconnexion',
-        description: error.message,
+        description: error.message || 'Une erreur est survenue lors de la déconnexion',
         variant: 'destructive',
       });
     }

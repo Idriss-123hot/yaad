@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
