@@ -32,12 +32,12 @@ export const generateCategoryProducts = (): ProductWithArtisan[] => {
       // Create the product
       const product: ProductWithArtisan = {
         id: productId,
-        title: `${subcategory.name} - Moroccan Artisanal Product`,
-        description: `Authentic Moroccan ${subcategory.name.toLowerCase()} handcrafted by local artisans using traditional techniques passed down through generations. Each piece is unique and showcases the rich heritage of Moroccan craftsmanship.`,
+        title: `${subcategory.name} - Produit Artisanal Marocain`,
+        description: `Authentique ${subcategory.name.toLowerCase()} marocain fabriqué à la main par des artisans locaux utilisant des techniques traditionnelles transmises de génération en génération. Chaque pièce est unique et témoigne du riche patrimoine de l'artisanat marocain.`,
         price: price,
         discountPrice: discountPrice,
         category: mainCategory.name,
-        tags: [subcategory.name.toLowerCase(), mainCategory.name.toLowerCase(), 'handmade', 'moroccan'],
+        tags: [subcategory.name.toLowerCase(), mainCategory.name.toLowerCase(), 'fait main', 'marocain'],
         images: [placeholderImage, placeholderImage], // Same placeholder for both images
         stock: Math.floor(Math.random() * 20) + 1, // Random stock between 1 and 20
         artisanId: `${Math.floor(Math.random() * 10) + 1}`, // Random artisan ID between 1 and 10
@@ -45,8 +45,8 @@ export const generateCategoryProducts = (): ProductWithArtisan[] => {
         reviewCount: Math.floor(Math.random() * 50), // Random review count between 0 and 50
         featured: false,
         createdAt: new Date(),
-        material: 'authentic moroccan materials',
-        origin: 'morocco',
+        material: 'matériaux marocains authentiques',
+        origin: 'maroc',
         subcategory: subcategory.id,
         mainCategory: mainCategory.id
       };
@@ -58,28 +58,52 @@ export const generateCategoryProducts = (): ProductWithArtisan[] => {
   // Add our specific product assignments
   const specificProducts = [
     {
-      id: 'handmade-ceramic-vase',
-      title: 'Handmade Ceramic Vase',
+      id: 'ceramic-vase',
+      title: 'Vase en Céramique Fait Main',
       mainCategory: 'home-decor',
-      subcategory: 'living-room-bedroom'
+      subcategory: 'living-room-bedroom',
+      artisanId: '1', // Aicha Lakhdar
+      images: [
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg',
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg',
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%203.jpeg'
+      ]
     },
     {
-      id: 'handwoven-wool-blanket',
-      title: 'Handwoven Wool Blanket',
+      id: 'wool-blanket',
+      title: 'Couverture en Laine Tissée Main',
       mainCategory: 'home-decor',
-      subcategory: 'textile'
+      subcategory: 'textile',
+      artisanId: '2', // Karim Belouz
+      images: [
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Hand-woven%20Wool%20Blanket%201.jpeg',
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Hand-woven%20Wool%20Blanket%20%202.jpeg',
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Hand-woven%20Wool%20Blanket%20%203.jpeg'
+      ]
     },
     {
-      id: 'handcrafted-wooden-plate',
-      title: 'Handcrafted Wooden Plate',
+      id: 'wooden-serving-board',
+      title: 'Planche de Service en Bois Artisanale',
       mainCategory: 'home-decor',
-      subcategory: 'dining'
+      subcategory: 'dining',
+      artisanId: '7', // Amina Chaoui
+      images: [
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-281478.webp',
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-796823_1800x1800%202.webp',
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-819467_1800x1800%203.webp'
+      ]
     },
     {
-      id: 'artisanal-silver-earrings',
-      title: 'Artisanal Silver Earrings',
+      id: 'silver-earrings',
+      title: 'Boucles d\'Oreilles Artisanales en Argent',
       mainCategory: 'women',
-      subcategory: 'jewelry'
+      subcategory: 'jewelry',
+      artisanId: '8', // Mohammed Idrissi
+      images: [
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-d-oreilles-berbere-touareg%201.jpeg',
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-d-oreilles-berbere-touareg%202.jpeg',
+        'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-d-oreilles-berbere-touareg%203.jpeg'
+      ]
     }
   ];
   
@@ -94,6 +118,8 @@ export const generateCategoryProducts = (): ProductWithArtisan[] => {
       products[existingProductIndex].id = specificProduct.id;
       products[existingProductIndex].title = specificProduct.title;
       products[existingProductIndex].featured = true;
+      products[existingProductIndex].artisanId = specificProduct.artisanId;
+      products[existingProductIndex].images = specificProduct.images;
     }
   });
   
@@ -134,4 +160,9 @@ export const getProductsByCategory = (mainCategory?: string, subcategory?: strin
 // Helper to get a product by ID
 export const getProductById = (id: string): ProductWithArtisan | undefined => {
   return PRODUCTS.find(product => product.id === id);
+};
+
+// Helper to get products by artisanId
+export const getProductsByArtisan = (artisanId: string): ProductWithArtisan[] => {
+  return PRODUCTS.filter(product => product.artisanId === artisanId);
 };

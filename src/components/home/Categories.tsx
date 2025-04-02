@@ -8,7 +8,7 @@ const CATEGORY_IMAGES = {
   "home-decor": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Home%20Decor.jpeg",
   "women": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Women%20morocco.jpeg",
   "men": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Mec%20Morocco%20Craft.jpeg",
-  "skincare": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//skincare%20Morocco.jpeg",
+  "skincare": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Skincare%20Maroc.webp",
   "gourmet": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Gourmet.jpeg"
 };
 
@@ -50,7 +50,7 @@ export function Categories() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
               <div className="absolute bottom-4 left-4 text-white">
                 <h3 className="font-semibold text-lg text-white drop-shadow-md">{category.name}</h3>
-                <p className="text-sm text-white group-hover:underline">Explore Collection</p>
+                <p className="text-sm text-white group-hover:underline">Explorer la collection</p>
               </div>
             </Link>
           ))}

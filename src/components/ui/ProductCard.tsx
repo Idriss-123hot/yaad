@@ -5,6 +5,7 @@ import { ProductWithArtisan } from '@/models/types';
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { FEATURED_PRODUCTS } from '@/components/home/FeaturedProducts';
+import { getArtisanById } from '@/utils/productUtils';
 
 interface ProductCardProps {
   product: ProductWithArtisan;
@@ -12,27 +13,29 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, className }: ProductCardProps) {
-  const { id, title, price, discountPrice, rating, reviewCount, images, artisan } = product;
+  const { id, title, price, discountPrice, rating, reviewCount, images, artisanId } = product;
   
   const firstImage = images && images.length > 0 ? images[0] : undefined;
   const imageUrl = getImageWithFallback(firstImage);
   
+  // Récupérer les informations sur l'artisan
+  const artisan = product.artisan || (artisanId ? getArtisanById(artisanId) : undefined);
   const artisanName = artisan?.name || 'Artisan Marocain';
   
   // Vérifier si c'est un produit mis en avant pour déterminer la route correcte
   const isFeaturedProduct = FEATURED_PRODUCTS.some(p => p.id === id);
   const productLink = isFeaturedProduct ? `/featured/${id}` : `/products/${id}`;
   
+  // Si l'artisan est disponible, créer un lien vers sa page
+  const artisanLink = artisan ? `/artisans/${artisanId}` : undefined;
+  
   return (
-    <Link 
-      to={productLink}
-      className={cn(
-        "group flex flex-col overflow-hidden rounded-lg transition-all duration-300",
-        className
-      )}
-    >
+    <div className={cn(
+      "group flex flex-col overflow-hidden rounded-lg transition-all duration-300",
+      className
+    )}>
       {/* Product Image */}
-      <div className="aspect-square overflow-hidden rounded-lg bg-muted mb-3 relative">
+      <Link to={productLink} className="block aspect-square overflow-hidden rounded-lg bg-muted mb-3 relative">
         <img
           src={imageUrl}
           alt={title}
@@ -49,16 +52,26 @@ export function ProductCard({ product, className }: ProductCardProps) {
             -{Math.round(((price - discountPrice) / price) * 100)}%
           </Badge>
         )}
-      </div>
+      </Link>
       
       {/* Product Info */}
       <div className="flex-1 flex flex-col">
-        <h3 className="font-medium text-base line-clamp-2 mb-1 group-hover:text-terracotta-600">
-          {title}
-        </h3>
-        <p className="text-sm text-muted-foreground mb-2">
-          Par {artisanName}
-        </p>
+        <Link to={productLink}>
+          <h3 className="font-medium text-base line-clamp-2 mb-1 group-hover:text-terracotta-600">
+            {title}
+          </h3>
+        </Link>
+        
+        {artisanLink ? (
+          <Link to={artisanLink} className="text-sm text-muted-foreground mb-2 hover:text-terracotta-600">
+            Par {artisanName}
+          </Link>
+        ) : (
+          <p className="text-sm text-muted-foreground mb-2">
+            Par {artisanName}
+          </p>
+        )}
+        
         <div className="flex items-center mt-auto">
           <div className="flex items-center">
             <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
@@ -79,7 +92,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           )}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

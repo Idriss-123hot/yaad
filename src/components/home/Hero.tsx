@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -30,6 +30,15 @@ export function Hero() {
     },
   ];
 
+  // Autoplay slider
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+    }, 3000); // Change slide every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [slides.length]);
+
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
   };
@@ -39,7 +48,7 @@ export function Hero() {
   };
 
   return (
-    <section className="relative w-full h-[80vh] mt-20">
+    <section className="relative w-full h-[90vh] mt-20">
       {/* Full-width slider without transparency */}
       <div className="absolute inset-0 w-full h-full overflow-hidden">
         {slides.map((slide, index) => (

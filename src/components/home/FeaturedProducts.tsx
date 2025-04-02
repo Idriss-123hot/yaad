@@ -13,7 +13,11 @@ const FEATURED_PRODUCTS = [
     price: 89.99,
     category: 'Ceramics & Pottery',
     tags: ['vase', 'ceramics', 'home decor'],
-    images: ['https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//small-terracotta-ceramic-vase-handmade-in-morocco.jpeg'],
+    images: [
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%203.jpeg'
+    ],
     stock: 5,
     artisanId: '1',
     rating: 4.8,
@@ -28,7 +32,11 @@ const FEATURED_PRODUCTS = [
     price: 149.99,
     category: 'Textiles & Fabrics',
     tags: ['blanket', 'wool', 'handwoven'],
-    images: ['https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//berber-plaid-with-white-pompoms-and-pink-stripes.jpeg'],
+    images: [
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Hand-woven%20Wool%20Blanket%201.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Hand-woven%20Wool%20Blanket%20%202.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Hand-woven%20Wool%20Blanket%20%203.jpeg'
+    ],
     stock: 3,
     artisanId: '2',
     rating: 4.9,
@@ -44,9 +52,13 @@ const FEATURED_PRODUCTS = [
     discountPrice: 49.99,
     category: 'Woodworking',
     tags: ['kitchen', 'serving', 'wood'],
-    images: ['https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-281478.webp'],
+    images: [
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-281478.webp',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-796823_1800x1800%202.webp',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-819467_1800x1800%203.webp'
+    ],
     stock: 8,
-    artisanId: '3',
+    artisanId: '7', // Amina Chaoui
     rating: 4.7,
     reviewCount: 32,
     featured: true,
@@ -59,9 +71,13 @@ const FEATURED_PRODUCTS = [
     price: 79.99,
     category: 'Jewelry',
     tags: ['earrings', 'silver', 'accessories'],
-    images: ['https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-doreilles-oufla-boucles-doreilles-417821_1024x1024@2x.jpeg'],
+    images: [
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-d-oreilles-berbere-touareg%201.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-d-oreilles-berbere-touareg%202.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-d-oreilles-berbere-touareg%203.jpeg'
+    ],
     stock: 12,
-    artisanId: '4',
+    artisanId: '8', // Mohammed Idrissi
     rating: 4.9,
     reviewCount: 41,
     featured: true,
@@ -79,12 +95,12 @@ export function FeaturedProducts() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10">
           <div>
             <span className="inline-block bg-terracotta-100 text-terracotta-800 px-3 py-1 rounded-full text-xs font-medium mb-3">
-              Featured Collection
+              Collection en Vedette
             </span>
-            <h2 className="font-serif text-3xl md:text-4xl font-bold">Exceptional Craftsmanship</h2>
+            <h2 className="font-serif text-3xl md:text-4xl font-bold">Savoir-Faire Exceptionnel</h2>
           </div>
           <Button variant="link" className="text-terracotta-600 hover:text-terracotta-700 p-0 hidden md:flex">
-            <Link to="/search">View All Products <ArrowRight className="ml-1 h-4 w-4" /></Link>
+            <Link to="/search">Voir tous les produits <ArrowRight className="ml-1 h-4 w-4" /></Link>
           </Button>
         </div>
 
@@ -98,7 +114,7 @@ export function FeaturedProducts() {
         {/* Mobile View All button */}
         <div className="mt-8 flex justify-center md:hidden">
           <Button variant="outline" className="border-terracotta-200 hover:bg-terracotta-50">
-            <Link to="/search">View All Products <ArrowRight className="ml-1 h-4 w-4" /></Link>
+            <Link to="/search">Voir tous les produits <ArrowRight className="ml-1 h-4 w-4" /></Link>
           </Button>
         </div>
       </div>

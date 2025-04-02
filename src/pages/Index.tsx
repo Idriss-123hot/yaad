@@ -7,6 +7,7 @@ import { Categories } from '@/components/home/Categories';
 import { FeaturedProducts } from '@/components/home/FeaturedProducts';
 import { ArtisanSpotlight } from '@/components/home/ArtisanSpotlight';
 import { SearchBar } from '@/components/search/SearchBar';
+import { ensureBucketsExist } from '@/utils/storageUtils';
 
 const Index = () => {
   // Smooth scroll to top on page load
@@ -14,6 +15,15 @@ const Index = () => {
     window.scrollTo({
       top: 0,
       behavior: 'smooth',
+    });
+    
+    // Ensure storage buckets exist
+    ensureBucketsExist().then(result => {
+      if (result.success) {
+        console.log('Buckets de stockage vérifiés avec succès');
+      } else {
+        console.error('Erreur lors de la vérification des buckets de stockage:', result.error);
+      }
     });
   }, []);
 
@@ -29,7 +39,7 @@ const Index = () => {
         </section>
         
         <FeaturedProducts />
-        <div className="exceptional-craftsmanship">
+        <div className="savoir-faire-exceptionnel">
           <Categories />
         </div>
         <ArtisanSpotlight />
