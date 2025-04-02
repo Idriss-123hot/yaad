@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { ProductWithArtisan } from '@/models/types';
+import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
 
 // Types
 export interface CartItem {
@@ -48,7 +49,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             .from('cart_items')
             .select('*')
             .limit(1)
-            .catch(() => ({ error: { message: 'Table does not exist' } }));
+            .abortSignal(new AbortController().signal);
             
           if (tableError) {
             console.log('Cart items table does not exist yet, using localStorage');
@@ -99,32 +100,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
                   };
                 }
                 
-                // Map the database product to ProductWithArtisan type
-                const mappedProduct: ProductWithArtisan = {
-                  id: productData.id,
-                  title: productData.title || '',
-                  description: productData.description || '',
-                  price: productData.price || 0,
-                  discountPrice: productData.discount_price,
-                  category: productData.category?.name || '',
-                  mainCategory: productData.main_category || '',
-                  subcategory: productData.subcategory || '',
-                  images: productData.images || [],
-                  artisanId: productData.artisan_id,
-                  rating: productData.rating || 0,
-                  featured: productData.featured || false,
-                  artisan: productData.artisan,
-                  stock: productData.stock || 0,
-                  tags: productData.tags || [],
-                  reviewCount: productData.review_count || 0,
-                  createdAt: productData.created_at
-                };
-                
                 return {
                   productId: item.product_id,
                   quantity: item.quantity,
                   variations: typeof item.variations === 'object' ? item.variations : {},
-                  product: mappedProduct,
+                  product: productData ? mapDatabaseProductToProduct(productData) : undefined,
                 };
               })
             );
@@ -165,7 +145,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             .from('cart_items')
             .select('*')
             .limit(1)
-            .catch(() => ({ error: { message: 'Table does not exist' } }));
+            .abortSignal(new AbortController().signal);
             
           if (tableError) {
             console.log('Cart items table does not exist yet, saving to localStorage');
@@ -262,27 +242,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      // Map the database product to ProductWithArtisan type
-      const mappedProduct: ProductWithArtisan = {
-        id: productData.id,
-        title: productData.title || '',
-        description: productData.description || '',
-        price: productData.price || 0,
-        discountPrice: productData.discount_price,
-        category: productData.category?.name || '',
-        mainCategory: productData.main_category || '',
-        subcategory: productData.subcategory || '',
-        images: productData.images || [],
-        artisanId: productData.artisan_id,
-        rating: productData.rating || 0,
-        featured: productData.featured || false,
-        artisan: productData.artisan,
-        stock: productData.stock || 0,
-        tags: productData.tags || [],
-        reviewCount: productData.review_count || 0,
-        createdAt: productData.created_at
-      };
-      
       // Add new item with product details
       setCartItems([
         ...cartItems,
@@ -290,7 +249,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           productId, 
           quantity, 
           variations,
-          product: mappedProduct,
+          product: productData ? mapDatabaseProductToProduct(productData) : undefined,
         },
       ]);
     }

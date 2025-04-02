@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { ProductWithArtisan } from '@/models/types';
+import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
 
 // Types
 export interface WishlistItem {
@@ -46,7 +47,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
             .from('wishlist')
             .select('*')
             .limit(1)
-            .catch(() => ({ error: { message: 'Table does not exist' } }));
+            .abortSignal(new AbortController().signal); // Use this instead of catch
             
           if (tableError) {
             console.log('Wishlist table does not exist yet, using localStorage');
@@ -95,31 +96,10 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
                   };
                 }
                 
-                // Map the database product to ProductWithArtisan type
-                const mappedProduct: ProductWithArtisan = {
-                  id: productData.id,
-                  title: productData.title || '',
-                  description: productData.description || '',
-                  price: productData.price || 0,
-                  discountPrice: productData.discount_price,
-                  category: productData.category?.name || '',
-                  mainCategory: productData.main_category || '',
-                  subcategory: productData.subcategory || '',
-                  images: productData.images || [],
-                  artisanId: productData.artisan_id,
-                  rating: productData.rating || 0,
-                  featured: productData.featured || false,
-                  artisan: productData.artisan,
-                  stock: productData.stock || 0,
-                  tags: productData.tags || [],
-                  reviewCount: productData.review_count || 0,
-                  createdAt: productData.created_at
-                };
-                
                 return {
                   productId: item.product_id,
                   addedAt: item.created_at,
-                  product: mappedProduct,
+                  product: productData ? mapDatabaseProductToProduct(productData) : undefined,
                 };
               })
             );
@@ -160,7 +140,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
             .from('wishlist')
             .select('*')
             .limit(1)
-            .catch(() => ({ error: { message: 'Table does not exist' } }));
+            .abortSignal(new AbortController().signal);
             
           if (tableError) {
             console.log('Wishlist table does not exist yet, saving to localStorage');
@@ -253,34 +233,13 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       return;
     }
     
-    // Map the database product to ProductWithArtisan type
-    const mappedProduct: ProductWithArtisan = {
-      id: productData.id,
-      title: productData.title || '',
-      description: productData.description || '',
-      price: productData.price || 0,
-      discountPrice: productData.discount_price,
-      category: productData.category?.name || '',
-      mainCategory: productData.main_category || '',
-      subcategory: productData.subcategory || '',
-      images: productData.images || [],
-      artisanId: productData.artisan_id,
-      rating: productData.rating || 0,
-      featured: productData.featured || false,
-      artisan: productData.artisan,
-      stock: productData.stock || 0,
-      tags: productData.tags || [],
-      reviewCount: productData.review_count || 0,
-      createdAt: productData.created_at
-    };
-    
     // Add new item with product details
     setWishlistItems([
       ...wishlistItems,
       { 
         productId, 
         addedAt: new Date().toISOString(),
-        product: mappedProduct,
+        product: productData ? mapDatabaseProductToProduct(productData) : undefined,
       },
     ]);
     
