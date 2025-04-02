@@ -1,10 +1,11 @@
+
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { Link } from 'react-router-dom';
 
 // Données des produits vedettes avec traductions
-const FEATURED_PRODUCTS = [
+export const FEATURED_PRODUCTS = [
   {
     id: 'vase-céramique',
     title: 'Vase en Céramique Artisanal',

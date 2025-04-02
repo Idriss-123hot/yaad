@@ -7,6 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { FEATURED_PRODUCTS } from '@/components/home/FeaturedProducts';
 import { getArtisanById } from '@/utils/productUtils';
 
+/**
+ * Composant pour afficher une carte de produit
+ * 
+ * @param product Le produit à afficher
+ * @param className Classes CSS additionnelles
+ */
 interface ProductCardProps {
   product: ProductWithArtisan;
   className?: string;
