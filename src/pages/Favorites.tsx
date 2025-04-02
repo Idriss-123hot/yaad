@@ -5,59 +5,12 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ui/ProductCard';
-import { supabase } from '@/integrations/supabase/client';
-import { Product } from '@/models/types';
-import { mapDatabaseProductToProduct } from '@/utils/productMappers';
+import { useWishlist } from '@/hooks/useWishlist';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Favorites() {
-  const [favorites, setFavorites] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState(null);
-
-  useEffect(() => {
-    // Check authentication status
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        fetchFavorites();
-      } else {
-        setLoading(false);
-      }
-    });
-  }, []);
-
-  const fetchFavorites = async () => {
-    setLoading(true);
-    try {
-      // This is a placeholder for actual favorites functionality
-      // In a real implementation, we would fetch user's favorites from Supabase
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // For now, just use some sample products
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, artisan:artisans(*), category:categories(*)')
-        .limit(4);
-        
-      if (error) throw error;
-      
-      // Map the database products to our app's Product model
-      const mappedProducts = data?.map(mapDatabaseProductToProduct) || [];
-      setFavorites(mappedProducts);
-    } catch (error) {
-      console.error('Error fetching favorites:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const removeFromFavorites = async (productId: string) => {
-    // Placeholder for removing from favorites functionality
-    setFavorites(favorites.filter(product => product.id !== productId));
-    // Here you would also update the database
-  };
+  const { wishlistItems, loading, removeFromWishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -80,7 +33,7 @@ export default function Favorites() {
               <div key={i} className="h-80 animate-pulse bg-gray-200 rounded-lg"></div>
             ))}
           </div>
-        ) : !session ? (
+        ) : !isAuthenticated ? (
           <div className="text-center py-16 max-w-md mx-auto">
             <Heart className="h-16 w-16 mx-auto mb-4 text-gray-300" />
             <h2 className="text-2xl font-bold mb-2">Connectez-vous pour voir vos favoris</h2>
@@ -94,7 +47,7 @@ export default function Favorites() {
               Se connecter
             </Button>
           </div>
-        ) : favorites.length === 0 ? (
+        ) : wishlistItems.length === 0 ? (
           <div className="text-center py-16">
             <Heart className="h-16 w-16 mx-auto mb-4 text-gray-300" />
             <h2 className="text-2xl font-bold mb-2">Vous n'avez pas encore de favoris</h2>
@@ -110,9 +63,9 @@ export default function Favorites() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {favorites.map((product) => (
-              <div key={product.id} className="relative group">
-                <ProductCard product={product} />
+            {wishlistItems.map((item) => item.product && (
+              <div key={item.productId} className="relative group">
+                <ProductCard product={item.product} />
                 <Button
                   variant="outline"
                   size="icon"
@@ -120,7 +73,7 @@ export default function Favorites() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    removeFromFavorites(product.id);
+                    removeFromWishlist(item.productId);
                   }}
                 >
                   <Heart className="h-5 w-5 fill-terracotta-600 text-terracotta-600" />

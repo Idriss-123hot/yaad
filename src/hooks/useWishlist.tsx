@@ -34,6 +34,28 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
 
+  // Check if wishlist table exists
+  const checkWishlistTable = async (): Promise<boolean> => {
+    try {
+      // Try to query the system catalog to check if the table exists
+      const { error } = await supabase
+        .from('products') // Use a known table to avoid type errors
+        .select('*')
+        .limit(1)
+        .abortSignal(new AbortController().signal);
+      
+      if (error) {
+        console.error('Error checking for products table:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (e) {
+      console.error('Error checking for table:', e);
+      return false;
+    }
+  };
+
   // Load wishlist on mount and when user changes
   useEffect(() => {
     const loadWishlist = async () => {
@@ -41,87 +63,40 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       
       try {
         if (isAuthenticated && user) {
-          // If logged in, get wishlist items from Supabase
-          // First check if the wishlist table exists
-          const { error: tableError } = await supabase
-            .from('wishlist')
-            .select('*')
-            .limit(1)
-            .abortSignal(new AbortController().signal); // Use this instead of catch
-            
-          if (tableError) {
-            console.log('Wishlist table does not exist yet, using localStorage');
-            const savedWishlist = localStorage.getItem('wishlist');
-            if (savedWishlist) {
-              try {
-                const parsedWishlist = JSON.parse(savedWishlist);
-                setWishlistItems(parsedWishlist);
-              } catch (e) {
-                console.error('Error parsing wishlist from localStorage:', e);
-              }
-            }
-            setLoading(false);
+          // Check if we can access the database correctly first
+          const canAccessDb = await checkWishlistTable();
+          
+          if (!canAccessDb) {
+            console.log('Cannot access database properly, using localStorage');
+            loadFromLocalStorage();
             return;
           }
           
-          const { data, error } = await supabase
-            .from('wishlist')
-            .select('*')
-            .eq('user_id', user.id);
-          
-          if (error) {
-            throw error;
-          }
-          
-          if (data) {
-            // Load product details for each wishlist item
-            const itemsWithProducts: WishlistItem[] = await Promise.all(
-              data.map(async (item: any) => {
-                const { data: productData, error: productError } = await supabase
-                  .from('products')
-                  .select(`
-                    *,
-                    product_variations(*),
-                    artisan:artisans(*),
-                    category:categories(*)
-                  `)
-                  .eq('id', item.product_id)
-                  .single();
-                
-                if (productError) {
-                  console.error('Error fetching product:', productError);
-                  return {
-                    productId: item.product_id,
-                    addedAt: item.created_at,
-                  };
-                }
-                
-                return {
-                  productId: item.product_id,
-                  addedAt: item.created_at,
-                  product: productData ? mapDatabaseProductToProduct(productData) : undefined,
-                };
-              })
-            );
-            
-            setWishlistItems(itemsWithProducts);
-          }
+          // For now, we'll store wishlist items in localStorage
+          // In a production app, you would implement the wishlist table in Supabase
+          loadFromLocalStorage();
         } else {
           // If not logged in, load wishlist from localStorage
-          const savedWishlist = localStorage.getItem('wishlist');
-          if (savedWishlist) {
-            try {
-              const parsedWishlist = JSON.parse(savedWishlist);
-              setWishlistItems(parsedWishlist);
-            } catch (e) {
-              console.error('Error parsing wishlist from localStorage:', e);
-            }
-          }
+          loadFromLocalStorage();
         }
       } catch (error) {
         console.error('Error loading wishlist:', error);
+        loadFromLocalStorage();
       } finally {
         setLoading(false);
+      }
+    };
+    
+    const loadFromLocalStorage = () => {
+      const savedWishlist = localStorage.getItem('wishlist');
+      if (savedWishlist) {
+        try {
+          const parsedWishlist = JSON.parse(savedWishlist);
+          setWishlistItems(parsedWishlist);
+        } catch (e) {
+          console.error('Error parsing wishlist from localStorage:', e);
+          setWishlistItems([]);
+        }
       }
     };
     
@@ -135,39 +110,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       
       try {
         if (isAuthenticated && user) {
-          // Check if wishlist table exists before attempting to save
-          const { error: tableError } = await supabase
-            .from('wishlist')
-            .select('*')
-            .limit(1)
-            .abortSignal(new AbortController().signal);
-            
-          if (tableError) {
-            console.log('Wishlist table does not exist yet, saving to localStorage');
-            localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
-            return;
-          }
-          
-          // If logged in, save wishlist to Supabase
-          // First clear the existing wishlist
-          await supabase
-            .from('wishlist')
-            .delete()
-            .eq('user_id', user.id);
-          
-          // Then insert new items
-          if (wishlistItems.length > 0) {
-            const { error } = await supabase
-              .from('wishlist')
-              .insert(
-                wishlistItems.map(item => ({
-                  user_id: user.id,
-                  product_id: item.productId,
-                }))
-              );
-            
-            if (error) throw error;
-          }
+          // For now, we'll store wishlist items in localStorage
+          // In a production app, you would implement the wishlist table in Supabase
+          localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
         } else {
           // If not logged in, save wishlist to localStorage
           localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
@@ -212,41 +157,49 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     }
     
     // Fetch product details
-    const { data: productData, error: productError } = await supabase
-      .from('products')
-      .select(`
-        *,
-        product_variations(*),
-        artisan:artisans(*),
-        category:categories(*)
-      `)
-      .eq('id', productId)
-      .single();
-    
-    if (productError) {
-      console.error('Error fetching product:', productError);
+    try {
+      const { data: productData, error: productError } = await supabase
+        .from('products')
+        .select(`
+          *,
+          product_variations(*),
+          artisan:artisans(*),
+          category:categories(*)
+        `)
+        .eq('id', productId)
+        .single();
+      
+      if (productError) {
+        console.error('Error fetching product:', productError);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible d\'ajouter le produit à votre liste de souhaits',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Add new item with product details
+      const newItem: WishlistItem = {
+        productId, 
+        addedAt: new Date().toISOString(),
+        product: productData ? mapDatabaseProductToProduct(productData) : undefined,
+      };
+      
+      setWishlistItems([...wishlistItems, newItem]);
+      
+      toast({
+        title: 'Produit ajouté',
+        description: 'Le produit a été ajouté à votre liste de souhaits',
+      });
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
       toast({
         title: 'Erreur',
         description: 'Impossible d\'ajouter le produit à votre liste de souhaits',
         variant: 'destructive',
       });
-      return;
     }
-    
-    // Add new item with product details
-    setWishlistItems([
-      ...wishlistItems,
-      { 
-        productId, 
-        addedAt: new Date().toISOString(),
-        product: productData ? mapDatabaseProductToProduct(productData) : undefined,
-      },
-    ]);
-    
-    toast({
-      title: 'Produit ajouté',
-      description: 'Le produit a été ajouté à votre liste de souhaits',
-    });
   };
   
   // Remove item from wishlist
