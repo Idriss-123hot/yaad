@@ -1,42 +1,42 @@
 
-# Identifiant unique du projet Supabase
+# Configuration du projet Supabase
 project_id = "hijgrzabkfynlomhbzij"
 
 # Configuration de l'API Supabase
 [api]
-port = 54321  # Port sur lequel l'API est exposée
-schemas = ["public", "storage"]  # Schémas de base de données accessibles
+port = 54321
+schemas = ["public", "storage"]
 
-# Configuration de la base de données
+# Configuration de la base de données PostgreSQL
 [db]
-port = 54322  # Port pour accéder directement à la base de données PostgreSQL
+port = 54322
 
-# Configuration du Studio Supabase (interface d'administration)
+# Configuration de l'interface d'administration
 [studio]
-port = 54324  # Port pour l'interface d'administration web
+port = 54324
 
 # Configuration du stockage de fichiers
 [storage]
-file_size_limit = "50MiB"  # Taille maximale des fichiers autorisés
+file_size_limit = "50MiB"
 
-# Configuration des fonctions Edge (serverless)
+# Configuration générale des fonctions Edge
 [functions]
-port = 54323  # Port pour les fonctions Edge
-serve_dir = "supabase/functions"  # Dossier contenant les fonctions Edge
+port = 54323
+serve_dir = "supabase/functions"
 
 # Définition des fonctions Edge individuelles
 [[functions.function]]
-name = "ensure-storage-buckets"  # Fonction pour créer/vérifier les buckets de stockage
-verify_jwt = true  # Authentification JWT requise
+name = "ensure-storage-buckets"
+verify_jwt = true
 
 [[functions.function]]
-name = "search"  # Fonction de recherche
-verify_jwt = false  # Pas d'authentification JWT requise (accessible publiquement)
+name = "search"
+verify_jwt = false
 
 [[functions.function]]
-name = "create-initial-users"  # Fonction pour créer des utilisateurs initiaux
-verify_jwt = true  # Authentification JWT requise
+name = "create-initial-users"
+verify_jwt = true
 
 [[functions.function]]
-name = "populate-database"  # Fonction pour remplir la base de données avec des données initiales
-verify_jwt = true  # Authentification JWT requise
+name = "populate-database"
+verify_jwt = true
