@@ -18,6 +18,7 @@ import Auth from './pages/Auth';
 import NotFound from './pages/NotFound';
 import CategoryDetailWithProducts from './pages/CategoryDetailWithProducts';
 import { Toaster } from './components/ui/toaster';
+import BecomeArtisan from './pages/BecomeArtisan';
 
 // Routes Admin
 import AdminLogin from './pages/admin/Login';
@@ -58,6 +59,7 @@ function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/artisans" element={<Artisans />} />
         <Route path="/artisans/:id" element={<ArtisanDetail />} />
+        <Route path="/become-artisan" element={<BecomeArtisan />} />
         
         {/* Routes Admin */}
         <Route path="/admin/login" element={<AdminLogin />} />

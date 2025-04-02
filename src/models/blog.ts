@@ -1,12 +1,5 @@
 
-export interface Author {
-  id: string;
-  name: string;
-  role: string;
-  avatar: string;
-}
-
-export interface BlogPostSection {
+export interface BlogPostContent {
   type: 'paragraph' | 'heading' | 'image' | 'quote';
   content?: string;
   url?: string;
@@ -14,228 +7,273 @@ export interface BlogPostSection {
   author?: string;
 }
 
-export interface BlogPost {
+export interface BlogPostAuthor {
   id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  coverImage: string;
-  category: string;
-  tags: string[];
-  author: Author;
-  publishedAt: string;
-  content: BlogPostSection[];
+  name: string;
+  role: string;
+  avatar: string;
 }
 
-// Sample authors
+export interface BlogPost {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  coverImage: string;
+  publishedAt: string;
+  author: BlogPostAuthor;
+  content: BlogPostContent[];
+  tags: string[];
+}
+
+// Author data
 const authors = {
-  idriss: {
-    id: 'author-1',
-    name: 'Idriss Laroussi',
-    role: 'Fondateur & CEO',
-    avatar: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//IMG-20220204-WA0026.jpg'
+  mohamed: {
+    id: 'mohamed',
+    name: 'Mohamed Belkacem',
+    role: 'Spécialiste en Artisanat Marocain',
+    avatar: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Portrait-Mohamed-Artisan.jpg',
   },
-  rita: {
-    id: 'author-2',
-    name: 'Rita Baniyahya',
-    role: 'Directrice des Partenariats',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80'
+  samira: {
+    id: 'samira',
+    name: 'Samira El Madani',
+    role: 'Artisane et Historienne',
+    avatar: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Portrait-Samira-Artisans.jpg',
   },
-  marie: {
-    id: 'author-3',
-    name: 'Marie Dupont',
-    role: 'Responsable Design',
-    avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80'
-  }
+  karim: {
+    id: 'karim',
+    name: 'Karim Benchekroun',
+    role: 'Expert en Culture Marocaine',
+    avatar: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Portrait-Karim-Artisan.jpg',
+  },
+  leila: {
+    id: 'leila',
+    name: 'Leila Zouiten',
+    role: 'Designer et Artisane',
+    avatar: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Portrait-Leila-Artisan.jpg',
+  },
 };
 
-// Sample blog posts
+// Blog posts data - Updated with new content
 export const SAMPLE_BLOG_POSTS: BlogPost[] = [
   {
-    id: 'post-1',
-    title: 'Le renouveau de l\'artisanat traditionnel marocain à l\'ère du digital',
-    slug: 'renouveau-artisanat-marocain-digital',
-    excerpt: 'Comment les artisans marocains adaptent leurs savoir-faire ancestraux aux technologies modernes pour conquérir de nouveaux marchés.',
-    coverImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Transformation-digitale%20artisans.jpeg',
-    category: 'Artisanat & Technologie',
-    tags: ['Maroc', 'Artisanat', 'E-commerce', 'Tradition'],
-    author: authors.idriss,
-    publishedAt: '2023-10-15',
+    id: '1',
+    slug: 'artisanat-traditionnel-marocain-ere-digital',
+    title: "L'Âge d'Or Numérique : Quand l'Artisanat Marocain Tisse sa Toile sur le Web",
+    excerpt: "Comment l'artisanat marocain traditionnel renaît à l'ère du digital et conquiert le monde en ligne.",
+    category: 'Innovation',
+    coverImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//artisanat-digital-maroc.jpg',
+    publishedAt: '2023-06-15',
+    author: authors.mohamed,
     content: [
       {
         type: 'paragraph',
-        content: 'Au cœur des médinas de Fès, Marrakech ou Essaouira, le martèlement rythmé des artisans du cuivre, les métiers à tisser des femmes berbères ou les tours des potiers tournent depuis des siècles. Ces techniques ancestrales, transmises de génération en génération, constituent un patrimoine culturel inestimable pour le Maroc.'
+        content: "Sous le ciel ocre des médinas, là où les mains savent encore lire le langage secret de la terre et du temps, une révolution silencieuse s'éveille. L'artisanat marocain, héritier de siècles de savoir-faire, ne se contente plus de murmurer ses légendes entre les murs des souks. Il s'envole, porté par les ailes invisibles du numérique, pour conquérir le monde."
       },
       {
         type: 'paragraph',
-        content: 'Pourtant, face à la mondialisation et à l\'industrialisation, cet artisanat traditionnel a longtemps été menacé. Comment maintenir vivantes ces pratiques dans un monde où la production de masse domine ? Comment assurer aux artisans un revenu digne de leur talent et de leur expertise ?'
-      },
-      {
-        type: 'heading',
-        content: 'La révolution digitale au service de l\'artisanat'
-      },
-      {
-        type: 'paragraph',
-        content: 'La réponse pourrait bien se trouver dans la révolution numérique. Loin d\'être incompatibles, tradition et technologie se révèlent être des alliées précieuses pour ces gardiens du patrimoine marocain.'
+        content: "Imaginez une tisserande de Midelt dont les tapis berbères, jadis vendus à la lueur des bougies, se déploient aujourd'hui sur des galeries virtuelles, admirés à Tokyo ou à Montréal. Visualisez un potier de Safi filmant en direct le ballet hypnotique de son tour, captivant des milliers de curieux avides d'authenticité. Le digital n'est pas un ennemi ; c'est un pont entre les générations, une caresse offerte aux traditions pour qu'elles survivent à l'urgence du moderne."
       },
       {
         type: 'image',
-        url: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//artisans%20cuir.jpeg',
-        caption: 'Artisan marocain travaillant le cuir dans son atelier de la médina de Fès'
+        url: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//artisan-fes-digital.jpg',
+        caption: 'Artisan de Fès partageant son savoir-faire sur les réseaux sociaux'
       },
       {
         type: 'paragraph',
-        content: 'Les plateformes de commerce en ligne offrent désormais aux artisans la possibilité de s\'affranchir des intermédiaires et d\'accéder directement à une clientèle internationale. Des coopératives de femmes tisserandes du Moyen Atlas aux céramistes de Safi, nombreux sont ceux qui ont saisi cette opportunité.'
+        content: "Les plateformes en ligne deviennent des caravansérails 2.0, où les artisans partagent leurs récits autant que leurs créations. Un maroquinier de Fès explique l'alchimie des tanins végétaux via des tutoriels, tandis qu'une bijoutière du Haut Atlas dévoile le sens sacré des fibules en argent sur Instagram. Chaque clic est une porte ouverte sur un univers où le temps se suspend, où chaque objet raconte une odyssée : celle de la main qui l'a façonné, de la matière qui a résisté, de l'âme qui a persévéré."
       },
       {
         type: 'quote',
-        content: 'Internet nous a ouvert les portes du monde. Autrefois, nous dépendions entièrement des commerçants de la médina ou des grossistes. Aujourd\'hui, je peux vendre mes créations à des clients du monde entier, et surtout, raconter l\'histoire derrière chaque pièce.',
-        author: 'Hassan Berrada, maître artisan en zellige à Fès'
+        content: "Notre savoir-faire ancestral ne doit pas rester figé dans les musées. Grâce au digital, nous le faisons vivre et évoluer, tout en préservant son âme authentique.",
+        author: "Aïcha Bouharrat, tisserande à Midelt"
+      },
+      {
+        type: 'paragraph',
+        content: "Mais cette renaissance n'est pas qu'une question de visibilité. C'est une reconquête. En digitalisant leurs métiers, les artisans réinventent leur liberté. Ils fixent leurs prix, dialoguent avec des collectionneurs, s'émancipent des intermédiaires. Le web devient un zellige de possibilités : chaque pièce s'emboîte pour former une mosaïque plus vaste, où le Maroc rayonne comme un phare culturel."
       },
       {
         type: 'heading',
-        content: 'Formation et innovation : les clés du succès'
+        content: "Le Digital, Nouveau Souffle de l'Artisanat"
       },
       {
         type: 'paragraph',
-        content: 'Cette transition vers le digital ne s\'est pas faite du jour au lendemain. Elle est le fruit d\'initiatives publiques et privées visant à former les artisans aux outils numériques et aux techniques de marketing en ligne.'
-      },
-      {
-        type: 'paragraph',
-        content: 'L\'innovation joue également un rôle crucial dans cette renaissance. Sans dénaturer les techniques traditionnelles, de nombreux artisans adaptent leurs créations aux goûts et aux besoins contemporains, créant ainsi une fusion harmonieuse entre héritage et modernité.'
-      },
-      {
-        type: 'heading',
-        content: 'Les défis à relever'
-      },
-      {
-        type: 'paragraph',
-        content: 'Malgré ces avancées prometteuses, des défis subsistent. L\'accès à internet reste inégal dans les zones rurales, la logistique peut s\'avérer complexe et la concurrence internationale est rude.'
-      },
-      {
-        type: 'paragraph',
-        content: 'Pourtant, l\'authenticité, la qualité et l\'histoire unique de l\'artisanat marocain constituent des atouts indéniables dans un marché mondial de plus en plus standardisé. À l\'heure où les consommateurs recherchent du sens dans leurs achats, ces produits porteurs d\'identité et de tradition ont plus que jamais leur place.'
-      },
-      {
-        type: 'paragraph',
-        content: 'Le mariage entre savoir-faire ancestral et technologies modernes pourrait bien être la clé d\'une renaissance durable de l\'artisanat marocain, permettant de préserver ce patrimoine vivant tout en lui offrant un avenir prometteur à l\'échelle mondiale.'
+        content: "Et si, au fond, cette ère digitale était un retour aux sources ? Autrefois, les caravanes reliaient le Maroc au reste du monde. Aujourd'hui, les pixels accomplissent le même miracle : faire voyager l'artisanat sans lui arracher son âme."
       }
-    ]
+    ],
+    tags: ['artisanat', 'digital', 'tradition', 'innovation', 'maroc']
   },
   {
-    id: 'post-2',
-    title: 'Les tissages berbères : un héritage millénaire au cœur de la décoration contemporaine',
-    slug: 'tissages-berberes-decoration-contemporaine',
-    excerpt: 'Découvrez comment les tapis et textiles berbères, chargés de symboles et d\'histoire, sont devenus des pièces incontournables du design d\'intérieur moderne.',
-    coverImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//taapis.jpeg',
-    category: 'Design & Décoration',
-    tags: ['Textile', 'Design', 'Berbère', 'Tradition'],
-    author: authors.marie,
-    publishedAt: '2023-09-28',
+    id: '2',
+    slug: 'tapis-berberes-memoires-tissees-atlas',
+    title: 'Les Tapis Berbères : Mémoires Tissées de l\'Atlas',
+    excerpt: "Découvrez comment les tissages berbères millénaires continuent d'inspirer la décoration contemporaine mondiale.",
+    category: 'Textiles',
+    coverImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//tapis-berbere-memoire.jpg',
+    publishedAt: '2023-07-22',
+    author: authors.samira,
     content: [
       {
         type: 'paragraph',
-        content: 'Des montagnes de l\'Atlas marocain aux intérieurs les plus sophistiqués de New York ou Paris, les tapis berbères ont parcouru un long chemin. Ces œuvres textiles, créées depuis des millénaires par les femmes berbères, racontent à travers leurs motifs géométriques et leurs symboles une histoire riche de traditions et de croyances.'
+        content: "Dans la laine nouée des tapis berbères, chaque motif est une lettre, chaque couleur un chuchotement des montagnes. Ces tissages ne sont pas de simples objets ; ce sont des archives vivantes, des cartographies intimes où se mêlent les rêves des ancêtres et les souffles du vent de l'Atlas."
+      },
+      {
+        type: 'paragraph',
+        content: "Depuis des millénaires, les femmes berbères parlent à la laine. Leurs métiers à tisser verticaux, semblables à des portes ouvertes sur l'infini, transforment les fils en récits. Un triangle évoque une montagne sacrée, un losange incarne la féminité, un zigzag raconte le chemin sinueux de la vie. Ces symboles, transmis de mère en fille, sont un alphabet silencieux qui résiste au temps. Aujourd'hui, ces mêmes motifs se glissent dans les intérieurs épurés de Paris ou de New York, où leurs géométries ancestrales dialoguent avec le béton et le métal."
+      },
+      {
+        type: 'image',
+        url: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//tisserande-berbere.jpg',
+        caption: 'Tisserande berbère travaillant sur un métier à tisser traditionnel'
+      },
+      {
+        type: 'paragraph',
+        content: "Au cœur du village de Taznakht, Aïcha, 62 ans, tresse encore la laine avec des pigments naturels : le rouge de la garance, le bleu de l'indigo, le jaune du safran. « Mes tapis sont comme mes enfants, confie-t-elle. Ils partent voyager, mais ils emportent toujours un morceau de notre terre. » Ses créations, jadis échangées contre de l'huile ou des céréales, sont désormais exposées dans des galeries d'art contemporain. Des designers les suspendent comme des toiles abstraites, captivés par leur puissance narrative."
       },
       {
         type: 'heading',
-        content: 'Un langage symbolique tissé'
+        content: "Du Sol aux Murs : L'Évolution des Tapis Berbères"
       },
-      // Contenu simplifié pour cet exemple
       {
         type: 'paragraph',
-        content: 'Chaque tapis berbère est une pièce unique qui raconte une histoire. Les motifs géométriques, les couleurs et les symboles utilisés varient selon les régions et les tribus, formant un véritable langage codifié transmis de mère en fille.'
+        content: "Le tapis berbère n'est plus cantonné aux sols ; il devient mural, tenture, œuvre à part entière. Sur les réseaux sociaux, des influenceurs déroulent ces « peintures textiles » devant des millions d'abonnés, tandis que des ateliers collaboratifs invitent les voyageurs à nouer leurs propres histoires. Le passé et le présent s'enlacent, prouvant que la beauté n'a pas d'âge—seulement des interprétations infinies."
+      },
+      {
+        type: 'quote',
+        content: "Un tapis berbère n'est pas qu'un simple objet décoratif. C'est une histoire, un poème, un morceau d'âme tissé dans chaque nœud.",
+        author: "Ahmed Ouadghiri, collectionneur"
       }
-    ]
+    ],
+    tags: ['tapis', 'berbère', 'textiles', 'décoration', 'tradition']
   },
   {
-    id: 'post-3',
-    title: 'La céramique de Safi : quand tradition et innovation se rencontrent',
+    id: '3',
     slug: 'ceramique-safi-tradition-innovation',
-    excerpt: 'Plongée dans l\'univers des potiers de Safi, qui perpétuent un savoir-faire séculaire tout en expérimentant de nouvelles formes et techniques.',
-    coverImage: 'https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?auto=format&fit=crop&q=80',
-    category: 'Artisanat & Innovation',
-    tags: ['Céramique', 'Poterie', 'Maroc', 'Innovation'],
-    author: authors.rita,
-    publishedAt: '2023-08-12',
+    title: 'Safi, ou la Danse du Feu : L\'Argile qui Chante Entre Deux Mondes',
+    excerpt: "À Safi, les traditions céramiques séculaires rencontrent l'innovation contemporaine, créant un art en constante évolution.",
+    category: 'Céramique',
+    coverImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//ceramique-safi-potier.jpg',
+    publishedAt: '2023-08-10',
+    author: authors.karim,
     content: [
       {
         type: 'paragraph',
-        content: 'Sur la côte atlantique marocaine, la ville de Safi est depuis des siècles un centre névralgique de la céramique. Reconnue pour ses poteries aux couleurs vives et ses motifs caractéristiques, cette tradition artisanale connaît aujourd\'hui un renouveau créatif porté par une nouvelle génération de céramistes.'
+        content: "À Safi, ville bercée par l'Atlantique, la terre se fait alchimiste. Depuis le XIIe siècle, les potiers y dansent avec le feu, transformant l'argile en joyaux émaillés. Mais ici, la tradition ne se fossilise pas : elle se réinvente, audacieuse, tel un vase aux courbes inattendues."
+      },
+      {
+        type: 'paragraph',
+        content: "Dans les ateliers enfumés où la chaleur dessine des fantômes sur les murs, les artisans pétrissent la glaise avec la même ferveur que leurs aïeux. Le bleu de cobalt, hérité des Perses, coule encore comme une rivière nocturne sur les plats et les tajines. Pourtant, Safi ose aujourd'hui des mariages inédits : des céramiques noires et or inspirées de l'art déco, des formes asymétriques qui défient la gravité, ou des collaborations avec des street artists marocains."
+      },
+      {
+        type: 'image',
+        url: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//poterie-safi-moderne.jpg',
+        caption: 'Fusion d\'art traditionnel et contemporain dans les céramiques de Safi'
+      },
+      {
+        type: 'quote',
+        content: "Le secret, c'est d'écouter l'argile. Elle refuse d'être prisonnière d'un style.",
+        author: "Youssef Dahmani, maître potier"
+      },
+      {
+        type: 'paragraph',
+        content: "« Le secret, c'est d'écouter l'argile, murmure Youssef, maître potier. Elle refuse d'être prisonnière d'un style. » Ses dernières créations ? Des vases fusionnant motifs berbères et graffiti, ou des carreaux émaillés intégrés à des installations urbaines. Sur Instagram, les vidéos de son tour en mouvement—hypnotiques, presque méditatives—font le tour du monde."
+      },
+      {
+        type: 'heading',
+        content: "Au-delà de l'Utilitaire : La Céramique comme Art"
+      },
+      {
+        type: 'paragraph',
+        content: "La céramique de Safi n'est plus un art utilitaire ; c'est une déclaration. Elle rappelle que l'innovation n'est pas une rupture, mais un dialogue : celui de la main qui respecte la mémoire et de l'esprit qui rêve d'horizons nouveaux."
       }
-      // Contenu simplifié pour cet exemple
-    ]
+    ],
+    tags: ['céramique', 'safi', 'poterie', 'art', 'innovation']
   },
   {
-    id: 'post-4',
-    title: 'L\'art du zellige : un kaléidoscope mathématique qui fascine le monde',
-    slug: 'art-zellige-kaleidoscope-mathematique',
-    excerpt: 'Explorez les secrets géométriques du zellige marocain, cette mosaïque complexe qui a inspiré mathématiciens, artistes et architectes à travers les âges.',
-    coverImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//zellige-maroc-algerie-unesco-c239c.jpeg',
-    category: 'Art & Mathématiques',
-    tags: ['Zellige', 'Géométrie', 'Architecture', 'Mathématiques'],
-    author: authors.idriss,
-    publishedAt: '2023-07-20',
+    id: '4',
+    slug: 'zellige-murs-geometrie',
+    title: 'Zellige : Les Murs qui Rêvent en Géométrie',
+    excerpt: "L'art ancestral du zellige marocain fascine le monde entier par sa complexité mathématique et sa beauté kaléidoscopique.",
+    category: 'Architecture',
+    coverImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//zellige-mosaique-fes.jpg',
+    publishedAt: '2023-09-05',
+    author: authors.leila,
     content: [
       {
         type: 'paragraph',
-        content: 'Le zellige, cet art de la mosaïque géométrique qui orne palais, riads et mosquées du Maroc, est bien plus qu\'une simple décoration. Derrière sa beauté visuelle se cache une complexité mathématique fascinante qui continue d\'intriguer chercheurs et artistes du monde entier.'
+        content: "Le zellige est un sortilège. Une céramique éclatée en mille fragments, qui se réassemble en étoiles, en fleurs, en labyrinthes parfaits. Cet art né à Fès au Xe siècle est une prière mathématique, un puzzle où chaque pièce—taillée à la main—s'emboîte avec la précision d'un théorème."
+      },
+      {
+        type: 'paragraph',
+        content: "Dans les médersas et les palais, les murs murmurent des équations colorées. Les maâlems (maîtres artisans) travaillent sans plan, guidés par un savoir inscrit dans leur gestuelle. « Chaque coup de maillet sur la lame est une note de musique, explique Hassan, dont la famille sculpte le zellige depuis sept générations. Le motif naît lentement, comme une mélodie. »"
+      },
+      {
+        type: 'image',
+        url: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//artisan-zellige-travail.jpg',
+        caption: 'Un maâlem de Fès taillant méticuleusement des pièces de zellige'
+      },
+      {
+        type: 'heading',
+        content: "Une Géométrie Universelle"
+      },
+      {
+        type: 'paragraph',
+        content: "Aujourd'hui, ce langage géométrique séduit architectes et designers. À Miami, un hôtel s'habille de zellige turquoise en hommage à la mer Méditerranéenne ; à Marrakech, une artiste contemporaine détourne ses éclats en bijoux minimalistes. Même les jeux vidéo s'en inspirent, pixelisant ses arabesques pour créer des mondes virtuels."
+      },
+      {
+        type: 'quote',
+        content: "Le zellige est une méditation visuelle. Il nous rappelle que l'ordre et la beauté peuvent naître de milliers de fragments apparemment chaotiques.",
+        author: "Hassan Bennani, maître zelligeur"
+      },
+      {
+        type: 'paragraph',
+        content: "Le zellige, autrefois symbole de pouvoir, devient universel. Il prouve que la rigueur peut être poésie, et que la beauté naît souvent de la fragmentation… pour mieux révéler l'unité."
       }
-      // Contenu simplifié pour cet exemple
-    ]
+    ],
+    tags: ['zellige', 'mosaïque', 'géométrie', 'architecture', 'fès']
   },
   {
-    id: 'post-5',
-    title: 'Cuir de Fès : dans les coulisses des tanneries millénaires',
-    slug: 'cuir-fes-coulisses-tanneries',
-    excerpt: 'Voyage sensoriel au cœur des tanneries de Fès, où les techniques de tannage du cuir n\'ont presque pas changé depuis le Moyen Âge.',
-    coverImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//zellige-maroc-algerie-unesco-c239c.jpeg',
-    category: 'Métiers d\'Art',
-    tags: ['Cuir', 'Tannerie', 'Fès', 'Artisanat'],
-    author: authors.rita,
-    publishedAt: '2023-06-05',
+    id: '5',
+    slug: 'cuir-fes-tanneries-millenaires',
+    title: 'Fès, ou l\'Épopée du Cuir : Des Nuances qui Dansent avec le Temps',
+    excerpt: "Dans les anciennes tanneries de Fès, des techniques millénaires transforment la peau brute en cuir raffiné, entre tradition et modernité.",
+    category: 'Artisanat',
+    coverImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//tanneries-chouara-fes.jpg',
+    publishedAt: '2023-09-25',
+    author: authors.mohamed,
     content: [
       {
         type: 'paragraph',
-        content: 'L\'odeur puissante est la première chose qui vous frappe. Un mélange de chaux, de pigments naturels, de peaux d\'animaux et de plantes diverses. Bienvenue dans les tanneries de Fès, un monde à part où le temps semble s\'être arrêté au XIIe siècle.'
-      }
-      // Contenu simplifié pour cet exemple
-    ]
-  },
-  {
-    id: 'post-6',
-    title: 'Le safran de Taliouine : l\'or rouge du Maroc',
-    slug: 'safran-taliouine-or-rouge-maroc',
-    excerpt: 'À la découverte du safran marocain, cette épice précieuse cultivée dans la région de Taliouine, entre tradition familiale et développement durable.',
-    coverImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Les-methodes-de-culture-du-Safran-de-Taliouine-demeurent-les-memes-depuis-des-siecles.jpeg',
-    category: 'Agriculture & Gastronomie',
-    tags: ['Safran', 'Épices', 'Agriculture', 'Gastronomie'],
-    author: authors.idriss,
-    publishedAt: '2023-05-18',
-    content: [
+        content: "À Fès, le cuir se tisse comme un poème dans l'odeur âcre des tanneries. Ici, les fosses de teinture ressemblent à une palette de peintre géante : rouge sang de coquelicot, jaune soleil de curcuma, bleu profond d'indigo. Depuis le IXe siècle, ces bassins creusés dans la terre sont des laboratoires où la peau brute se métamorphose en trésor."
+      },
+      {
+        type: 'image',
+        url: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//tanneurs-travail-fes.jpg',
+        caption: 'Tanneurs au travail dans les fosses colorées des tanneries Chouara'
+      },
       {
         type: 'paragraph',
-        content: 'Au lever du jour, dans les champs de la région de Taliouine, des dizaines de mains expertes cueillent avec précaution les fragiles fleurs violettes du Crocus sativus. La récolte du safran, l\'épice la plus chère du monde, est un moment sacré qui mobilise familles et villages entiers pendant quelques semaines d\'automne.'
-      }
-      // Contenu simplifié pour cet exemple
-    ]
-  },
-  {
-    id: 'post-7',
-    title: 'Bijoux berbères : symboles et talismans dans la culture amazighe',
-    slug: 'bijoux-berberes-symboles-talismans-culture-amazighe',
-    excerpt: 'Exploration du rôle social, protecteur et identitaire des bijoux dans la culture berbère, véritables archives métalliques d\'une histoire millénaire.',
-    coverImage: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//bijoux%20berberes.jpeg',
-    category: 'Culture & Traditions',
-    tags: ['Bijoux', 'Berbère', 'Symboles', 'Traditions'],
-    author: authors.marie,
-    publishedAt: '2023-04-02',
-    content: [
+        content: "Les maâlems des tanneries Chouwara travaillent encore à l'ancienne, les pieds nus dans les pigments, comme des danseurs dans une cérémonie sacrée. « Le cuir, c'est une matière vivante, explique Ahmed, dont la famille tanne depuis cinq siècles. Il respire, il résiste, il raconte chaque étape de sa transformation. » Les peaux, trempées dans des bains de chaux et de pigeon, puis polies à la main, deviennent souples et lumineuses."
+      },
+      {
+        type: 'quote',
+        content: "Chaque peau a son caractère, comme un être vivant. Notre travail est de révéler sa beauté cachée, d'accompagner sa transformation sans la forcer.",
+        author: "Ahmed Sefrioui, tanneur de Fès"
+      },
+      {
+        type: 'heading',
+        content: "Le Cuir Marocain à l'Ère de la Mode Durable"
+      },
       {
         type: 'paragraph',
-        content: 'Dans la culture amazighe, les bijoux ne sont pas de simples ornements. Ce sont des marqueurs sociaux, des protections magiques, des dotations économiques et des œuvres d\'art porteuses d\'une symbolique profonde, transmises de génération en génération.'
+        content: "Mais le cuir de Fès n'est plus l'apanage des babouches ou des selles de cheval. Aujourd'hui, il s'invite sur les podiums : sacs sculpturaux aux finitions métallisées, vestes fusionnant motifs berbères et coupes avant-gardistes. Des marques éthiques collaborent avec les tanneurs pour créer des collections « zéro déchet », où chaque chute devient un bijou ou une œuvre d'art."
+      },
+      {
+        type: 'paragraph',
+        content: "Sur YouTube, des documentaires montrent ce ballet chromatique, attirant des voyageurs en quête d'authenticité. Et dans l'ombre des cuves, une nouvelle génération rêve : et si ces techniques ancestrales pouvaient révolutionner la mode durable ?"
       }
-      // Contenu simplifié pour cet exemple
-    ]
+    ],
+    tags: ['cuir', 'tannerie', 'fès', 'artisanat', 'mode']
   }
 ];
