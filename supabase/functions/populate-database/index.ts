@@ -3,19 +3,27 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { SAMPLE_ARTISANS, SAMPLE_PRODUCTS, SAMPLE_CATEGORIES } from './sample-data.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 
-// Create a Supabase client with the service role key
+/**
+ * Création d'un client Supabase avec la clé de service
+ */
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+/**
+ * Fonction Edge pour peupler la base de données avec des données de démonstration
+ * 
+ * Cette fonction insère des catégories, artisans et produits de démonstration
+ * dans la base de données pour faciliter les tests et le développement.
+ */
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
+  // Gestion des requêtes CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Only allow POST requests
+    // N'autoriser que les requêtes POST
     if (req.method !== 'POST') {
       return new Response(JSON.stringify({ error: 'Method not allowed' }), { 
         status: 405,
@@ -23,11 +31,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Admin check would go here in production
+    // En production, une vérification d'admin serait effectuée ici
 
     console.log('Starting database population');
     
-    // Insert categories
+    // Insertion des catégories
     for (const category of SAMPLE_CATEGORIES) {
       const { error: categoryError } = await supabase
         .from('categories')
@@ -37,16 +45,16 @@ Deno.serve(async (req) => {
           slug: category.slug,
           description: category.description || null,
           image: category.image
-        }, { onConflict: 'id' });
+        }, { onConflict: 'id' });  // Mise à jour si l'ID existe déjà
       
       if (categoryError) {
         console.error('Error inserting category:', categoryError);
       }
     }
     
-    // Insert artisans
+    // Insertion des artisans
     for (const artisan of SAMPLE_ARTISANS) {
-      // First check if the user exists or create a dummy user
+      // D'abord vérifier si l'utilisateur existe ou créer un utilisateur fictif
       const { data: existingUser, error: userQueryError } = await supabase
         .from('profiles')
         .select('id')
@@ -59,7 +67,7 @@ Deno.serve(async (req) => {
       }
       
       if (!existingUser) {
-        // Create a dummy user profile
+        // Créer un profil utilisateur fictif
         const { error: userError } = await supabase
           .from('profiles')
           .insert({
@@ -76,7 +84,7 @@ Deno.serve(async (req) => {
         }
       }
       
-      // Insert the artisan
+      // Insertion de l'artisan
       const { error: artisanError } = await supabase
         .from('artisans')
         .upsert({
@@ -90,7 +98,7 @@ Deno.serve(async (req) => {
           review_count: artisan.reviewCount,
           featured: artisan.featured || false,
           joined_date: artisan.joinedDate.toISOString(),
-          user_id: artisan.id  // Using the same ID as user_id for simplicity
+          user_id: artisan.id  // Utilisation du même ID comme user_id pour simplicité
         }, { onConflict: 'id' });
       
       if (artisanError) {
@@ -98,7 +106,7 @@ Deno.serve(async (req) => {
       }
     }
     
-    // Insert products
+    // Insertion des produits
     for (const product of SAMPLE_PRODUCTS) {
       const { error: productError } = await supabase
         .from('products')
@@ -129,7 +137,7 @@ Deno.serve(async (req) => {
         continue;
       }
       
-      // Insert product variations if they exist
+      // Insertion des variations de produit si elles existent
       if (product.variations && product.variations.length > 0) {
         for (const variation of product.variations) {
           const { error: variationError } = await supabase

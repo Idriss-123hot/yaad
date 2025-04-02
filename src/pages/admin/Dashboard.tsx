@@ -8,12 +8,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowUpRight, Users, ShoppingBag } from 'lucide-react';
 
+/**
+ * Composant du tableau de bord administrateur
+ * 
+ * Affiche une vue d'ensemble de la marketplace avec des statistiques,
+ * des raccourcis vers les fonctionnalités principales et l'activité récente.
+ */
 export default function Dashboard() {
   const navigate = useNavigate();
 
   return (
     <AdminLayout>
       <div className="p-6 space-y-6">
+        {/* En-tête du tableau de bord */}
         <div className="flex flex-col justify-between space-y-2 md:flex-row md:items-center md:space-y-0">
           <div>
             <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -23,9 +30,12 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Statistiques du tableau de bord */}
         <DashboardStats />
 
+        {/* Cartes de raccourcis vers les fonctionnalités principales */}
         <div className="grid gap-6 md:grid-cols-2">
+          {/* Gestion des artisans */}
           <Card>
             <CardHeader className="flex flex-row items-center gap-4">
               <Users className="h-8 w-8 text-terracotta-600" />
@@ -57,6 +67,7 @@ export default function Dashboard() {
             </CardFooter>
           </Card>
 
+          {/* Gestion des produits */}
           <Card>
             <CardHeader className="flex flex-row items-center gap-4">
               <ShoppingBag className="h-8 w-8 text-terracotta-600" />
@@ -89,6 +100,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Activité récente */}
         <div className="grid gap-6 md:grid-cols-2">
           <RecentActivity title="Recent Artisans" type="artisans" />
           <RecentActivity title="Recent Products" type="products" />

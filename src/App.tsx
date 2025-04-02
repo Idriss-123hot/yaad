@@ -19,23 +19,29 @@ import NotFound from './pages/NotFound';
 import CategoryDetailWithProducts from './pages/CategoryDetailWithProducts';
 import { Toaster } from './components/ui/toaster';
 
-// Admin Routes
+// Routes Admin
 import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import ArtisansList from './pages/admin/artisans/ArtisansList';
 import NewArtisan from './pages/admin/artisans/NewArtisan';
 
-// Artisan Routes
+// Routes Artisan
 import ArtisanLogin from './pages/artisan/Login';
 import ArtisanDashboard from './pages/artisan/Dashboard';
 
 import './App.css';
 
+/**
+ * Composant principal de l'application
+ * 
+ * Définit toutes les routes de l'application et leurs composants associés.
+ * Inclut également le composant Toaster pour afficher des notifications.
+ */
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
+        {/* Routes publiques */}
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/about" element={<About />} />
@@ -53,13 +59,13 @@ function App() {
         <Route path="/artisans" element={<Artisans />} />
         <Route path="/artisans/:id" element={<ArtisanDetail />} />
         
-        {/* Admin Routes */}
+        {/* Routes Admin */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/artisans" element={<ArtisansList />} />
         <Route path="/admin/artisans/new" element={<NewArtisan />} />
         
-        {/* Artisan Routes */}
+        {/* Routes Artisan */}
         <Route path="/artisan/login" element={<ArtisanLogin />} />
         <Route path="/artisan/dashboard" element={<ArtisanDashboard />} />
         

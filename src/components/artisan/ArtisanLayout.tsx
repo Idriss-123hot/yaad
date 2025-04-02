@@ -7,10 +7,21 @@ import { ArtisanHeader } from './ArtisanHeader';
 import { SessionTimeout } from '@/components/shared/SessionTimeout';
 import { checkArtisanRole } from '@/utils/authUtils';
 
+/**
+ * Interface des props du composant ArtisanLayout
+ */
 interface ArtisanLayoutProps {
   children: React.ReactNode;
 }
 
+/**
+ * Composant de mise en page pour les pages d'artisan
+ * 
+ * Fournit une structure commune pour toutes les pages d'artisan
+ * avec une barre latérale, un en-tête et une vérification de l'authentification.
+ * 
+ * @param {React.ReactNode} children - Contenu de la page à afficher
+ */
 export function ArtisanLayout({ children }: ArtisanLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -18,9 +29,11 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
 
   useEffect(() => {
     const checkArtisan = async () => {
+      // Vérifier si l'utilisateur connecté a le rôle d'artisan
       const isArtisan = await checkArtisanRole();
       
       if (!isArtisan) {
+        // Rediriger vers la page de connexion si l'utilisateur n'est pas artisan
         navigate('/artisan/login');
         return;
       }
@@ -31,6 +44,7 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
     checkArtisan();
   }, [navigate]);
 
+  // Afficher un spinner pendant la vérification de l'autorisation
   if (!isAuthorized) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -39,6 +53,7 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
     );
   }
 
+  // Structure principale de la mise en page artisan
   return (
     <div className="flex h-screen bg-gray-100">
       <SessionTimeout redirectPath="/artisan/login" />

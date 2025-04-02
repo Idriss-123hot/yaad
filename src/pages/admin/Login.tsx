@@ -1,5 +1,4 @@
 
-
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -14,17 +13,26 @@ import { useToast } from '@/components/ui/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { updateLastActivity, checkAdminRole } from '@/utils/authUtils';
 
+/**
+ * Schéma de validation du formulaire de connexion
+ */
 const formSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
+/**
+ * Composant de la page de connexion pour les administrateurs
+ * 
+ * Gère le processus d'authentification des administrateurs
+ * et la redirection vers le tableau de bord administrateur.
+ */
 export default function AdminLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Check if user is already logged in and is an admin
+  // Vérifier si l'utilisateur est déjà connecté et est un admin
   useEffect(() => {
     const checkAuth = async () => {
       const isAdmin = await checkAdminRole();
@@ -36,6 +44,7 @@ export default function AdminLogin() {
     checkAuth();
   }, [navigate]);
 
+  // Configuration du formulaire avec validation
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -44,10 +53,15 @@ export default function AdminLogin() {
     },
   });
 
+  /**
+   * Gère la soumission du formulaire de connexion
+   * @param values - Les valeurs du formulaire (email, password)
+   */
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     
     try {
+      // Tentative de connexion à Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
@@ -55,10 +69,11 @@ export default function AdminLogin() {
       
       if (error) throw error;
       
-      // Check if the user has admin role
+      // Vérification du rôle admin
       const isAdmin = await checkAdminRole();
       
       if (!isAdmin) {
+        // Déconnexion si l'utilisateur n'est pas admin
         await supabase.auth.signOut();
         
         toast({
@@ -71,7 +86,7 @@ export default function AdminLogin() {
         return;
       }
       
-      // Update last activity timestamp
+      // Mise à jour du timestamp de dernière activité
       updateLastActivity();
       
       toast({

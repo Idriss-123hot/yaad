@@ -9,21 +9,32 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+/**
+ * Interface pour les options de filtrage
+ */
 interface FilterOption {
-  id: string;
-  label: string;
-  options?: { label: string; value: string }[];
+  id: string;         // Identifiant unique du filtre
+  label: string;      // Libellé affiché pour le filtre
+  options?: { label: string; value: string }[];  // Options possibles pour ce filtre
 }
 
+/**
+ * Interface pour les props du composant de recherche et filtrage
+ */
 interface SearchAndFilterProps {
-  searchPlaceholder: string;
-  searchQuery: string;
-  onSearchChange: (value: string) => void;
-  filters: Record<string, string>;
-  onFiltersChange: (filters: Record<string, string>) => void;
-  filterOptions?: FilterOption[];
+  searchPlaceholder: string;  // Texte d'invite pour la zone de recherche
+  searchQuery: string;        // Terme de recherche actuel
+  onSearchChange: (value: string) => void;  // Fonction appelée lors du changement du terme de recherche
+  filters: Record<string, string>;          // État actuel des filtres
+  onFiltersChange: (filters: Record<string, string>) => void;  // Fonction appelée lors du changement des filtres
+  filterOptions?: FilterOption[];  // Options de filtrage disponibles
 }
 
+/**
+ * Composant de recherche et filtrage pour les tableaux de données
+ * 
+ * Permet de rechercher et filtrer les données dans un tableau.
+ */
 export function SearchAndFilter({
   searchPlaceholder,
   searchQuery,
@@ -32,10 +43,17 @@ export function SearchAndFilter({
   onFiltersChange,
   filterOptions = [],
 }: SearchAndFilterProps) {
+  // État local pour les filtres (avant application)
   const [localFilters, setLocalFilters] = useState<Record<string, string>>(filters);
   
+  // Vérifie si des filtres sont actuellement actifs
   const hasActiveFilters = Object.values(filters).some(value => value && value.length > 0);
   
+  /**
+   * Gère le changement d'une valeur de filtre
+   * @param id - Identifiant du filtre
+   * @param value - Nouvelle valeur
+   */
   const handleFilterChange = (id: string, value: string) => {
     setLocalFilters(prev => ({
       ...prev,
@@ -43,10 +61,16 @@ export function SearchAndFilter({
     }));
   };
   
+  /**
+   * Applique les filtres locaux aux filtres globaux
+   */
   const applyFilters = () => {
     onFiltersChange(localFilters);
   };
   
+  /**
+   * Réinitialise tous les filtres
+   */
   const resetFilters = () => {
     const emptyFilters = Object.keys(filters).reduce((acc, key) => {
       acc[key] = '';
@@ -57,12 +81,16 @@ export function SearchAndFilter({
     onFiltersChange(emptyFilters);
   };
   
+  /**
+   * Efface le terme de recherche
+   */
   const clearSearch = () => {
     onSearchChange('');
   };
 
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-6">
+      {/* Champ de recherche */}
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -84,6 +112,7 @@ export function SearchAndFilter({
         )}
       </div>
       
+      {/* Bouton de filtrage et popover avec options de filtrage */}
       {filterOptions.length > 0 && (
         <Popover>
           <PopoverTrigger asChild>
@@ -101,6 +130,7 @@ export function SearchAndFilter({
             <div className="space-y-4">
               <h4 className="font-medium">Filtres avancés</h4>
               
+              {/* Options de filtrage */}
               <div className="grid gap-4">
                 {filterOptions.map((option) => (
                   <div key={option.id} className="grid gap-2">
@@ -108,6 +138,7 @@ export function SearchAndFilter({
                       {option.label}
                     </label>
                     {option.options ? (
+                      // Menu déroulant pour les options prédéfinies
                       <select
                         id={option.id}
                         value={localFilters[option.id] || ''}
@@ -122,6 +153,7 @@ export function SearchAndFilter({
                         ))}
                       </select>
                     ) : (
+                      // Champ texte pour les filtres libres
                       <Input
                         id={option.id}
                         value={localFilters[option.id] || ''}
@@ -133,6 +165,7 @@ export function SearchAndFilter({
                 ))}
               </div>
               
+              {/* Boutons d'action */}
               <div className="flex items-center justify-between pt-4">
                 <Button variant="outline" size="sm" onClick={resetFilters}>
                   Réinitialiser

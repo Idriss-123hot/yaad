@@ -1,35 +1,42 @@
 
+# Identifiant unique du projet Supabase
 project_id = "hijgrzabkfynlomhbzij"
 
+# Configuration de l'API Supabase
 [api]
-port = 54321
-schemas = ["public", "storage"]
+port = 54321  # Port sur lequel l'API est exposée
+schemas = ["public", "storage"]  # Schémas de base de données accessibles
 
+# Configuration de la base de données
 [db]
-port = 54322
+port = 54322  # Port pour accéder directement à la base de données PostgreSQL
 
+# Configuration du Studio Supabase (interface d'administration)
 [studio]
-port = 54324
+port = 54324  # Port pour l'interface d'administration web
 
+# Configuration du stockage de fichiers
 [storage]
-file_size_limit = "50MiB"
+file_size_limit = "50MiB"  # Taille maximale des fichiers autorisés
 
+# Configuration des fonctions Edge (serverless)
 [functions]
-port = 54323
-serve_dir = "supabase/functions"
+port = 54323  # Port pour les fonctions Edge
+serve_dir = "supabase/functions"  # Dossier contenant les fonctions Edge
+
+# Définition des fonctions Edge individuelles
+[[functions.function]]
+name = "ensure-storage-buckets"  # Fonction pour créer/vérifier les buckets de stockage
+verify_jwt = true  # Authentification JWT requise
 
 [[functions.function]]
-name = "ensure-storage-buckets"
-verify_jwt = true
+name = "search"  # Fonction de recherche
+verify_jwt = false  # Pas d'authentification JWT requise (accessible publiquement)
 
 [[functions.function]]
-name = "search"
-verify_jwt = false
+name = "create-initial-users"  # Fonction pour créer des utilisateurs initiaux
+verify_jwt = true  # Authentification JWT requise
 
 [[functions.function]]
-name = "create-initial-users"
-verify_jwt = true
-
-[[functions.function]]
-name = "populate-database"
-verify_jwt = true
+name = "populate-database"  # Fonction pour remplir la base de données avec des données initiales
+verify_jwt = true  # Authentification JWT requise

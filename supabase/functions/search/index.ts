@@ -3,24 +3,34 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.6'
 import { corsHeaders } from '../_shared/cors.ts'
 import { Database } from '../_shared/types.ts'
 
+/**
+ * Variables d'environnement pour la connexion à Supabase
+ */
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
 
+/**
+ * Fonction Edge pour la recherche de produits et d'artisans
+ * 
+ * Permet de rechercher des produits et artisans dans la base de données
+ * en fonction d'un terme de recherche et d'un type de contenu.
+ */
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
+  // Gestion des requêtes CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Create Supabase client
+    // Création du client Supabase
     const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
     const url = new URL(req.url)
     
-    // Get search parameters from URL
+    // Récupération des paramètres de recherche depuis l'URL
     const searchQuery = url.searchParams.get('q') || ''
     const type = url.searchParams.get('type') || 'all'
     
+    // Vérification de la validité du terme de recherche
     if (!searchQuery || searchQuery.length < 2) {
       return new Response(
         JSON.stringify({ products: [], artisans: [] }),
@@ -33,7 +43,7 @@ Deno.serve(async (req) => {
 
     const results: { products?: any[], artisans?: any[] } = {}
     
-    // Search for products
+    // Recherche de produits
     if (type === 'all' || type === 'products') {
       const { data: products, error: productsError } = await supabase
         .from('products')
@@ -43,20 +53,20 @@ Deno.serve(async (req) => {
           artisan:artisans(*),
           category:categories(*)
         `)
-        .textSearch('search_vector', searchQuery)
-        .limit(type === 'all' ? 4 : 20)
+        .textSearch('search_vector', searchQuery)  // Recherche textuelle
+        .limit(type === 'all' ? 4 : 20)  // Limite de résultats selon le type de recherche
       
       if (productsError) throw productsError
       results.products = products
     }
     
-    // Search for artisans
+    // Recherche d'artisans
     if (type === 'all' || type === 'artisans') {
       const { data: artisans, error: artisansError } = await supabase
         .from('artisans')
         .select('*')
-        .or(`name.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`)
-        .limit(type === 'all' ? 4 : 20)
+        .or(`name.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`)  // Recherche par correspondance partielle
+        .limit(type === 'all' ? 4 : 20)  // Limite de résultats selon le type de recherche
       
       if (artisansError) throw artisansError
       results.artisans = artisans
