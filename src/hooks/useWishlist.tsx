@@ -41,6 +41,28 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       try {
         if (isAuthenticated && user) {
           // If logged in, get wishlist items from Supabase
+          // First check if the wishlist table exists
+          const { error: tableError } = await supabase
+            .from('wishlist')
+            .select('*')
+            .limit(1)
+            .catch(() => ({ error: { message: 'Table does not exist' } }));
+            
+          if (tableError) {
+            console.log('Wishlist table does not exist yet, using localStorage');
+            const savedWishlist = localStorage.getItem('wishlist');
+            if (savedWishlist) {
+              try {
+                const parsedWishlist = JSON.parse(savedWishlist);
+                setWishlistItems(parsedWishlist);
+              } catch (e) {
+                console.error('Error parsing wishlist from localStorage:', e);
+              }
+            }
+            setLoading(false);
+            return;
+          }
+          
           const { data, error } = await supabase
             .from('wishlist')
             .select('*')
@@ -52,7 +74,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
           
           if (data) {
             // Load product details for each wishlist item
-            const itemsWithProducts = await Promise.all(
+            const itemsWithProducts: WishlistItem[] = await Promise.all(
               data.map(async (item: any) => {
                 const { data: productData, error: productError } = await supabase
                   .from('products')
@@ -73,10 +95,31 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
                   };
                 }
                 
+                // Map the database product to ProductWithArtisan type
+                const mappedProduct: ProductWithArtisan = {
+                  id: productData.id,
+                  title: productData.title || '',
+                  description: productData.description || '',
+                  price: productData.price || 0,
+                  discountPrice: productData.discount_price,
+                  category: productData.category?.name || '',
+                  mainCategory: productData.main_category || '',
+                  subcategory: productData.subcategory || '',
+                  images: productData.images || [],
+                  artisanId: productData.artisan_id,
+                  rating: productData.rating || 0,
+                  featured: productData.featured || false,
+                  artisan: productData.artisan,
+                  stock: productData.stock || 0,
+                  tags: productData.tags || [],
+                  reviewCount: productData.review_count || 0,
+                  createdAt: productData.created_at
+                };
+                
                 return {
                   productId: item.product_id,
                   addedAt: item.created_at,
-                  product: productData,
+                  product: mappedProduct,
                 };
               })
             );
@@ -112,6 +155,19 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       
       try {
         if (isAuthenticated && user) {
+          // Check if wishlist table exists before attempting to save
+          const { error: tableError } = await supabase
+            .from('wishlist')
+            .select('*')
+            .limit(1)
+            .catch(() => ({ error: { message: 'Table does not exist' } }));
+            
+          if (tableError) {
+            console.log('Wishlist table does not exist yet, saving to localStorage');
+            localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+            return;
+          }
+          
           // If logged in, save wishlist to Supabase
           // First clear the existing wishlist
           await supabase
@@ -197,13 +253,34 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       return;
     }
     
+    // Map the database product to ProductWithArtisan type
+    const mappedProduct: ProductWithArtisan = {
+      id: productData.id,
+      title: productData.title || '',
+      description: productData.description || '',
+      price: productData.price || 0,
+      discountPrice: productData.discount_price,
+      category: productData.category?.name || '',
+      mainCategory: productData.main_category || '',
+      subcategory: productData.subcategory || '',
+      images: productData.images || [],
+      artisanId: productData.artisan_id,
+      rating: productData.rating || 0,
+      featured: productData.featured || false,
+      artisan: productData.artisan,
+      stock: productData.stock || 0,
+      tags: productData.tags || [],
+      reviewCount: productData.review_count || 0,
+      createdAt: productData.created_at
+    };
+    
     // Add new item with product details
     setWishlistItems([
       ...wishlistItems,
       { 
         productId, 
         addedAt: new Date().toISOString(),
-        product: productData,
+        product: mappedProduct,
       },
     ]);
     
