@@ -7,7 +7,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Column 1: Logo */}
           <div>
-            <h3 className="font-serif text-xl font-bold mb-4">SaharaMart</h3>
+            <h3 className="font-serif text-xl font-bold mb-4">Yaad</h3>
             <p className="text-gray-400 mb-6">
               La boutique de l'artisanat marocain authentique, qui met en valeur le travail des artisans locaux.
             </p>
@@ -117,7 +117,7 @@ export function Footer() {
         <div className="border-t border-stone-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              &copy; 2023 SaharaMart. Tous droits réservés.
+              &copy; 2023 Yaad. Tous droits réservés.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-gray-400 text-sm hover:text-white">
