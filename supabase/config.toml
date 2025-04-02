@@ -8,6 +8,12 @@ schemas = ["public", "storage"]
 [db]
 port = 54322
 
+[studio]
+port = 54324
+
+[storage]
+file_size_limit = "50MiB"
+
 [functions]
 port = 54323
 serve_dir = "supabase/functions"
@@ -15,9 +21,3 @@ serve_dir = "supabase/functions"
 [[functions.function]]
 name = "ensure-storage-buckets"
 verify_jwt = true
-
-[studio]
-port = 54324
-
-[storage]
-file_size_limit = "50MiB"
