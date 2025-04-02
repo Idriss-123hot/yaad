@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,41 +8,42 @@ interface Stat {
   value: number;
   icon: React.ElementType;
   description: string;
-  change?: number;
   color: string;
 }
 
 export function DashboardStats() {
   const [stats, setStats] = useState<Stat[]>([
     {
-      title: 'Total Artisans',
+      title: 'Artisans Totaux',
       value: 0,
       icon: User,
-      description: 'Active artisan accounts',
+      description: 'Comptes artisans actifs',
       color: 'bg-blue-100 text-blue-800',
     },
     {
-      title: 'Total Products',
+      title: 'Produits Totaux', 
       value: 0,
       icon: ShoppingBag,
-      description: 'Products in marketplace',
+      description: 'Produits en vente',
       color: 'bg-green-100 text-green-800',
     },
     {
-      title: 'Categories',
+      title: 'Catégories',
       value: 0,
       icon: BarChart,
-      description: 'Product categories',
+      description: 'Catégories de produits',
       color: 'bg-purple-100 text-purple-800',
     },
     {
-      title: 'Total Users',
+      title: 'Utilisateurs Totaux',
       value: 0,
       icon: Users,
-      description: 'Registered customers',
+      description: 'Clients enregistrés',
       color: 'bg-amber-100 text-amber-800',
     },
   ]);
+
+  // ... (le reste du code reste identique, seul le texte est modifié)
 
   useEffect(() => {
     const fetchStats = async () => {

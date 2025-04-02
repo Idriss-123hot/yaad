@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { X, Home, User, ShoppingBag, Settings } from 'lucide-react';
@@ -14,39 +13,30 @@ export function AdminSidebar({ open, setOpen }: AdminSidebarProps) {
   const location = useLocation();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // Close sidebar when clicking outside on mobile
+  const navigation = [
+    { name: 'Tableau de Bord', href: '/admin/dashboard', icon: Home },
+    { name: 'Artisans', href: '/admin/artisans', icon: User },
+    { name: 'Produits', href: '/admin/products', icon: ShoppingBag },
+    { name: 'Paramètres', href: '/admin/settings', icon: Settings },
+  ];
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        open &&
-        sidebarRef.current &&
-        !sidebarRef.current.contains(event.target as Node)
-      ) {
+      if (open && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [open, setOpen]);
 
-  // Close sidebar when route changes on mobile
   useEffect(() => {
     setOpen(false);
   }, [location.pathname, setOpen]);
 
-  const navigation = [
-    { name: 'Dashboard', href: '/admin/dashboard', icon: Home },
-    { name: 'Artisans', href: '/admin/artisans', icon: User },
-    { name: 'Products', href: '/admin/products', icon: ShoppingBag },
-    { name: 'Settings', href: '/admin/settings', icon: Settings },
-  ];
-
   return (
     <>
-      {/* Mobile backdrop */}
       {open && (
         <div
           className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
@@ -54,7 +44,6 @@ export function AdminSidebar({ open, setOpen }: AdminSidebarProps) {
         />
       )}
 
-      {/* Sidebar */}
       <div
         ref={sidebarRef}
         className={cn(
@@ -63,15 +52,16 @@ export function AdminSidebar({ open, setOpen }: AdminSidebarProps) {
         )}
       >
         <div className="flex h-16 items-center justify-between border-b px-4">
-          <h2 className="text-xl font-bold text-terracotta-800">Craft Admin</h2>
+          <h2 className="text-xl font-bold text-terracotta-800">Administration</h2>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setOpen(false)}
             className="md:hidden"
+            aria-label="Fermer le menu"
           >
             <X className="h-5 w-5" />
-            <span className="sr-only">Close menu</span>
+            <span className="sr-only">Fermer le menu</span>
           </Button>
         </div>
 

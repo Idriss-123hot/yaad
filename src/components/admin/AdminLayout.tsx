@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,21 +7,10 @@ import { SessionTimeout } from '@/components/shared/SessionTimeout';
 import { checkAdminRole, updateLastActivity } from '@/utils/authUtils';
 import { useToast } from '@/components/ui/use-toast';
 
-/**
- * Interface des props du composant AdminLayout
- */
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
-/**
- * Composant de mise en page pour les pages d'administration
- * 
- * Fournit une structure commune pour toutes les pages d'administration
- * avec une barre latérale, un en-tête et une vérification de l'authentification.
- * 
- * @param {React.ReactNode} children - Contenu de la page à afficher
- */
 export function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -33,25 +21,22 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   useEffect(() => {
     const checkAdmin = async () => {
       try {
-        // Vérifier si l'utilisateur connecté a le rôle d'administrateur
         const isAdmin = await checkAdminRole();
         
         if (!isAdmin) {
-          // Rediriger vers la page de connexion si l'utilisateur n'est pas admin
           toast({
             title: 'Accès non autorisé',
-            description: 'Vous devez être connecté en tant qu\'administrateur pour accéder à cette page',
+            description: 'Vous devez être administrateur pour accéder à cette section',
             variant: 'destructive',
           });
           navigate('/admin/login');
           return;
         }
         
-        // Mettre à jour le timestamp de dernière activité
         updateLastActivity();
         setIsAuthorized(true);
       } catch (error) {
-        console.error('Error checking admin role:', error);
+        console.error('Erreur de vérification :', error);
         navigate('/admin/login');
       } finally {
         setIsLoading(false);
@@ -61,7 +46,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     checkAdmin();
   }, [navigate, toast]);
 
-  // Afficher un spinner pendant le chargement
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -70,12 +54,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  // Ne rien rendre si l'utilisateur n'est pas autorisé (la redirection est déjà en cours)
-  if (!isAuthorized) {
-    return null;
-  }
+  if (!isAuthorized) return null;
 
-  // Structure principale de la mise en page administrative
   return (
     <div className="flex h-screen bg-gray-100">
       <SessionTimeout redirectPath="/admin/login" />
