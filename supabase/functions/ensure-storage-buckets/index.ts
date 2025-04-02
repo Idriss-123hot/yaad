@@ -1,101 +1,147 @@
 
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.33.2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createStoragePolicy } from "./helpers.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-console.log("Initializing ensure-storage-buckets function");
-
-serve(async (req: Request) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
   
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    // Create Supabase admin client
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      }
+    );
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Supabase environment variables are not set');
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    // Define storage buckets to ensure
-    const requiredBuckets = [
-      { id: 'products', public: true },
-      { id: 'avatars', public: true },
-      { id: 'categories', public: true },
+    // List of buckets to ensure exist
+    const bucketsToCreate = [
+      {
+        id: 'products',
+        name: 'Produits',
+        public: true
+      },
+      {
+        id: 'artisans',
+        name: 'Artisans',
+        public: true
+      },
+      {
+        id: 'categories',
+        name: 'Catégories',
+        public: true
+      }
     ];
 
+    // Create each bucket if it doesn't exist
     const results = [];
-
-    // Check and create buckets if they don't exist
-    for (const bucket of requiredBuckets) {
+    for (const bucket of bucketsToCreate) {
       // Check if bucket exists
-      const { data: existingBucket, error: getBucketError } = await supabase
+      const { data: existingBucket, error: getBucketError } = await supabaseAdmin
         .storage
         .getBucket(bucket.id);
 
-      if (getBucketError && getBucketError.message.includes('not found')) {
-        // Create the bucket if it doesn't exist
-        console.log(`Creating storage bucket: ${bucket.id}`);
-        const { data: newBucket, error: createError } = await supabase
+      if (getBucketError && !existingBucket) {
+        // Create bucket if it doesn't exist
+        const { data, error } = await supabaseAdmin
           .storage
-          .createBucket(bucket.id, { public: bucket.public });
-
-        if (createError) {
-          throw createError;
-        }
-
-        // Create RLS policy to allow public read access if bucket is public
-        if (bucket.public) {
-          const { error: policyError } = await supabase.rpc('create_storage_policy', {
-            bucket_id: bucket.id,
-            policy_name: `${bucket.id}_public_read`,
-            definition: `bucket_id = '${bucket.id}'`,
-            policy_action: 'SELECT'
+          .createBucket(bucket.id, {
+            public: bucket.public,
+            fileSizeLimit: 50 * 1024 * 1024, // 50MB limit
           });
 
-          if (policyError) {
-            console.error(`Error creating read policy for ${bucket.id}:`, policyError);
-            // Continue even if policy creation fails as we may need to handle it differently
+        if (error) {
+          console.error(`Error creating bucket ${bucket.id}:`, error);
+          results.push({ bucket: bucket.id, success: false, error: error.message });
+        } else {
+          console.log(`Created bucket: ${bucket.id}`);
+          
+          // Create public access policies for this bucket
+          if (bucket.public) {
+            // Create SELECT policy - anyone can view files
+            await createStoragePolicy(
+              supabaseAdmin,
+              bucket.id,
+              `${bucket.id}_public_select`,
+              'true',
+              'SELECT'
+            );
+            
+            // Create INSERT policy - authenticated users can upload files
+            await createStoragePolicy(
+              supabaseAdmin,
+              bucket.id,
+              `${bucket.id}_auth_insert`,
+              '(auth.role() = \'authenticated\')',
+              'INSERT'
+            );
+            
+            // Create UPDATE policy - authenticated users can update their files
+            await createStoragePolicy(
+              supabaseAdmin,
+              bucket.id,
+              `${bucket.id}_auth_update`,
+              '(auth.role() = \'authenticated\')',
+              'UPDATE'
+            );
+            
+            // Create DELETE policy - authenticated users can delete their files
+            await createStoragePolicy(
+              supabaseAdmin,
+              bucket.id,
+              `${bucket.id}_auth_delete`,
+              '(auth.role() = \'authenticated\')',
+              'DELETE'
+            );
           }
           
-          // Allow authenticated users to upload
-          const { error: uploadPolicyError } = await supabase.rpc('create_storage_policy', {
-            bucket_id: bucket.id,
-            policy_name: `${bucket.id}_auth_insert`,
-            definition: `bucket_id = '${bucket.id}' AND auth.role() = 'authenticated'`,
-            policy_action: 'INSERT'
-          });
-          
-          if (uploadPolicyError) {
-            console.error(`Error creating upload policy for ${bucket.id}:`, uploadPolicyError);
-          }
+          results.push({ bucket: bucket.id, success: true });
         }
-        
-        results.push({ bucket: bucket.id, action: 'created', public: bucket.public });
-      } else if (!getBucketError) {
-        results.push({ bucket: bucket.id, action: 'exists', public: existingBucket.public });
       } else {
-        throw getBucketError;
+        results.push({ bucket: bucket.id, success: true, existed: true });
       }
     }
 
-    return new Response(JSON.stringify({ success: true, results }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
+    // Return success response with CORS headers
+    return new Response(
+      JSON.stringify({ success: true, results }),
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+        status: 200,
+      }
+    );
   } catch (error) {
     console.error('Error in ensure-storage-buckets function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
-    });
+    
+    // Return error response with CORS headers
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message || 'Une erreur est survenue lors de la création des buckets de stockage',
+      }),
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+        status: 500,
+      }
+    );
   }
 });

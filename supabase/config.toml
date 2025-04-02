@@ -8,11 +8,14 @@ schemas = ["public", "storage"]
 [db]
 port = 54322
 
+# General function settings
 [functions]
 port = 54323
 serve_dir = "supabase/functions"
 
-[functions.ensure-storage-buckets]
+# Function-specific configurations
+[[functions.function]]
+name = "ensure-storage-buckets"
 verify_jwt = true
 
 [studio]
