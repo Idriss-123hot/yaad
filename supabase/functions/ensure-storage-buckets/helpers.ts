@@ -1,84 +1,59 @@
-import { PostgrestSingleResponse } from 'https://esm.sh/@supabase/supabase-js@2';
+
+import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /**
- * Creates an RLS policy for a storage bucket
- * @param supabase The Supabase client
- * @param bucketId The ID of the bucket
- * @param policyName The name of the policy
- * @param definition The policy definition (SQL condition)
- * @param action The action (SELECT, INSERT, UPDATE, DELETE)
- * @returns The result of the policy creation
+ * Creates standard storage policies for a bucket
+ * 
+ * @param {SupabaseClient} supabase - The Supabase client with admin privileges
+ * @param {string} bucketName - The name of the bucket to create policies for
+ * @param {boolean} isPublic - Whether the bucket should be publicly accessible
  */
-export async function createStoragePolicy(
-  supabase: any,
-  bucketId: string,
-  policyName: string,
-  definition: string,
-  action: 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE'
-): Promise<PostgrestSingleResponse<any>> {
-  return await supabase.rpc('create_storage_policy', {
-    bucket_id: bucketId,
-    policy_name: policyName,
-    definition: definition,
-    policy_action: action
-  });
-}
-
-/**
- * Creates a standard set of storage policies for a bucket
- * @param supabase The Supabase client
- * @param bucketId The ID of the bucket
- * @param isPublic Whether the bucket should be publicly readable
- */
-export async function createStandardPolicies(
-  supabase: any,
-  bucketId: string,
+export const createStandardPolicies = async (
+  supabase: SupabaseClient,
+  bucketName: string,
   isPublic: boolean
-): Promise<void> {
-  // Always allow authenticated users to upload files
-  await createStoragePolicy(
-    supabase,
-    bucketId,
-    `${bucketId}_auth_insert`,
-    `(auth.role() = 'authenticated')`,
-    'INSERT'
-  );
-  
-  // Always allow authenticated users to update their own files
-  await createStoragePolicy(
-    supabase,
-    bucketId,
-    `${bucketId}_auth_update`,
-    `(auth.role() = 'authenticated' AND (bucket_id = '${bucketId}'))`,
-    'UPDATE'
-  );
-  
-  // Always allow authenticated users to delete their own files
-  await createStoragePolicy(
-    supabase,
-    bucketId,
-    `${bucketId}_auth_delete`,
-    `(auth.role() = 'authenticated' AND (bucket_id = '${bucketId}'))`,
-    'DELETE'
-  );
-  
-  // If public, allow anyone to read files
-  if (isPublic) {
-    await createStoragePolicy(
-      supabase,
-      bucketId,
-      `${bucketId}_public_select`,
-      'true',
-      'SELECT'
-    );
-  } else {
-    // Otherwise, only allow authenticated users to read files
-    await createStoragePolicy(
-      supabase,
-      bucketId,
-      `${bucketId}_auth_select`,
-      `(auth.role() = 'authenticated')`,
-      'SELECT'
-    );
+) => {
+  try {
+    console.log(`Setting up policies for bucket ${bucketName}`);
+    
+    // If the bucket is public, create a policy to allow public access
+    if (isPublic) {
+      await supabase.rpc('create_storage_policy', {
+        bucket_name: bucketName,
+        policy_name: `${bucketName}_public_select`,
+        definition: `bucket_id = '${bucketName}'`,
+        operation: 'SELECT'
+      });
+      console.log(`Created public SELECT policy for bucket ${bucketName}`);
+    }
+    
+    // Always create policies for authenticated users
+    await supabase.rpc('create_storage_policy', {
+      bucket_name: bucketName,
+      policy_name: `${bucketName}_auth_insert`,
+      definition: `bucket_id = '${bucketName}' AND auth.role() = 'authenticated'`,
+      operation: 'INSERT'
+    });
+    console.log(`Created authenticated INSERT policy for bucket ${bucketName}`);
+    
+    await supabase.rpc('create_storage_policy', {
+      bucket_name: bucketName,
+      policy_name: `${bucketName}_auth_update`,
+      definition: `bucket_id = '${bucketName}' AND auth.role() = 'authenticated'`,
+      operation: 'UPDATE'
+    });
+    console.log(`Created authenticated UPDATE policy for bucket ${bucketName}`);
+    
+    await supabase.rpc('create_storage_policy', {
+      bucket_name: bucketName,
+      policy_name: `${bucketName}_auth_delete`,
+      definition: `bucket_id = '${bucketName}' AND auth.role() = 'authenticated'`,
+      operation: 'DELETE'
+    });
+    console.log(`Created authenticated DELETE policy for bucket ${bucketName}`);
+    
+    console.log(`Successfully set up all policies for bucket ${bucketName}`);
+  } catch (error) {
+    console.error(`Error creating policies for bucket ${bucketName}:`, error);
   }
-}
+};
