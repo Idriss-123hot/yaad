@@ -251,7 +251,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   return (
     <WishlistContext.Provider value={value}>
       {children}
-    </WishlistProvider>
+    </WishlistContext.Provider>
   );
 }
 
