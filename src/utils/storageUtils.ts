@@ -14,7 +14,7 @@ export const ensureBucketsExist = async (): Promise<{ success: boolean; error?: 
       return { success: false, error };
     }
     
-    return { success: true, data };
+    return { success: true };
   } catch (error) {
     console.error('Exception lors de l\'appel de la fonction ensure-storage-buckets:', error);
     return { success: false, error };
