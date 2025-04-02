@@ -1,10 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -14,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
-import { Search, Plus, Edit, Trash } from 'lucide-react';
+import { Plus, Edit, Trash } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,17 +23,32 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useDataTable } from '@/hooks/use-data-table';
+import { SearchAndFilter } from '@/components/ui/data-table/search-and-filter';
+import { DataTablePagination } from '@/components/ui/data-table/pagination';
 
 export default function ArtisansList() {
   const [artisans, setArtisans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchArtisans();
+    
+    const ensureStorageBuckets = async () => {
+      try {
+        const { error } = await supabase.functions.invoke('ensure-storage-buckets');
+        if (error) {
+          console.error('Error ensuring storage buckets:', error);
+        }
+      } catch (error) {
+        console.error('Error invoking ensure-storage-buckets function:', error);
+      }
+    };
+    
+    ensureStorageBuckets();
   }, []);
 
   const fetchArtisans = async () => {
@@ -48,7 +61,6 @@ export default function ArtisansList() {
 
       if (error) throw error;
       
-      // Transform data to include product count
       const transformedData = data.map(artisan => ({
         ...artisan,
         product_count: artisan.product_count?.length || 0
@@ -58,7 +70,7 @@ export default function ArtisansList() {
     } catch (error) {
       console.error('Error fetching artisans:', error);
       toast({
-        title: 'Error fetching artisans',
+        title: 'Erreur lors du chargement des artisans',
         description: error.message,
         variant: 'destructive',
       });
@@ -71,7 +83,6 @@ export default function ArtisansList() {
     if (!deleteId) return;
 
     try {
-      // First, get the user_id associated with this artisan
       const { data: artisanData, error: artisanError } = await supabase
         .from('artisans')
         .select('user_id')
@@ -80,7 +91,6 @@ export default function ArtisansList() {
 
       if (artisanError) throw artisanError;
 
-      // Delete the artisan
       const { error: deleteError } = await supabase
         .from('artisans')
         .delete()
@@ -88,7 +98,6 @@ export default function ArtisansList() {
 
       if (deleteError) throw deleteError;
 
-      // Update the user role to 'customer' instead of deleting the user
       const { error: updateUserError } = await supabase
         .from('profiles')
         .update({ role: 'customer' })
@@ -97,16 +106,15 @@ export default function ArtisansList() {
       if (updateUserError) throw updateUserError;
 
       toast({
-        title: 'Artisan deleted',
-        description: 'The artisan has been removed successfully',
+        title: 'Artisan supprimé',
+        description: 'Le compte de l\'artisan a été supprimé avec succès',
       });
 
-      // Refresh artisans list
       fetchArtisans();
     } catch (error) {
       console.error('Error deleting artisan:', error);
       toast({
-        title: 'Error deleting artisan',
+        title: 'Erreur lors de la suppression de l\'artisan',
         description: error.message,
         variant: 'destructive',
       });
@@ -115,11 +123,36 @@ export default function ArtisansList() {
     }
   };
 
-  const filteredArtisans = artisans.filter(
-    (artisan) =>
-      artisan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (artisan.location && artisan.location.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filterOptions = [
+    {
+      id: 'location',
+      label: 'Emplacement'
+    },
+    {
+      id: 'product_count',
+      label: 'Nombre de produits'
+    }
+  ];
+
+  const {
+    paginatedData,
+    searchQuery,
+    setSearchQuery,
+    sortConfig,
+    requestSort,
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    setItemsPerPage,
+    goToPage,
+    nextPage,
+    prevPage,
+    filters,
+    setFilters
+  } = useDataTable({
+    data: artisans,
+    searchFields: ['name', 'location']
+  });
 
   return (
     <AdminLayout>
@@ -128,7 +161,7 @@ export default function ArtisansList() {
           <div>
             <h1 className="text-3xl font-bold">Artisans</h1>
             <p className="text-muted-foreground">
-              Manage and create artisan accounts
+              Gérer et créer des comptes d'artisans
             </p>
           </div>
           <Button
@@ -136,30 +169,47 @@ export default function ArtisansList() {
             className="bg-terracotta-600 hover:bg-terracotta-700"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Add New Artisan
+            Ajouter un Artisan
           </Button>
         </div>
 
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search artisans..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
+        <SearchAndFilter
+          searchPlaceholder="Rechercher des artisans..."
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          filters={filters}
+          onFiltersChange={setFilters}
+          filterOptions={filterOptions}
+        />
 
         <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Artisan</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Products</TableHead>
-                <TableHead>Joined</TableHead>
+                <TableHead 
+                  className={sortConfig?.key === 'name' ? 'cursor-pointer bg-muted/50' : 'cursor-pointer'}
+                  onClick={() => requestSort('name')}
+                >
+                  Artisan {sortConfig?.key === 'name' && (sortConfig?.direction === 'asc' ? '↑' : '↓')}
+                </TableHead>
+                <TableHead 
+                  className={sortConfig?.key === 'location' ? 'cursor-pointer bg-muted/50' : 'cursor-pointer'}
+                  onClick={() => requestSort('location')}
+                >
+                  Emplacement {sortConfig?.key === 'location' && (sortConfig?.direction === 'asc' ? '↑' : '↓')}
+                </TableHead>
+                <TableHead 
+                  className={sortConfig?.key === 'product_count' ? 'cursor-pointer bg-muted/50' : 'cursor-pointer'}
+                  onClick={() => requestSort('product_count')}
+                >
+                  Produits {sortConfig?.key === 'product_count' && (sortConfig?.direction === 'asc' ? '↑' : '↓')}
+                </TableHead>
+                <TableHead 
+                  className={sortConfig?.key === 'joined_date' ? 'cursor-pointer bg-muted/50' : 'cursor-pointer'}
+                  onClick={() => requestSort('joined_date')}
+                >
+                  Inscrit le {sortConfig?.key === 'joined_date' && (sortConfig?.direction === 'asc' ? '↑' : '↓')}
+                </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -172,19 +222,19 @@ export default function ArtisansList() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : filteredArtisans.length === 0 ? (
+              ) : paginatedData.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={5}
                     className="h-24 text-center text-muted-foreground"
                   >
-                    {searchQuery
-                      ? 'No artisans found matching your search'
-                      : 'No artisans found'}
+                    {searchQuery || Object.values(filters).some(Boolean)
+                      ? 'Aucun artisan correspondant à votre recherche'
+                      : 'Aucun artisan trouvé'}
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredArtisans.map((artisan) => (
+                paginatedData.map((artisan) => (
                   <TableRow key={artisan.id}>
                     <TableCell className="flex items-center">
                       <div className="flex items-center">
@@ -224,7 +274,7 @@ export default function ArtisansList() {
                           }
                         >
                           <Edit className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
+                          <span className="sr-only">Modifier</span>
                         </Button>
                         <Button
                           variant="ghost"
@@ -233,7 +283,7 @@ export default function ArtisansList() {
                           className="text-red-500 hover:bg-red-50 hover:text-red-600"
                         >
                           <Trash className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
+                          <span className="sr-only">Supprimer</span>
                         </Button>
                       </div>
                     </TableCell>
@@ -243,23 +293,33 @@ export default function ArtisansList() {
             </TableBody>
           </Table>
         </div>
+        
+        <DataTablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={goToPage}
+          onNextPage={nextPage}
+          onPrevPage={prevPage}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={setItemsPerPage}
+          totalItems={artisans.length}
+        />
 
         <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete the artisan account. This action
-                cannot be undone.
+                Cette action supprimera définitivement le compte de l'artisan. Cette action ne peut pas être annulée.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
                 className="bg-red-500 text-white hover:bg-red-600"
               >
-                Delete
+                Supprimer
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

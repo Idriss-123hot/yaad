@@ -1,5 +1,3 @@
-
-
 import { supabase } from '@/integrations/supabase/client';
 import bcrypt from 'bcryptjs';
 
@@ -78,3 +76,20 @@ export const hashPassword = async (password: string): Promise<string> => {
   return bcrypt.hash(password, salt);
 };
 
+/**
+ * Ensures that all required storage buckets exist in Supabase
+ * This function will create buckets if they don't exist
+ */
+export const ensureStorageBuckets = async () => {
+  try {
+    const { error } = await supabase.functions.invoke('ensure-storage-buckets');
+    if (error) {
+      console.error('Error ensuring storage buckets:', error);
+      return { success: false, error };
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Exception invoking ensure-storage-buckets function:', error);
+    return { success: false, error };
+  }
+};
