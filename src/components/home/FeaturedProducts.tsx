@@ -3,9 +3,10 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { Link } from 'react-router-dom';
+import { ProductWithArtisan } from '@/models/types';
 
 // Données des produits vedettes avec traductions
-export const FEATURED_PRODUCTS = [
+export const FEATURED_PRODUCTS: ProductWithArtisan[] = [
   {
     id: 'vase-céramique',
     title: 'Vase en Céramique Artisanal',
@@ -17,6 +18,14 @@ export const FEATURED_PRODUCTS = [
     ],
     artisanId: '1',
     rating: 4.8,
+    // Ajout des propriétés manquantes
+    tags: ['céramique', 'vase', 'fait main'],
+    stock: 10,
+    reviewCount: 24,
+    createdAt: new Date('2023-05-15'),
+    featured: true,
+    mainCategory: 'home-decor',
+    subcategory: 'living-room-bedroom'
   },
   {
     id: 'couverture-laine',
@@ -29,6 +38,14 @@ export const FEATURED_PRODUCTS = [
     ],
     artisanId: '2',
     rating: 4.9,
+    // Ajout des propriétés manquantes
+    tags: ['textile', 'couverture', 'laine', 'fait main'],
+    stock: 5,
+    reviewCount: 18,
+    createdAt: new Date('2023-06-20'),
+    featured: true,
+    mainCategory: 'home-decor',
+    subcategory: 'textile'
   },
   // ... autres produits
 ];
