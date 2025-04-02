@@ -21,3 +21,15 @@ serve_dir = "supabase/functions"
 [[functions.function]]
 name = "ensure-storage-buckets"
 verify_jwt = true
+
+[[functions.function]]
+name = "search"
+verify_jwt = false
+
+[[functions.function]]
+name = "create-initial-users"
+verify_jwt = true
+
+[[functions.function]]
+name = "populate-database"
+verify_jwt = true
