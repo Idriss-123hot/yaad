@@ -1,42 +1,33 @@
 
-# Configuration du projet Supabase
 project_id = "hijgrzabkfynlomhbzij"
 
-# Configuration de l'API Supabase
 [api]
+enabled = true
 port = 54321
-schemas = ["public", "storage"]
+schemas = ["public", "storage", "graphql_public"]
 
-# Configuration de la base de données PostgreSQL
 [db]
 port = 54322
+shadow_port = 54320
 
-# Configuration de l'interface d'administration
 [studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
 port = 54324
 
-# Configuration du stockage de fichiers
+[auth]
+enabled = true
+port = 9999
+
+[realtime]
+enabled = true
+
 [storage]
-file_size_limit = "50MiB"
+enabled = true
 
-# Configuration générale des fonctions Edge
-[functions]
-port = 54323
-serve_dir = "supabase/functions"
-
-# Définition des fonctions Edge individuelles
-[[functions.function]]
-name = "ensure-storage-buckets"
-verify_jwt = true
-
-[[functions.function]]
-name = "search"
+[edge_functions]
+[edge_functions.import-artisans]
 verify_jwt = false
-
-[[functions.function]]
-name = "create-initial-users"
-verify_jwt = true
-
-[[functions.function]]
-name = "populate-database"
-verify_jwt = true

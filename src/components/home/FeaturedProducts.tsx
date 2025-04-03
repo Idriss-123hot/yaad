@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { Link } from 'react-router-dom';
+import { useTranslations } from '@/lib/i18n';
 
 // Données des produits mis en avant avec IDs uniques et routes correctes
 const FEATURED_PRODUCTS = [
@@ -89,18 +90,20 @@ const FEATURED_PRODUCTS = [
 export { FEATURED_PRODUCTS };
 
 export function FeaturedProducts() {
+  const { t } = useTranslations();
+  
   return (
     <section className="py-16 px-6 md:px-12">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10">
           <div>
             <span className="inline-block bg-terracotta-100 text-terracotta-800 px-3 py-1 rounded-full text-xs font-medium mb-3">
-              Collection en Vedette
+              {t('featured_collection', 'Collection en Vedette')}
             </span>
             <h2 className="font-serif text-3xl md:text-4xl font-bold">Savoir-Faire Exceptionnel</h2>
           </div>
           <Button variant="link" className="text-terracotta-600 hover:text-terracotta-700 p-0 hidden md:flex">
-            <Link to="/search">Voir tous les produits <ArrowRight className="ml-1 h-4 w-4" /></Link>
+            <Link to="/search">{t('view_all_products', 'Voir tous les produits')} <ArrowRight className="ml-1 h-4 w-4" /></Link>
           </Button>
         </div>
 
@@ -114,7 +117,7 @@ export function FeaturedProducts() {
         {/* Mobile View All button */}
         <div className="mt-8 flex justify-center md:hidden">
           <Button variant="outline" className="border-terracotta-200 hover:bg-terracotta-50">
-            <Link to="/search">Voir tous les produits <ArrowRight className="ml-1 h-4 w-4" /></Link>
+            <Link to="/search">{t('view_all_products', 'Voir tous les produits')} <ArrowRight className="ml-1 h-4 w-4" /></Link>
           </Button>
         </div>
       </div>

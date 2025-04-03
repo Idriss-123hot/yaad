@@ -39,8 +39,32 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     const loadWishlist = async () => {
       setLoading(true);
       try {
-        // We're using localStorage for wishlist storage
-        loadFromLocalStorage();
+        if (isAuthenticated && user) {
+          // Fetch wishlist items from Supabase for authenticated users
+          const { data: wishlistData, error: wishlistError } = await supabase
+            .from('wishlists')
+            .select('product_id, created_at')
+            .eq('user_id', user.id);
+
+          if (wishlistError) {
+            console.error('Error fetching wishlist:', wishlistError);
+            loadFromLocalStorage();
+            return;
+          }
+
+          if (wishlistData) {
+            const formattedItems = wishlistData.map(item => ({
+              productId: item.product_id,
+              addedAt: item.created_at
+            }));
+            
+            // Fetch product details for each item
+            await fetchProductDetails(formattedItems);
+          }
+        } else {
+          // Use localStorage for non-authenticated users
+          loadFromLocalStorage();
+        }
       } catch (error) {
         console.error('Error loading wishlist:', error);
         loadFromLocalStorage();
@@ -118,9 +142,11 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (loading) return;
     
-    // Save to localStorage regardless of authentication status
-    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
-  }, [wishlistItems, loading]);
+    // For non-authenticated users, save to localStorage
+    if (!isAuthenticated) {
+      localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+    }
+  }, [wishlistItems, loading, isAuthenticated]);
   
   // Add item to wishlist
   const addToWishlist = async (productId: string) => {
@@ -137,6 +163,18 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         data: { productId }
       }));
       
+      // Save item in localStorage wishlist for later
+      const newItem: WishlistItem = {
+        productId, 
+        addedAt: new Date().toISOString(),
+      };
+      
+      setWishlistItems(prevItems => {
+        const updatedItems = [...prevItems, newItem];
+        localStorage.setItem('wishlist', JSON.stringify(updatedItems));
+        return updatedItems;
+      });
+      
       navigate('/auth');
       return;
     }
@@ -148,6 +186,38 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         description: 'Ce produit est déjà dans votre liste de souhaits',
       });
       return;
+    }
+    
+    // Add to database for authenticated users
+    if (isAuthenticated && user) {
+      try {
+        const { error } = await supabase
+          .from('wishlists')
+          .insert({
+            user_id: user.id,
+            product_id: productId
+          });
+          
+        if (error) {
+          if (error.code === '23505') { // Unique constraint violation
+            toast({
+              title: 'Déjà dans votre liste',
+              description: 'Ce produit est déjà dans votre liste de souhaits',
+            });
+            return;
+          } else {
+            throw error;
+          }
+        }
+      } catch (error) {
+        console.error('Error adding to wishlist in database:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible d\'ajouter le produit à votre liste de souhaits',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
     
     // Fetch product details
@@ -197,7 +267,25 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   };
   
   // Remove item from wishlist
-  const removeFromWishlist = (productId: string) => {
+  const removeFromWishlist = async (productId: string) => {
+    // Remove from database for authenticated users
+    if (isAuthenticated && user) {
+      try {
+        const { error } = await supabase
+          .from('wishlists')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('product_id', productId);
+          
+        if (error) {
+          throw error;
+        }
+      } catch (error) {
+        console.error('Error removing from wishlist in database:', error);
+      }
+    }
+    
+    // Update local state
     setWishlistItems(
       wishlistItems.filter((item) => item.productId !== productId)
     );
@@ -209,8 +297,27 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   };
   
   // Clear wishlist
-  const clearWishlist = () => {
+  const clearWishlist = async () => {
+    // Clear from database for authenticated users
+    if (isAuthenticated && user) {
+      try {
+        const { error } = await supabase
+          .from('wishlists')
+          .delete()
+          .eq('user_id', user.id);
+          
+        if (error) {
+          throw error;
+        }
+      } catch (error) {
+        console.error('Error clearing wishlist in database:', error);
+      }
+    }
+    
+    // Update local state
     setWishlistItems([]);
+    localStorage.removeItem('wishlist');
+    
     toast({
       title: 'Liste vidée',
       description: 'Votre liste de souhaits a été vidée',

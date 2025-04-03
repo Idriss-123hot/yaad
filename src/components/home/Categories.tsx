@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import { categoriesData } from '@/data/categories';
 import { getImageWithFallback } from '@/lib/utils';
+import { useTranslations } from '@/lib/i18n';
 
 // Images d'inspiration marocaine pour chaque catégorie principale
 const CATEGORY_IMAGES = {
@@ -13,6 +14,8 @@ const CATEGORY_IMAGES = {
 };
 
 export function Categories() {
+  const { t } = useTranslations();
+  
   // Fonction pour obtenir l'image personnalisée pour chaque catégorie
   const getCategoryImage = (categoryId: string) => {
     return CATEGORY_IMAGES[categoryId as keyof typeof CATEGORY_IMAGES] || getImageWithFallback(undefined);
@@ -23,7 +26,7 @@ export function Categories() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <span className="inline-block bg-terracotta-100 text-terracotta-800 px-3 py-1 rounded-full text-xs font-medium mb-3">
-            Rechercher par catégories
+            {t('browse_by_category', 'Rechercher par catégories')}
           </span>
           <h2 className="font-serif text-3xl md:text-4xl font-bold">Produits de l'Artisanat Marocain</h2>
           <p className="mt-4 text-muted-foreground max-w-3xl mx-auto">
@@ -50,7 +53,7 @@ export function Categories() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
               <div className="absolute bottom-4 left-4 text-white">
                 <h3 className="font-semibold text-lg text-white drop-shadow-md">{category.name}</h3>
-                <p className="text-sm text-white group-hover:underline">Explorer la collection</p>
+                <p className="text-sm text-white group-hover:underline">{t('explore_collection', 'Explorer la collection')}</p>
               </div>
             </Link>
           ))}

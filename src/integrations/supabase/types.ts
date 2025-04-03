@@ -15,7 +15,7 @@ export type Database = {
           created_at: string
           description: string | null
           featured: boolean | null
-          gallery_images: string[] | null
+          first_gallery_images: string[] | null
           id: string
           joined_date: string
           location: string | null
@@ -23,6 +23,7 @@ export type Database = {
           profile_photo: string | null
           rating: number | null
           review_count: number | null
+          second_gallery_images: string | null
           updated_at: string
           user_id: string
           website: string | null
@@ -32,7 +33,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           featured?: boolean | null
-          gallery_images?: string[] | null
+          first_gallery_images?: string[] | null
           id?: string
           joined_date?: string
           location?: string | null
@@ -40,6 +41,7 @@ export type Database = {
           profile_photo?: string | null
           rating?: number | null
           review_count?: number | null
+          second_gallery_images?: string | null
           updated_at?: string
           user_id: string
           website?: string | null
@@ -49,7 +51,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           featured?: boolean | null
-          gallery_images?: string[] | null
+          first_gallery_images?: string[] | null
           id?: string
           joined_date?: string
           location?: string | null
@@ -57,6 +59,7 @@ export type Database = {
           profile_photo?: string | null
           rating?: number | null
           review_count?: number | null
+          second_gallery_images?: string | null
           updated_at?: string
           user_id?: string
           website?: string | null
@@ -487,6 +490,62 @@ export type Database = {
           },
         ]
       }
+      translations: {
+        Row: {
+          created_at: string
+          en: string
+          fr: string
+          id: string
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          en: string
+          fr: string
+          id?: string
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          en?: string
+          fr?: string
+          id?: string
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wishlists: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlists_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -495,6 +554,12 @@ export type Database = {
       get_artisan_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_translations: {
+        Args: {
+          locale?: string
+        }
+        Returns: Json
       }
       is_admin: {
         Args: Record<PropertyKey, never>

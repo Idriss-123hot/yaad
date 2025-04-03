@@ -23,6 +23,7 @@ import { getProductById, PRODUCTS } from '@/data/products';
 import { SAMPLE_ARTISANS } from '@/models/types';
 import { toast } from '@/hooks/use-toast';
 import { ProductCard } from '@/components/ui/ProductCard';
+import { useWishlist } from '@/hooks/useWishlist';
 
 const ProductDetail = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -33,6 +34,7 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [relatedProducts, setRelatedProducts] = useState<ProductWithArtisan[]>([]);
   const navigate = useNavigate();
+  const { addToWishlist, isInWishlist } = useWishlist();
   
   useEffect(() => {
     if (!productId) {
@@ -81,10 +83,9 @@ const ProductDetail = () => {
   };
   
   const handleAddToWishlist = () => {
-    toast({
-      title: "Produit ajouté aux favoris",
-      description: "Vous pouvez consulter votre liste de favoris dans votre compte."
-    });
+    if (product) {
+      addToWishlist(product.id);
+    }
   };
   
   const incrementQuantity = () => {
@@ -97,6 +98,11 @@ const ProductDetail = () => {
     if (quantity > 1) {
       setQuantity(quantity - 1);
     }
+  };
+  
+  // Handle thumbnail click - now directly changes the main image
+  const handleThumbnailClick = (index: number) => {
+    setCurrentImageIndex(index);
   };
   
   if (loading) {
@@ -190,7 +196,7 @@ const ProductDetail = () => {
                     <div 
                       key={idx} 
                       className={`aspect-square bg-cream-50 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity ${currentImageIndex === idx ? 'ring-2 ring-terracotta-600' : ''}`}
-                      onClick={() => setCurrentImageIndex(idx)}
+                      onClick={() => handleThumbnailClick(idx)}
                     >
                       <img 
                         src={img} 
@@ -288,10 +294,10 @@ const ProductDetail = () => {
                   <Button 
                     onClick={handleAddToWishlist}
                     variant="outline"
-                    className="flex-1"
+                    className={`flex-1 ${isInWishlist && isInWishlist(product.id) ? 'bg-terracotta-50 border-terracotta-300' : ''}`}
                   >
-                    <Heart className="mr-2 h-4 w-4" />
-                    Ajouter aux favoris
+                    <Heart className={`mr-2 h-4 w-4 ${isInWishlist && isInWishlist(product.id) ? 'fill-terracotta-600 text-terracotta-600' : ''}`} />
+                    {isInWishlist && isInWishlist(product.id) ? 'Dans vos favoris' : 'Ajouter aux favoris'}
                   </Button>
                 </div>
 

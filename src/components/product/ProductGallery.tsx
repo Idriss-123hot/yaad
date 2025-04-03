@@ -4,62 +4,66 @@ import { cn } from '@/lib/utils';
 
 interface ProductGalleryProps {
   images: string[];
+  title: string;
   className?: string;
 }
 
-export function ProductGallery({ images, className }: ProductGalleryProps) {
-  const [activeImage, setActiveImage] = useState(images[0] || '');
+/**
+ * ProductGallery Component
+ * 
+ * A reusable component for displaying a product's main image with thumbnails
+ * Handles image selection and display
+ */
+export function ProductGallery({ images, title, className }: ProductGalleryProps) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  // If no images, return null
-  if (!images || images.length === 0) {
-    return null;
-  }
-
-  // Handler for thumbnail click
-  const handleThumbnailClick = (image: string) => {
-    setActiveImage(image);
+  // Set fallback image in case of loading errors
+  const fallbackImage = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+  
+  // Handle thumbnail click - immediately changes the main image
+  const handleThumbnailClick = (index: number) => {
+    setCurrentImageIndex(index);
   };
-
+  
   return (
-    <div className={cn("grid grid-cols-12 gap-4", className)}>
-      {/* Vertical thumbnails */}
-      <div className="col-span-2 flex flex-col space-y-3 h-fit">
-        {images.map((image, index) => (
-          <button
-            key={index}
-            onClick={() => handleThumbnailClick(image)}
-            className={cn(
-              "relative border rounded-md overflow-hidden aspect-square transition-all",
-              activeImage === image 
-                ? "border-terracotta-600 ring-1 ring-terracotta-400"
-                : "border-gray-200 hover:border-terracotta-300"
-            )}
-          >
-            <img
-              src={image}
-              alt={`Aperçu du produit ${index + 1}`}
-              className="object-cover w-full h-full"
-              onError={(e) => {
-                e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
-              }}
-            />
-          </button>
-        ))}
+    <div className={cn("space-y-4", className)}>
+      {/* Main Image */}
+      <div className="aspect-square bg-cream-50 rounded-lg overflow-hidden">
+        <img 
+          src={images[currentImageIndex] || fallbackImage} 
+          alt={title} 
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = fallbackImage;
+          }}
+        />
       </div>
       
-      {/* Main image */}
-      <div className="col-span-10">
-        <div className="rounded-lg overflow-hidden">
-          <img
-            src={activeImage}
-            alt="Image principale du produit"
-            className="w-full h-auto object-cover aspect-square"
-            onError={(e) => {
-              e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
-            }}
-          />
+      {/* Thumbnails */}
+      {images.length > 1 && (
+        <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-4 gap-2 md:gap-4">
+          {images.map((img, idx) => (
+            <button 
+              key={idx} 
+              className={cn(
+                "aspect-square bg-cream-50 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity",
+                currentImageIndex === idx ? 'ring-2 ring-terracotta-600' : 'opacity-70 hover:opacity-100'
+              )}
+              onClick={() => handleThumbnailClick(idx)}
+              aria-label={`View ${title} - image ${idx + 1}`}
+            >
+              <img 
+                src={img} 
+                alt={`${title} - View ${idx + 1}`} 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = fallbackImage;
+                }}
+              />
+            </button>
+          ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }

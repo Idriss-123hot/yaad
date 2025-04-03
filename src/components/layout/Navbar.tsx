@@ -9,6 +9,7 @@ import { SearchModal } from '@/components/search/SearchModal';
 import { LanguageSelector } from '@/components/layout/LanguageSelector'; 
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/pages/Cart';
+import { useWishlist } from '@/hooks/useWishlist';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -16,8 +17,9 @@ export function Navbar() {
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [session, setSession] = useState(null);
-  const [favoriteCount, setFavoriteCount] = useState(0);
   const { getCartCount } = useCart();
+  const { wishlistItems } = useWishlist();
+  const favoriteCount = wishlistItems.length;
   const cartCount = getCartCount();
   const navigate = useNavigate();
 
@@ -44,37 +46,45 @@ export function Navbar() {
       }
     );
 
-    // Fetch favorites count if user is logged in
-    if (session) {
-      fetchFavoritesCount();
-    }
-
     return () => subscription.unsubscribe();
-  }, [session]);
-
-  const fetchFavoritesCount = async () => {
-    // This is a placeholder for actual favorites functionality
-    // You would fetch the actual count from Supabase here
-    setFavoriteCount(Math.floor(Math.random() * 5)); // Temporary random count for demonstration
-  };
+  }, []);
 
   const toggleCategoryMenu = () => {
+    // Close mobile menu if open
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
     setIsCategoryMenuOpen(!isCategoryMenuOpen);
   };
 
   const toggleSearchModal = () => {
+    // Close mobile menu if open
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
     setIsSearchModalOpen(!isSearchModalOpen);
   };
 
+  const toggleMobileMenu = () => {
+    // Close category menu if open when toggling mobile menu
+    if (isCategoryMenuOpen && !isMobileMenuOpen) {
+      setIsCategoryMenuOpen(false);
+    }
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   const handleCartClick = () => {
+    setIsMobileMenuOpen(false);
     navigate('/cart');
   };
 
   const handleFavoritesClick = () => {
+    setIsMobileMenuOpen(false);
     navigate('/favorites');
   };
 
   const handleAuthClick = () => {
+    setIsMobileMenuOpen(false);
     if (session) {
       // If logged in, show user menu or profile page
       // For now, just sign out
@@ -89,8 +99,8 @@ export function Navbar() {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out py-3 px-6 md:px-12',
         {
-          'bg-background/90 backdrop-blur-md shadow-sm': isScrolled || isCategoryMenuOpen,
-          'bg-transparent': !isScrolled && !isCategoryMenuOpen,
+          'bg-background/90 backdrop-blur-md shadow-sm': isScrolled || isCategoryMenuOpen || isMobileMenuOpen,
+          'bg-transparent': !isScrolled && !isCategoryMenuOpen && !isMobileMenuOpen,
         }
       )}
     >
@@ -178,7 +188,7 @@ export function Navbar() {
             variant="ghost" 
             size="icon" 
             className="md:hidden" 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            onClick={toggleMobileMenu}
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -187,95 +197,87 @@ export function Navbar() {
         {/* Category Navigation Menu */}
         {isCategoryMenuOpen && <CategoryNavigation onClose={() => setIsCategoryMenuOpen(false)} />}
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Improved with better performance */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-background absolute top-full left-0 right-0 p-6 shadow-lg animate-fade-in">
-            <nav className="flex flex-col space-y-4">
+          <div className="md:hidden bg-background fixed top-[61px] left-0 right-0 bottom-0 z-50 overflow-y-auto animate-in slide-in-from-right">
+            <nav className="flex flex-col p-6">
               <button 
-                className="text-sm font-medium hover:text-terracotta-600 transition-colors text-left"
+                className="flex items-center justify-between w-full py-4 border-b text-lg font-medium hover:text-terracotta-600 transition-colors"
                 onClick={toggleCategoryMenu}
               >
                 Nos Produits
+                <Search className="h-5 w-5" />
               </button>
               <Link 
                 to="/artisans" 
-                className="text-sm font-medium hover:text-terracotta-600 transition-colors"
+                className="py-4 border-b text-lg font-medium hover:text-terracotta-600 transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Nos Artisans
               </Link>
               <Link 
                 to="/about" 
-                className="text-sm font-medium hover:text-terracotta-600 transition-colors"
+                className="py-4 border-b text-lg font-medium hover:text-terracotta-600 transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 À propos
               </Link>
               <Link 
                 to="/blog" 
-                className="text-sm font-medium hover:text-terracotta-600 transition-colors"
+                className="py-4 border-b text-lg font-medium hover:text-terracotta-600 transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Blog
               </Link>
-              <div className="flex items-center space-x-4 pt-2">
-                <LanguageSelector />
+              
+              <div className="mt-6 flex flex-col space-y-4">
+                <div className="flex items-center justify-between">
+                  <LanguageSelector />
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="relative hover:bg-terracotta-100"
+                    onClick={toggleSearchModal}
+                  >
+                    <Search className="h-5 w-5" />
+                  </Button>
+                </div>
+                
                 <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="relative hover:bg-terracotta-100"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    toggleSearchModal();
-                  }}
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={handleFavoritesClick}
                 >
-                  <Search className="h-5 w-5" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="relative hover:bg-terracotta-100"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    handleFavoritesClick();
-                  }}
-                >
-                  <Heart className="h-5 w-5" />
+                  <Heart className="h-5 w-5 mr-2" />
+                  Favoris
                   {favoriteCount > 0 && (
-                    <span className="absolute top-0 right-0 w-4 h-4 bg-terracotta-600 text-white rounded-full text-[10px] flex items-center justify-center">
-                      {favoriteCount > 99 ? '99+' : favoriteCount}
+                    <span className="ml-auto bg-terracotta-600 text-white px-2 py-0.5 rounded-full text-xs">
+                      {favoriteCount}
                     </span>
                   )}
                 </Button>
+                
                 <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="relative hover:bg-terracotta-100"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    handleCartClick();
-                  }}
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={handleCartClick}
                 >
-                  <ShoppingBag className="h-5 w-5" />
+                  <ShoppingBag className="h-5 w-5 mr-2" />
+                  Panier
                   {cartCount > 0 && (
-                    <span className="absolute top-0 right-0 w-4 h-4 bg-terracotta-600 text-white rounded-full text-[10px] flex items-center justify-center">
-                      {cartCount > 99 ? '99+' : cartCount}
+                    <span className="ml-auto bg-terracotta-600 text-white px-2 py-0.5 rounded-full text-xs">
+                      {cartCount}
                     </span>
                   )}
                 </Button>
+                
                 <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="relative hover:bg-terracotta-100"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    handleAuthClick();
-                  }}
+                  variant={session ? "default" : "outline"}
+                  className="w-full justify-start"
+                  onClick={handleAuthClick}
                 >
-                  <User className="h-5 w-5" />
-                  {session && (
-                    <span className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full"></span>
-                  )}
+                  <User className="h-5 w-5 mr-2" />
+                  {session ? 'Mon Compte' : 'Connexion'}
                 </Button>
               </div>
             </nav>
