@@ -14,9 +14,9 @@ const FEATURED_PRODUCTS = [
     category: 'Ceramics & Pottery',
     tags: ['vase', 'ceramics', 'home decor'],
     images: [
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg',
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg',
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%203.jpeg'
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%202.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%203.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg'
     ],
     stock: 5,
     artisanId: '1',
@@ -53,9 +53,9 @@ const FEATURED_PRODUCTS = [
     category: 'Woodworking',
     tags: ['kitchen', 'serving', 'wood'],
     images: [
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-281478.webp',
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-796823_1800x1800%202.webp',
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-819467_1800x1800%203.webp'
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/Hand-woven%20Wool%20Blanket%201.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/Hand-woven%20Wool%20Blanket%20%202.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/Hand-woven%20Wool%20Blanket%20%203.jpeg'
     ],
     stock: 8,
     artisanId: '7', // Amina Chaoui
@@ -72,9 +72,9 @@ const FEATURED_PRODUCTS = [
     category: 'Jewelry',
     tags: ['earrings', 'silver', 'accessories'],
     images: [
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-d-oreilles-berbere-touareg%201.jpeg',
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-d-oreilles-berbere-touareg%202.jpeg',
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-d-oreilles-berbere-touareg%203.jpeg'
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Women/boucles-d-oreilles-berbere-touareg%201.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Women/boucles-d-oreilles-berbere-touareg%202.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Women/boucles-d-oreilles-berbere-touareg%203.jpeg'
     ],
     stock: 12,
     artisanId: '8', // Mohammed Idrissi
