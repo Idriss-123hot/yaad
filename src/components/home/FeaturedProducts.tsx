@@ -53,9 +53,9 @@ const FEATURED_PRODUCTS = [
     category: 'Woodworking',
     tags: ['kitchen', 'serving', 'wood'],
     images: [
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/Hand-woven%20Wool%20Blanket%201.jpeg',
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/Hand-woven%20Wool%20Blanket%20%202.jpeg',
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/Hand-woven%20Wool%20Blanket%20%203.jpeg'
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-281478.webp',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-796823_1800x1800%202.webp',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-819467_1800x1800%203.webp'
     ],
     stock: 8,
     artisanId: '7', // Amina Chaoui
