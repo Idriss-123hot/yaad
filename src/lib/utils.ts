@@ -30,7 +30,7 @@ export function debounce<T extends (...args: any[]) => any>(
 export const getImageWithFallback = (imageUrl: string | undefined) => {
   if (!imageUrl) {
     console.log("No image URL provided, returning fallback");
-    return "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+    return "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Blog%20et%20home%20page/test.jpg";
   }
   
   // Clean URL from any tokens if present
