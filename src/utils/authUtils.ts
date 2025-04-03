@@ -1,5 +1,5 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import bcrypt from 'bcryptjs';
 
 // Function to check if the user session is expired (30 minutes)
 export const isSessionExpired = (lastActivity: string | null): boolean => {
@@ -20,60 +20,77 @@ export const updateLastActivity = (): void => {
 
 // Function to check if user has admin role
 export const checkAdminRole = async (): Promise<boolean> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!session) return false;
-  
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', session.user.id)
-    .single();
-  
-  if (error || data?.role !== 'admin') return false;
-  
-  return true;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) return false;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+    
+    if (error) {
+      console.error('Error checking admin role:', error);
+      return false;
+    }
+    
+    return data?.role === 'admin';
+  } catch (error) {
+    console.error('Exception checking admin role:', error);
+    return false;
+  }
 };
 
 // Function to check if user has artisan role
 export const checkArtisanRole = async (): Promise<boolean> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!session) return false;
-  
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', session.user.id)
-    .single();
-  
-  if (error || data?.role !== 'artisan') return false;
-  
-  return true;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) return false;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+    
+    if (error) {
+      console.error('Error checking artisan role:', error);
+      return false;
+    }
+    
+    return data?.role === 'artisan';
+  } catch (error) {
+    console.error('Exception checking artisan role:', error);
+    return false;
+  }
 };
 
 // Function to get the current user's artisan ID (for artisan users)
 export const getCurrentArtisanId = async (): Promise<string | null> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!session) return null;
-  
-  const { data, error } = await supabase
-    .from('artisans')
-    .select('id')
-    .eq('user_id', session.user.id)
-    .single();
-  
-  if (error || !data) return null;
-  
-  return data.id;
-};
-
-// Helper function to hash password (for demonstration purposes only)
-// In real applications, this would be handled by Supabase Auth directly
-export const hashPassword = async (password: string): Promise<string> => {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(password, salt);
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) return null;
+    
+    const { data, error } = await supabase
+      .from('artisans')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .single();
+    
+    if (error || !data) {
+      console.error('Error getting artisan ID:', error);
+      return null;
+    }
+    
+    return data.id;
+  } catch (error) {
+    console.error('Exception getting artisan ID:', error);
+    return null;
+  }
 };
 
 /**

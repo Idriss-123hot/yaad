@@ -1,7 +1,7 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { ProductWithArtisan } from '@/models/types';
@@ -38,16 +38,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadWishlist = async () => {
       setLoading(true);
-      
       try {
-        if (isAuthenticated && user) {
-          // For now, we'll store wishlist items in localStorage
-          // In a production app, you would implement the wishlist table in Supabase
-          loadFromLocalStorage();
-        } else {
-          // If not logged in, load wishlist from localStorage
-          loadFromLocalStorage();
-        }
+        // We're using localStorage for wishlist storage
+        loadFromLocalStorage();
       } catch (error) {
         console.error('Error loading wishlist:', error);
         loadFromLocalStorage();

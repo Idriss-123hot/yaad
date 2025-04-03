@@ -1,7 +1,7 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 // Types
@@ -36,53 +36,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // First set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (session && session.user) {
-          try {
-            // Get user profile data
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .maybeSingle();
-            
-            if (profileError) {
-              console.error('Error fetching profile:', profileError);
-            }
-            
-            // Set user state with profile data
-            setUser({
-              id: session.user.id,
-              email: session.user.email || '',
-              firstName: profileData?.first_name,
-              lastName: profileData?.last_name,
-              role: profileData?.role,
-            });
-            
-            // Check if there's an intended action in localStorage
-            const intendedAction = localStorage.getItem('intended_action');
-            if (intendedAction) {
-              try {
-                const action = JSON.parse(intendedAction);
-                if (action.type === 'add_to_cart' && action.data) {
-                  // We'll handle this in the useCart hook
-                }
-                if (action.type === 'add_to_wishlist' && action.data) {
-                  // We'll handle this in the useWishlist hook
-                }
-                // Clear the intended action after processing
-                localStorage.removeItem('intended_action');
-              } catch (e) {
-                console.error('Error parsing intended action:', e);
+          // We need to fetch profile data after session change
+          setTimeout(async () => {
+            try {
+              // Get user profile data
+              const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
+              
+              if (profileError) {
+                console.error('Error fetching profile:', profileError);
               }
+              
+              // Set user state with profile data
+              setUser({
+                id: session.user.id,
+                email: session.user.email || '',
+                firstName: profileData?.first_name,
+                lastName: profileData?.last_name,
+                role: profileData?.role,
+              });
+              
+              // Check if there's an intended action in localStorage
+              const intendedAction = localStorage.getItem('intended_action');
+              if (intendedAction) {
+                try {
+                  const action = JSON.parse(intendedAction);
+                  if (action.type === 'add_to_cart' && action.data) {
+                    // We'll handle this in the useCart hook
+                  }
+                  if (action.type === 'add_to_wishlist' && action.data) {
+                    // We'll handle this in the useWishlist hook
+                  }
+                  // Clear the intended action after processing
+                  localStorage.removeItem('intended_action');
+                } catch (e) {
+                  console.error('Error parsing intended action:', e);
+                }
+              }
+            } catch (error) {
+              // If profile fetch failed, still set basic user data
+              setUser({
+                id: session.user.id,
+                email: session.user.email || '',
+              });
             }
-          } catch (error) {
-            // If profile fetch failed, still set basic user data
-            setUser({
-              id: session.user.id,
-              email: session.user.email || '',
-            });
-          }
+          }, 0);
         } else {
           setUser(null);
         }
@@ -155,6 +158,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: 'Connexion réussie',
         description: 'Bienvenue sur SaharaMart!',
       });
+      
+      // Navigate to appropriate dashboard based on role
+      if (data.user) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (!profileError && profileData) {
+          if (profileData.role === 'admin') {
+            navigate('/admin/dashboard');
+            return;
+          } else if (profileData.role === 'artisan') {
+            navigate('/artisan/dashboard');
+            return;
+          }
+        }
+      }
       
       navigate('/');
     } catch (error: any) {

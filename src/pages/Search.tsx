@@ -13,6 +13,8 @@ import { categoriesData } from '@/data/categories';
 import { Filter, SlidersHorizontal, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
+import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,25 +26,76 @@ const Search = () => {
   const subcategory = searchParams.get('subcategory') || '';
   
   useEffect(() => {
-    setLoading(true);
+    const fetchProducts = async () => {
+      setLoading(true);
+      
+      try {
+        // Start building the query
+        let productQuery = supabase
+          .from('products')
+          .select(`
+            *,
+            product_variations(*),
+            artisan:artisans(*),
+            category:categories(*)
+          `);
+        
+        // Filter by category if provided
+        if (category) {
+          const { data: categoryData } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('slug', category)
+            .maybeSingle();
+            
+          if (categoryData?.id) {
+            productQuery = productQuery.eq('category_id', categoryData.id);
+          }
+        }
+        
+        // TODO: Add subcategory filtering logic when subcategory structure is implemented
+        
+        // Add text search if query is provided
+        if (query) {
+          productQuery = productQuery.textSearch('search_vector', query, {
+            config: 'english'
+          });
+        }
+        
+        const { data, error } = await productQuery;
+        
+        if (error) {
+          console.error('Error fetching products:', error);
+          setProducts([]);
+        } else if (data) {
+          const mappedProducts = data.map(product => mapDatabaseProductToProduct(product));
+          setProducts(mappedProducts);
+        }
+      } catch (error) {
+        console.error('Error in search:', error);
+        
+        // Fallback to static data if Supabase query fails
+        let filteredProducts = PRODUCTS;
+        
+        if (category) {
+          filteredProducts = getProductsByCategory(category, subcategory);
+        }
+        
+        if (query) {
+          const searchTerms = query.toLowerCase().split(' ');
+          filteredProducts = filteredProducts.filter(product => {
+            const searchableText = `${product.title} ${product.description} ${product.category}`.toLowerCase();
+            return searchTerms.some(term => searchableText.includes(term));
+          });
+        }
+        
+        setProducts(filteredProducts);
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    // Filter products based on search parameters
-    let filteredProducts = PRODUCTS;
-    
-    if (category) {
-      filteredProducts = getProductsByCategory(category, subcategory);
-    }
-    
-    if (query) {
-      const searchTerms = query.toLowerCase().split(' ');
-      filteredProducts = filteredProducts.filter(product => {
-        const searchableText = `${product.title} ${product.description} ${product.category}`.toLowerCase();
-        return searchTerms.some(term => searchableText.includes(term));
-      });
-    }
-    
-    setProducts(filteredProducts);
-    setLoading(false);
+    fetchProducts();
   }, [query, category, subcategory]);
   
   // Get the category and subcategory names for display
@@ -59,6 +112,9 @@ const Search = () => {
     
     if (filters.subcategory) newParams.set('subcategory', filters.subcategory);
     else newParams.delete('subcategory');
+    
+    if (filters.q) newParams.set('q', filters.q);
+    else if (filters.q === '') newParams.delete('q');
     
     setSearchParams(newParams);
   };
