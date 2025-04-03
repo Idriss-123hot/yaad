@@ -29,8 +29,8 @@ export function useTranslations(locale: 'fr' | 'en' = 'fr') {
       try {
         setIsLoading(true);
         
-        // Fetch translations from Supabase using the RPC function
-        const { data, error } = await supabase.rpc('get_translations', { locale });
+        // Fetch translations from Supabase using the function directly
+        const { data, error } = await supabase.rpc('get_translations' as any, { locale });
         
         if (error) {
           console.error('Error fetching translations:', error);
@@ -38,7 +38,9 @@ export function useTranslations(locale: 'fr' | 'en' = 'fr') {
         }
         
         if (data) {
-          setTranslations(data);
+          // Convert data to Translations type
+          const translationsData: Translations = data as Translations;
+          setTranslations(translationsData);
         }
       } catch (error) {
         console.error('Failed to load translations:', error);

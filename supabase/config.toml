@@ -20,7 +20,6 @@ port = 54324
 
 [auth]
 enabled = true
-port = 9999
 
 [realtime]
 enabled = true
@@ -28,6 +27,6 @@ enabled = true
 [storage]
 enabled = true
 
-[edge_functions]
-[edge_functions.import-artisans]
+[functions]
+[functions.import-artisans]
 verify_jwt = false

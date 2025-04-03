@@ -41,8 +41,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       try {
         if (isAuthenticated && user) {
           // Fetch wishlist items from Supabase for authenticated users
+          // Using "any" temporarily to fix the TypeScript error with the table name
           const { data: wishlistData, error: wishlistError } = await supabase
-            .from('wishlists')
+            .from('wishlists' as any)
             .select('product_id, created_at')
             .eq('user_id', user.id);
 
@@ -191,8 +192,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     // Add to database for authenticated users
     if (isAuthenticated && user) {
       try {
+        // Using "any" temporarily to fix the TypeScript error with the table name
         const { error } = await supabase
-          .from('wishlists')
+          .from('wishlists' as any)
           .insert({
             user_id: user.id,
             product_id: productId
@@ -271,8 +273,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     // Remove from database for authenticated users
     if (isAuthenticated && user) {
       try {
+        // Using "any" temporarily to fix the TypeScript error with the table name
         const { error } = await supabase
-          .from('wishlists')
+          .from('wishlists' as any)
           .delete()
           .eq('user_id', user.id)
           .eq('product_id', productId);
@@ -301,8 +304,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     // Clear from database for authenticated users
     if (isAuthenticated && user) {
       try {
+        // Using "any" temporarily to fix the TypeScript error with the table name
         const { error } = await supabase
-          .from('wishlists')
+          .from('wishlists' as any)
           .delete()
           .eq('user_id', user.id);
           
