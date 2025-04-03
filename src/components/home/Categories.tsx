@@ -43,7 +43,7 @@ export function Categories() {
                 alt={category.name}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                 onError={(e) => {
-                  e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+                  e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Blog%20et%20home%20page/test.jpg";
                 }}
               />
               {/* Darker overlay for better text visibility */}
