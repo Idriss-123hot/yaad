@@ -5,11 +5,11 @@ import { getImageWithFallback } from '@/lib/utils';
 
 // Images d'inspiration marocaine pour chaque catégorie principale
 const CATEGORY_IMAGES = {
-  "home-decor": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Home%20Decor.jpeg",
-  "women": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Women%20morocco.jpeg",
-  "men": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Mec%20Morocco%20Craft.jpeg",
-  "skincare": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Skincare%20Maroc.webp",
-  "gourmet": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Gourmet.jpeg"
+  "home-decor": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/Home%20Decor.jpeg",
+  "women": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Women/Women%20morocco.jpeg",
+  "men": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Men/Mec%20Morocco%20Craft.jpeg",
+  "skincare": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Skincare/Skincare%20Maroc.webp",
+  "gourmet": "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Gourmet/Gourmet.jpeg"
 };
 
 export function Categories() {
