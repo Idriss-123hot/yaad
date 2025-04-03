@@ -33,9 +33,9 @@ const FEATURED_PRODUCTS = [
     category: 'Textiles & Fabrics',
     tags: ['blanket', 'wool', 'handwoven'],
     images: [
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Hand-woven%20Wool%20Blanket%201.jpeg',
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Hand-woven%20Wool%20Blanket%20%202.jpeg',
-      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//Hand-woven%20Wool%20Blanket%20%203.jpeg'
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/Hand-woven%20Wool%20Blanket%201.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/Hand-woven%20Wool%20Blanket%20%202.jpeg',
+      'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/Hand-woven%20Wool%20Blanket%20%203.jpeg'
     ],
     stock: 3,
     artisanId: '2',
