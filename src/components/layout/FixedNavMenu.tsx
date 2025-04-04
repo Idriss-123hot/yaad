@@ -1,14 +1,18 @@
 
 import { useState, useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { ChevronUp, ShoppingBag, Home, User, Search, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useCart } from '@/pages/Cart';
+import { useCart } from '@/hooks/useCart';
+import { useWishlist } from '@/hooks/useWishlist';
 
 export function FixedNavMenu() {
   const [isVisible, setIsVisible] = useState(false);
+  const navigate = useNavigate();
   const { getCartCount } = useCart();
+  const { wishlistItems } = useWishlist();
   const cartCount = getCartCount();
+  const favoriteCount = wishlistItems.length;
 
   // Afficher le menu fixe après un certain défilement
   useEffect(() => {
@@ -27,6 +31,11 @@ export function FixedNavMenu() {
       top: 0,
       behavior: 'smooth',
     });
+  };
+
+  // Handles proper navigation and prevents page reload issues
+  const handleNavigation = (path: string) => {
+    navigate(path);
   };
 
   return (
@@ -52,7 +61,14 @@ export function FixedNavMenu() {
           </RouterLink>
           
           <RouterLink to="/favorites" className="flex flex-col items-center text-muted-foreground hover:text-terracotta-600 transition-colors">
-            <Heart className="h-5 w-5 mb-1" />
+            <div className="relative">
+              <Heart className="h-5 w-5 mb-1" />
+              {favoriteCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-terracotta-600 text-white rounded-full text-[8px] flex items-center justify-center">
+                  {favoriteCount}
+                </span>
+              )}
+            </div>
             <span className="text-xs">Favoris</span>
           </RouterLink>
           

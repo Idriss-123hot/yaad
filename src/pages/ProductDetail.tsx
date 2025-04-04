@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -37,6 +36,8 @@ const ProductDetail = () => {
   const { addToWishlist, isInWishlist } = useWishlist();
   
   useEffect(() => {
+    setCurrentImageIndex(0);
+    
     if (!productId) {
       setError("Product ID is missing");
       setLoading(false);
@@ -52,13 +53,19 @@ const ProductDetail = () => {
         return;
       }
       
-      // Add artisan data to the product
+      if (fetchedProduct.title.includes("Ceramic Vase") || fetchedProduct.id === "1") {
+        fetchedProduct.images = [
+          "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg",
+          "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%202.jpeg",
+          "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%203.jpeg"
+        ];
+      }
+      
       const artisanData = SAMPLE_ARTISANS.find(artisan => artisan.id === fetchedProduct.artisanId);
       const productWithArtisan = {...fetchedProduct, artisan: artisanData};
       
       setProduct(productWithArtisan);
       
-      // Get related products (same category)
       const related = PRODUCTS
         .filter(p => 
           p.id !== productId && 
@@ -100,7 +107,6 @@ const ProductDetail = () => {
     }
   };
   
-  // Handle thumbnail click - now directly changes the main image
   const handleThumbnailClick = (index: number) => {
     setCurrentImageIndex(index);
   };
@@ -146,7 +152,6 @@ const ProductDetail = () => {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow pt-24">
-        {/* Breadcrumb */}
         <section className="bg-cream-50 py-4 px-6 md:px-12">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center text-sm text-muted-foreground overflow-x-auto whitespace-nowrap">
@@ -175,45 +180,43 @@ const ProductDetail = () => {
           </div>
         </section>
 
-        {/* Product Details */}
         <section className="py-8 px-6 md:px-12">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              {/* Product Images */}
               <div className="space-y-4">
                 <div className="aspect-square bg-cream-50 rounded-lg overflow-hidden">
                   <img 
-                    src={product.images[currentImageIndex]} 
-                    alt={product.title} 
+                    src={product?.images[currentImageIndex]} 
+                    alt={product?.title} 
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
                     }}
                   />
                 </div>
-                <div className="grid grid-cols-4 gap-4">
-                  {product.images.map((img, idx) => (
-                    <div 
-                      key={idx} 
-                      className={`aspect-square bg-cream-50 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity ${currentImageIndex === idx ? 'ring-2 ring-terracotta-600' : ''}`}
-                      onClick={() => handleThumbnailClick(idx)}
-                    >
-                      <img 
-                        src={img} 
-                        alt={`${product.title} - View ${idx + 1}`} 
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
+                {product?.images && product.images.length > 1 && (
+                  <div className="grid grid-cols-4 gap-4">
+                    {product.images.map((img, idx) => (
+                      <div 
+                        key={idx} 
+                        className={`aspect-square bg-cream-50 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity ${currentImageIndex === idx ? 'ring-2 ring-terracotta-600' : ''}`}
+                        onClick={() => handleThumbnailClick(idx)}
+                      >
+                        <img 
+                          src={img} 
+                          alt={`${product.title} - View ${idx + 1}`} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Product Info */}
               <div>
-                {/* Title & Rating */}
                 <h1 className="font-serif text-3xl font-bold mb-2">{product.title}</h1>
                 <div className="flex items-center mb-4">
                   <div className="flex items-center">
@@ -229,7 +232,6 @@ const ProductDetail = () => {
                   </span>
                 </div>
 
-                {/* Price */}
                 <div className="mb-6">
                   {product.discountPrice ? (
                     <div className="flex items-center">
@@ -250,12 +252,10 @@ const ProductDetail = () => {
                   )}
                 </div>
 
-                {/* Description */}
                 <p className="text-muted-foreground mb-6">
                   {product.description}
                 </p>
 
-                {/* Quantity Selector */}
                 <div className="mb-6">
                   <p className="font-medium mb-2">Quantité</p>
                   <div className="flex items-center space-x-4">
@@ -282,7 +282,6 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                {/* Add to Cart & Wishlist */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-8">
                   <Button 
                     onClick={handleAddToCart}
@@ -301,7 +300,6 @@ const ProductDetail = () => {
                   </Button>
                 </div>
 
-                {/* Shipping & Returns */}
                 <div className="bg-cream-50 rounded-lg p-4 mb-6">
                   <div className="flex items-start mb-3">
                     <Truck className="h-5 w-5 text-terracotta-600 mr-3 mt-0.5" />
@@ -323,7 +321,6 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                {/* Share & Artisan */}
                 <div className="flex items-center justify-between text-sm">
                   <button className="flex items-center text-muted-foreground hover:text-terracotta-600 transition-colors">
                     <Share2 className="h-4 w-4 mr-1" />
@@ -341,7 +338,6 @@ const ProductDetail = () => {
           </div>
         </section>
 
-        {/* Product Details Tabs */}
         <section className="py-12 px-6 md:px-12 bg-cream-50">
           <div className="max-w-7xl mx-auto">
             <Tabs defaultValue="description">
@@ -411,7 +407,6 @@ const ProductDetail = () => {
                   </div>
                 </div>
                 
-                {/* Sample Reviews */}
                 <div className="space-y-6">
                   {[...Array(3)].map((_, idx) => (
                     <div key={idx} className="border-b pb-6 last:border-0 last:pb-0">
@@ -450,7 +445,6 @@ const ProductDetail = () => {
           </div>
         </section>
 
-        {/* Related Products */}
         <section className="py-16 px-6 md:px-12">
           <div className="max-w-7xl mx-auto">
             <h2 className="font-serif text-2xl font-bold mb-8">Vous aimerez aussi</h2>

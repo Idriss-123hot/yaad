@@ -8,8 +8,12 @@ import { FeaturedProducts } from '@/components/home/FeaturedProducts';
 import { ArtisanSpotlight } from '@/components/home/ArtisanSpotlight';
 import { SearchBar } from '@/components/search/SearchBar';
 import { ensureBucketsExist } from '@/utils/storageUtils';
+import { useTranslations } from '@/lib/i18n';
 
 const Index = () => {
+  // Get translations from our translations table
+  const { t, isLoading } = useTranslations('fr');
+
   // Smooth scroll to top on page load
   useEffect(() => {
     window.scrollTo({
@@ -36,6 +40,13 @@ const Index = () => {
         {/* Barre de recherche avancée */}
         <section className="py-12 px-6 md:px-12 bg-cream-50">
           <SearchBar className="max-w-5xl mx-auto" />
+        </section>
+        
+        {/* Use translations from translations table */}
+        <section className="py-12 text-center">
+          <h2 className="text-3xl font-serif font-bold mb-4">
+            {t('featured_collection', 'Collection à la une')}
+          </h2>
         </section>
         
         <FeaturedProducts />

@@ -30,11 +30,11 @@ export function Hero() {
     },
   ];
 
-  // Autoplay slider - now at 3 seconds interval
+  // Autoplay slider - maintaining the 3 seconds interval
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-    }, 3000); // Change slide every 3 seconds (was previously set to 3000)
+    }, 3000); // Change slide every 3 seconds
 
     return () => clearInterval(interval);
   }, [slides.length]);
@@ -48,8 +48,8 @@ export function Hero() {
   };
 
   return (
-    <section className="relative w-full h-[90vh] mt-20">
-      {/* Full-width slider without transparency */}
+    <section className="relative w-full h-[72vh] md:h-[72vh] mt-20">
+      {/* Full-width slider with 20% reduced height (from 90vh to 72vh) */}
       <div className="absolute inset-0 w-full h-full overflow-hidden">
         {slides.map((slide, index) => (
           <div

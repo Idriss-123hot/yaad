@@ -20,6 +20,9 @@ import CategoryDetailWithProducts from './pages/CategoryDetailWithProducts'
 import ArtisanDetail from './pages/ArtisanDetail'
 import ProductDetail from './pages/ProductDetail'
 import FeaturedProductDetail from './pages/FeaturedProductDetail'
+import Contact from './pages/Contact'
+import About from './pages/About'
+import Blog from './pages/Blog'
 
 function App() {
   return (
@@ -39,6 +42,11 @@ function App() {
         <Route path="/products/:productId" element={<ProductDetail />} />
         <Route path="/featured/:productId" element={<FeaturedProductDetail />} />
 
+        {/* Routes de contenu statique */}
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/blog" element={<Blog />} />
+        
         {/* Routes d'authentification et profil */}
         <Route path="/auth" element={<Auth />} />
         <Route path="/reset-password" element={<ResetPassword />} />
