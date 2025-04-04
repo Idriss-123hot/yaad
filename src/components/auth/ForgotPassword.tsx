@@ -85,7 +85,10 @@ export default function ForgotPassword({ onBack, redirectTo }: ForgotPasswordPro
           <p className="text-sm text-muted-foreground">Si vous ne recevez pas l'email dans quelques minutes, vérifiez votre dossier spam.</p>
           <Button 
             variant="outline" 
-            onClick={() => form.reset() || setEmailSent(false)}
+            onClick={() => {
+              form.reset();
+              setEmailSent(false);
+            }}
             className="mt-4"
           >
             Envoyer à une autre adresse
