@@ -15,6 +15,11 @@ import NotFound from './pages/NotFound'
 import Favorites from './pages/Favorites'
 import Search from './pages/Search'
 import Index from './pages/Index'
+import CategoryDetail from './pages/CategoryDetail'
+import CategoryDetailWithProducts from './pages/CategoryDetailWithProducts'
+import ArtisanDetail from './pages/ArtisanDetail'
+import ProductDetail from './pages/ProductDetail'
+import FeaturedProductDetail from './pages/FeaturedProductDetail'
 
 function App() {
   return (
@@ -25,8 +30,14 @@ function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/artisans" element={<Artisans />} />
-        <Route path="/artisan/:id" element={<Artisans />} />
+        <Route path="/artisan/:id" element={<ArtisanDetail />} />
         <Route path="/categories" element={<Categories />} />
+        <Route path="/categories/:slug" element={<CategoryDetail />} />
+        <Route path="/categories/:mainCategory/:subCategory" element={<CategoryDetailWithProducts />} />
+        
+        {/* Routes des produits */}
+        <Route path="/products/:productId" element={<ProductDetail />} />
+        <Route path="/featured/:productId" element={<FeaturedProductDetail />} />
 
         {/* Routes d'authentification et profil */}
         <Route path="/auth" element={<Auth />} />

@@ -22,12 +22,13 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const artisan = product.artisan || (artisanId ? getArtisanById(artisanId) : undefined);
   const artisanName = artisan?.name || 'Artisan Marocain';
   
-  // Vérifier si c'est un produit mis en avant pour déterminer la route correcte
+  // Déterminer l'URL correcte pour le produit
+  // Les produits en vedette utilisent /featured/:id, les autres utilisent /products/:id
   const isFeaturedProduct = FEATURED_PRODUCTS.some(p => p.id === id);
   const productLink = isFeaturedProduct ? `/featured/${id}` : `/products/${id}`;
   
   // Si l'artisan est disponible, créer un lien vers sa page
-  const artisanLink = artisan ? `/artisans/${artisanId}` : undefined;
+  const artisanLink = artisan ? `/artisan/${artisanId}` : undefined;
   
   return (
     <div className={cn(

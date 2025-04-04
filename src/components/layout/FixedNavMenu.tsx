@@ -3,9 +3,12 @@ import { useState, useEffect } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { ChevronUp, ShoppingBag, Home, User, Search, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCart } from '@/pages/Cart';
 
 export function FixedNavMenu() {
   const [isVisible, setIsVisible] = useState(false);
+  const { getCartCount } = useCart();
+  const cartCount = getCartCount();
 
   // Afficher le menu fixe après un certain défilement
   useEffect(() => {
@@ -43,12 +46,12 @@ export function FixedNavMenu() {
             <span className="text-xs">Accueil</span>
           </RouterLink>
           
-          <RouterLink to="/categories" className="flex flex-col items-center text-muted-foreground hover:text-terracotta-600 transition-colors">
+          <RouterLink to="/search" className="flex flex-col items-center text-muted-foreground hover:text-terracotta-600 transition-colors">
             <Search className="h-5 w-5 mb-1" />
             <span className="text-xs">Recherche</span>
           </RouterLink>
           
-          <RouterLink to="/wishlist" className="flex flex-col items-center text-muted-foreground hover:text-terracotta-600 transition-colors">
+          <RouterLink to="/favorites" className="flex flex-col items-center text-muted-foreground hover:text-terracotta-600 transition-colors">
             <Heart className="h-5 w-5 mb-1" />
             <span className="text-xs">Favoris</span>
           </RouterLink>
@@ -56,14 +59,16 @@ export function FixedNavMenu() {
           <RouterLink to="/cart" className="flex flex-col items-center text-muted-foreground hover:text-terracotta-600 transition-colors">
             <div className="relative">
               <ShoppingBag className="h-5 w-5 mb-1" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-terracotta-600 text-white rounded-full text-[8px] flex items-center justify-center">
-                0
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-terracotta-600 text-white rounded-full text-[8px] flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
             </div>
             <span className="text-xs">Panier</span>
           </RouterLink>
           
-          <RouterLink to="/account" className="flex flex-col items-center text-muted-foreground hover:text-terracotta-600 transition-colors">
+          <RouterLink to="/auth" className="flex flex-col items-center text-muted-foreground hover:text-terracotta-600 transition-colors">
             <User className="h-5 w-5 mb-1" />
             <span className="text-xs">Compte</span>
           </RouterLink>
