@@ -1,6 +1,7 @@
 
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
+import Home from './pages/Home'
 import Artisans from './pages/Artisans'
 import Categories from './pages/Categories'
 import AdminDashboard from './pages/admin/Dashboard'
@@ -13,13 +14,14 @@ import { Toaster } from '@/components/ui/toaster'
 import NotFound from './pages/NotFound'
 import Favorites from './pages/Favorites'
 import Search from './pages/Search'
+import Index from './pages/Index'
 
 function App() {
   return (
     <>
       <Routes>
         {/* Routes publiques */}
-        <Route path="/" element={<Artisans />} />
+        <Route path="/" element={<Index />} />
         <Route path="/search" element={<Search />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/artisans" element={<Artisans />} />
