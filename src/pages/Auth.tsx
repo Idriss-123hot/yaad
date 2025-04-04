@@ -21,6 +21,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
 import { updateLastActivity } from '@/utils/authUtils';
+import ForgotPassword from '@/components/auth/ForgotPassword';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -31,6 +32,7 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -140,6 +142,30 @@ export default function Auth() {
     navigate('/');
   };
 
+  if (showForgotPassword) {
+    return (
+      <div className="flex flex-col min-h-screen bg-cream-50">
+        <Navbar />
+        
+        <main className="flex-grow flex items-center justify-center px-4 py-12">
+          <div className="w-full max-w-md">
+            <Card>
+              <CardContent className="pt-6">
+                <ForgotPassword 
+                  onBack={() => setShowForgotPassword(false)}
+                  redirectTo={window.location.origin}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        
+        <Footer />
+        <FixedNavMenu />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-cream-50">
       <Navbar />
@@ -213,6 +239,15 @@ export default function Auth() {
                         </button>
                       </div>
                     </div>
+                    
+                    <Button 
+                      type="button" 
+                      variant="link" 
+                      className="p-0 h-auto text-sm text-terracotta-600"
+                      onClick={() => setShowForgotPassword(true)}
+                    >
+                      Mot de passe oublié ?
+                    </Button>
                     
                     <Button 
                       type="submit" 

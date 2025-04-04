@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { updateLastActivity, checkArtisanRole } from '@/utils/authUtils';
+import ForgotPassword from '@/components/auth/ForgotPassword';
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -20,6 +21,7 @@ const formSchema = z.object({
 
 export default function ArtisanLogin() {
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -92,6 +94,23 @@ export default function ArtisanLogin() {
     }
   };
 
+  if (showForgotPassword) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-6">
+          <Card>
+            <CardContent className="pt-6">
+              <ForgotPassword 
+                onBack={() => setShowForgotPassword(false)}
+                redirectTo={window.location.origin}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-6">
@@ -147,6 +166,14 @@ export default function ArtisanLogin() {
                     </FormItem>
                   )}
                 />
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  onClick={() => setShowForgotPassword(true)}
+                  className="p-0 h-auto text-sm text-terracotta-600"
+                >
+                  Mot de passe oublié ?
+                </Button>
                 <Button 
                   type="submit" 
                   className="w-full bg-terracotta-600 hover:bg-terracotta-700"
