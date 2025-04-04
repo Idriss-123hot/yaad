@@ -38,7 +38,10 @@ export default function ForgotPassword({ onBack, redirectTo }: ForgotPasswordPro
     
     try {
       // Configuration d'url pour la redirection après réinitialisation
-      const resetRedirectTo = redirectTo || window.location.origin;
+      const siteUrl = window.location.origin;
+      const resetRedirectTo = redirectTo || siteUrl;
+      
+      console.log('Reset password with redirect to:', `${resetRedirectTo}/reset-password`);
       
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
         redirectTo: `${resetRedirectTo}/reset-password`,
