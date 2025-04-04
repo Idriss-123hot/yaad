@@ -27,6 +27,5 @@ enabled = true
 [storage]
 enabled = true
 
-[functions]
 [functions.import-artisans]
 verify_jwt = false

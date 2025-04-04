@@ -17,7 +17,7 @@ export function mapDatabaseArtisanToArtisan(dbArtisan: Database['public']['Table
     bio: dbArtisan.bio || '',
     location: dbArtisan.location || '',
     profileImage: dbArtisan.profile_photo || '',
-    galleryImages: dbArtisan.gallery_images || [],
+    galleryImages: dbArtisan.first_gallery_images || [], // Updated from gallery_images to first_gallery_images
     rating: dbArtisan.rating || 0,
     reviewCount: dbArtisan.review_count || 0,
     productCount: 0, // Not directly available from DB, would need separate query
