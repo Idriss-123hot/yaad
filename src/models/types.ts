@@ -16,8 +16,9 @@ export interface Product {
   createdAt: Date;
   material?: string;
   origin?: string;
-  mainCategory?: string;
   subcategory?: string;
+  categoryId?: string;
+  subcategoryId?: string;
 }
 
 export interface ProductVariation {
@@ -218,7 +219,7 @@ export const SAMPLE_ARTISANS: Artisan[] = [
     location: 'Safi, Maroc',
     profileImage: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80',
     galleryImages: [
-      'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1604068549290-dea0e4a305f3?auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?auto=format&fit=crop&q=80'
     ],
     rating: 4.7,

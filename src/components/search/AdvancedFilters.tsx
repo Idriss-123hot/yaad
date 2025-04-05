@@ -10,8 +10,20 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import { categoriesData } from '@/data/categories';
+import { supabase } from '@/integrations/supabase/client';
 import { debounce } from '@/lib/utils';
+
+interface Category {
+  id: string;
+  name: string;
+  subcategories?: Subcategory[];
+}
+
+interface Subcategory {
+  id: string;
+  name: string;
+  parent_id: string;
+}
 
 interface Props {
   onApply: (filters: any) => void;
@@ -31,10 +43,64 @@ export function AdvancedFilters({ onApply, initialFilters = {} }: Props) {
     initialFilters.minPrice || 0,
     initialFilters.maxPrice || 1000,
   ]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  const activeCategoryData = selectedCategory 
-    ? categoriesData.find(c => c.id === selectedCategory)
-    : null;
+  // Fetch categories and subcategories from database
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoading(true);
+      
+      try {
+        // Fetch categories
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('categories')
+          .select('*')
+          .order('name');
+          
+        if (categoriesError) {
+          console.error('Error fetching categories:', categoriesError);
+          return;
+        }
+        
+        // Fetch subcategories
+        const { data: subcategoriesData, error: subcategoriesError } = await supabase
+          .from('subcategories')
+          .select('*')
+          .order('name');
+          
+        if (subcategoriesError) {
+          console.error('Error fetching subcategories:', subcategoriesError);
+          return;
+        }
+        
+        // Group subcategories by parent_id
+        const subcategoriesByParent: Record<string, Subcategory[]> = {};
+        subcategoriesData.forEach(sub => {
+          if (!subcategoriesByParent[sub.parent_id]) {
+            subcategoriesByParent[sub.parent_id] = [];
+          }
+          subcategoriesByParent[sub.parent_id].push(sub);
+        });
+        
+        // Attach subcategories to their parent categories
+        const enrichedCategories = categoriesData.map(cat => ({
+          ...cat,
+          subcategories: subcategoriesByParent[cat.id] || []
+        }));
+        
+        setCategories(enrichedCategories);
+        setSubcategories(subcategoriesData);
+      } catch (error) {
+        console.error('Error in fetching filters data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
     
   // Apply filters whenever they change (debounced)
   const debouncedApplyFilters = debounce(() => {
@@ -90,44 +156,50 @@ export function AdvancedFilters({ onApply, initialFilters = {} }: Props) {
           </AccordionTrigger>
           <AccordionContent>
             <div className="space-y-3 pt-2">
-              {categoriesData.map((category) => (
-                <div key={category.id} className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={`category-${category.id}`} 
-                      checked={selectedCategory === category.id}
-                      onCheckedChange={() => handleCategoryChange(category.id)}
-                    />
-                    <Label 
-                      htmlFor={`category-${category.id}`}
-                      className="cursor-pointer text-sm font-medium"
-                    >
-                      {category.name}
-                    </Label>
-                  </div>
-                  
-                  {/* Show subcategories when parent category is selected */}
-                  {selectedCategory === category.id && category.subcategories && category.subcategories.length > 0 && (
-                    <div className="ml-6 space-y-2">
-                      {category.subcategories.map((subcategory) => (
-                        <div key={subcategory.id} className="flex items-center space-x-2">
-                          <Checkbox 
-                            id={`subcategory-${subcategory.id}`} 
-                            checked={selectedSubcategory === subcategory.id}
-                            onCheckedChange={() => handleSubcategoryChange(subcategory.id)}
-                          />
-                          <Label 
-                            htmlFor={`subcategory-${subcategory.id}`}
-                            className="cursor-pointer text-sm"
-                          >
-                            {subcategory.name}
-                          </Label>
-                        </div>
-                      ))}
+              {loading ? (
+                <div className="py-2 text-sm text-muted-foreground">Chargement des catégories...</div>
+              ) : categories.length === 0 ? (
+                <div className="py-2 text-sm text-muted-foreground">Aucune catégorie disponible</div>
+              ) : (
+                categories.map((category) => (
+                  <div key={category.id} className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`category-${category.id}`} 
+                        checked={selectedCategory === category.id}
+                        onCheckedChange={() => handleCategoryChange(category.id)}
+                      />
+                      <Label 
+                        htmlFor={`category-${category.id}`}
+                        className="cursor-pointer text-sm font-medium"
+                      >
+                        {category.name}
+                      </Label>
                     </div>
-                  )}
-                </div>
-              ))}
+                    
+                    {/* Show subcategories when parent category is selected */}
+                    {selectedCategory === category.id && category.subcategories && category.subcategories.length > 0 && (
+                      <div className="ml-6 space-y-2">
+                        {category.subcategories.map((subcategory) => (
+                          <div key={subcategory.id} className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={`subcategory-${subcategory.id}`} 
+                              checked={selectedSubcategory === subcategory.id}
+                              onCheckedChange={() => handleSubcategoryChange(subcategory.id)}
+                            />
+                            <Label 
+                              htmlFor={`subcategory-${subcategory.id}`}
+                              className="cursor-pointer text-sm"
+                            >
+                              {subcategory.name}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </AccordionContent>
         </AccordionItem>

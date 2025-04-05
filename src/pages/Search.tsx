@@ -9,17 +9,18 @@ import { AdvancedFilters } from '@/components/search/AdvancedFilters';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { getProductsByCategory, PRODUCTS } from '@/data/products';
 import { ProductWithArtisan } from '@/models/types';
-import { categoriesData } from '@/data/categories';
 import { Filter, SlidersHorizontal, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
-import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
+import { mapDatabaseProductToProduct } from '@/utils/productMappers';
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<ProductWithArtisan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categoryName, setCategoryName] = useState<string>('');
+  const [subcategoryName, setSubcategoryName] = useState<string>('');
   
   const query = searchParams.get('q') || '';
   const category = searchParams.get('category') || '';
@@ -37,23 +38,37 @@ const Search = () => {
             *,
             product_variations(*),
             artisan:artisans(*),
-            category:categories(*)
+            category:categories(*),
+            subcategory:subcategories(*)
           `);
         
         // Filter by category if provided
         if (category) {
           const { data: categoryData } = await supabase
             .from('categories')
-            .select('id')
-            .eq('slug', category)
+            .select('id, name')
+            .eq('id', category)
             .maybeSingle();
             
           if (categoryData?.id) {
             productQuery = productQuery.eq('category_id', categoryData.id);
+            setCategoryName(categoryData.name);
           }
         }
         
-        // TODO: Add subcategory filtering logic when subcategory structure is implemented
+        // Filter by subcategory if provided
+        if (subcategory) {
+          const { data: subcategoryData } = await supabase
+            .from('subcategories')
+            .select('id, name')
+            .eq('id', subcategory)
+            .maybeSingle();
+            
+          if (subcategoryData?.id) {
+            productQuery = productQuery.eq('subcategory_id', subcategoryData.id);
+            setSubcategoryName(subcategoryData.name);
+          }
+        }
         
         // Add text search if query is provided
         if (query) {
@@ -98,10 +113,6 @@ const Search = () => {
     fetchProducts();
   }, [query, category, subcategory]);
   
-  // Get the category and subcategory names for display
-  const activeCategoryData = categoriesData.find(c => c.id === category);
-  const activeSubcategoryData = activeCategoryData?.subcategories?.find(s => s.id === subcategory);
-  
   // Handle filter application - now automatic without button click
   const handleFilterApply = (filters: any) => {
     // Update search params based on filters
@@ -115,6 +126,12 @@ const Search = () => {
     
     if (filters.q) newParams.set('q', filters.q);
     else if (filters.q === '') newParams.delete('q');
+    
+    if (filters.minPrice !== undefined) newParams.set('minPrice', filters.minPrice.toString());
+    else newParams.delete('minPrice');
+    
+    if (filters.maxPrice !== undefined) newParams.set('maxPrice', filters.maxPrice.toString());
+    else newParams.delete('maxPrice');
     
     setSearchParams(newParams);
   };
@@ -134,21 +151,18 @@ const Search = () => {
                 </Link>
                 <ChevronRight className="h-4 w-4 mx-2" />
                 <span>Recherche</span>
-                {category && (
+                {categoryName && (
                   <>
                     <ChevronRight className="h-4 w-4 mx-2" />
-                    <Link 
-                      to={`/categories/${category}`}
-                      className="hover:text-terracotta-600 transition-colors"
-                    >
-                      {activeCategoryData?.name || category}
-                    </Link>
+                    <span className="hover:text-terracotta-600 transition-colors">
+                      {categoryName}
+                    </span>
                   </>
                 )}
-                {subcategory && (
+                {subcategoryName && (
                   <>
                     <ChevronRight className="h-4 w-4 mx-2" />
-                    <span>{activeSubcategoryData?.name || subcategory}</span>
+                    <span>{subcategoryName}</span>
                   </>
                 )}
               </div>
@@ -160,11 +174,13 @@ const Search = () => {
               <div className="flex justify-between items-center mt-4">
                 <div>
                   <h1 className="text-xl font-medium">
-                    {category 
-                      ? `${activeSubcategoryData?.name || activeCategoryData?.name || 'Produits'}`
-                      : query 
-                        ? `Résultats pour "${query}"`
-                        : 'Tous les produits'
+                    {subcategoryName 
+                      ? subcategoryName
+                      : categoryName 
+                        ? categoryName
+                        : query 
+                          ? `Résultats pour "${query}"`
+                          : 'Tous les produits'
                     }
                   </h1>
                   <p className="text-sm text-muted-foreground">
