@@ -13,6 +13,7 @@ const FEATURED_PRODUCTS = [
     description: 'A beautiful handcrafted ceramic vase with natural glaze finish.',
     price: 89.99,
     category: 'Ceramics & Pottery',
+    subcategory: 'Vases', // Added missing subcategory property
     tags: ['vase', 'ceramics', 'home decor'],
     images: [
       'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%202.jpeg',
@@ -24,7 +25,8 @@ const FEATURED_PRODUCTS = [
     rating: 4.8,
     reviewCount: 24,
     featured: true,
-    createdAt: new Date('2023-09-15')
+    createdAt: new Date('2023-09-15'),
+    mainCategory: 'ceramics-pottery' // Added mainCategory field
   },
   {
     id: 'wool-blanket',
@@ -32,6 +34,7 @@ const FEATURED_PRODUCTS = [
     description: 'Luxurious hand-woven wool blanket using traditional techniques.',
     price: 149.99,
     category: 'Textiles & Fabrics',
+    subcategory: 'Blankets', // Added missing subcategory property
     tags: ['blanket', 'wool', 'handwoven'],
     images: [
       'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/Hand-woven%20Wool%20Blanket%201.jpeg',
@@ -43,7 +46,8 @@ const FEATURED_PRODUCTS = [
     rating: 4.9,
     reviewCount: 18,
     featured: true,
-    createdAt: new Date('2023-10-01')
+    createdAt: new Date('2023-10-01'),
+    mainCategory: 'textiles-fabrics' // Added mainCategory field
   },
   {
     id: 'wooden-serving-board',
@@ -52,6 +56,7 @@ const FEATURED_PRODUCTS = [
     price: 59.99,
     discountPrice: 49.99,
     category: 'Woodworking',
+    subcategory: 'Serving Boards', // Added missing subcategory property
     tags: ['kitchen', 'serving', 'wood'],
     images: [
       'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-281478.webp',
@@ -63,7 +68,8 @@ const FEATURED_PRODUCTS = [
     rating: 4.7,
     reviewCount: 32,
     featured: true,
-    createdAt: new Date('2023-08-22')
+    createdAt: new Date('2023-08-22'),
+    mainCategory: 'woodworking' // Added mainCategory field
   },
   {
     id: 'silver-earrings',
@@ -71,6 +77,7 @@ const FEATURED_PRODUCTS = [
     description: 'Delicate silver earrings handcrafted by skilled artisans.',
     price: 79.99,
     category: 'Jewelry',
+    subcategory: 'Earrings', // Added missing subcategory property
     tags: ['earrings', 'silver', 'accessories'],
     images: [
       'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Women/boucles-d-oreilles-berbere-touareg%201.jpeg',
@@ -82,7 +89,8 @@ const FEATURED_PRODUCTS = [
     rating: 4.9,
     reviewCount: 41,
     featured: true,
-    createdAt: new Date('2023-10-10')
+    createdAt: new Date('2023-10-10'),
+    mainCategory: 'jewelry' // Added mainCategory field
   }
 ];
 
