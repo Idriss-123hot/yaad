@@ -7,6 +7,7 @@ export type DatabaseProduct = Database['public']['Tables']['products']['Row'] & 
   product_variations?: Database['public']['Tables']['product_variations']['Row'][];
   artisan?: Database['public']['Tables']['artisans']['Row'];
   category?: Database['public']['Tables']['categories']['Row'];
+  subcategory?: Database['public']['Tables']['subcategories']['Row'];
 };
 
 // Map database artisan to our app's Artisan model
@@ -17,7 +18,7 @@ export function mapDatabaseArtisanToArtisan(dbArtisan: Database['public']['Table
     bio: dbArtisan.bio || '',
     location: dbArtisan.location || '',
     profileImage: dbArtisan.profile_photo || '',
-    galleryImages: dbArtisan.first_gallery_images || [], // Updated from gallery_images to first_gallery_images
+    galleryImages: dbArtisan.first_gallery_images || [], 
     rating: dbArtisan.rating || 0,
     reviewCount: dbArtisan.review_count || 0,
     productCount: 0, // Not directly available from DB, would need separate query
@@ -30,6 +31,7 @@ export function mapDatabaseArtisanToArtisan(dbArtisan: Database['public']['Table
 export function mapDatabaseProductToProduct(dbProduct: DatabaseProduct): ProductWithArtisan {
   const categoryName = dbProduct.category?.name || '';
   const categorySlug = dbProduct.category?.slug || '';
+  const subcategoryName = dbProduct.subcategory?.name || '';
   
   return {
     id: dbProduct.id,
@@ -39,7 +41,7 @@ export function mapDatabaseProductToProduct(dbProduct: DatabaseProduct): Product
     discountPrice: dbProduct.discount_price || undefined,
     category: categoryName,
     mainCategory: categorySlug, // Using slug as mainCategory
-    subcategory: '', // We'll handle subcategory separately
+    subcategory: subcategoryName,
     tags: dbProduct.tags || [],
     images: dbProduct.images || [],
     stock: dbProduct.stock,

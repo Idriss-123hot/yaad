@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -63,13 +64,13 @@ const Search = () => {
           productQuery = productQuery.eq('subcategory_id', subcategory);
           
           // Get subcategory name
-          const { data: subcategoryData } = await supabase
+          const { data: subcategoryData, error: subcategoryError } = await supabase
             .from('subcategories')
             .select('name')
             .eq('id', subcategory)
             .single();
             
-          if (subcategoryData) {
+          if (subcategoryData && !subcategoryError) {
             setSubcategoryName(subcategoryData.name);
           }
         }

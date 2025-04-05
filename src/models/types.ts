@@ -5,6 +5,7 @@ export interface Product {
   price: number;
   discountPrice?: number;
   category: string;
+  subcategory: string;
   tags: string[];
   images: string[];
   variations?: ProductVariation[];
@@ -12,14 +13,13 @@ export interface Product {
   artisanId: string;
   rating: number;
   reviewCount: number;
-  featured?: boolean;
+  featured: boolean;
   createdAt: Date;
   material?: string;
   origin?: string;
-  subcategory?: string;
   categoryId?: string;
   subcategoryId?: string;
-  mainCategory?: string; // Added this property
+  mainCategory?: string; // Add mainCategory property
 }
 
 export interface ProductVariation {
@@ -99,6 +99,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     description: 'A beautiful handcrafted ceramic vase with natural glaze finish.',
     price: 89.99,
     category: 'Ceramics & Pottery',
+    subcategory: 'Vases',
     tags: ['vase', 'ceramics', 'home decor'],
     images: ['https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//small-terracotta-ceramic-vase-handmade-in-morocco.jpeg'],
     stock: 5,
@@ -116,6 +117,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     description: 'Luxurious hand-woven wool blanket using traditional techniques.',
     price: 149.99,
     category: 'Textiles & Fabrics',
+    subcategory: 'Blankets',
     tags: ['blanket', 'wool', 'handwoven'],
     images: ['https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//berber-plaid-with-white-pompoms-and-pink-stripes.jpeg'],
     stock: 3,
@@ -134,6 +136,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     price: 59.99,
     discountPrice: 49.99,
     category: 'Woodworking',
+    subcategory: 'Serving Boards',
     tags: ['kitchen', 'serving', 'wood'],
     images: ['https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//wooden-oval-cheese-board-with-arabic-patterns-cutting-board-maison-bagan-281478.webp'],
     stock: 8,
@@ -151,6 +154,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     description: 'Delicate silver earrings handcrafted by skilled artisans.',
     price: 79.99,
     category: 'Jewelry',
+    subcategory: 'Earrings',
     tags: ['earrings', 'silver', 'accessories'],
     images: ['https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//boucles-doreilles-oufla-boucles-doreilles-417821_1024x1024@2x.jpeg'],
     stock: 12,
