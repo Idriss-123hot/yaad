@@ -64,34 +64,76 @@ export function AdvancedFilters({ onApply, initialFilters = {} }: Props) {
           return;
         }
         
-        // Fetch subcategories
+        // Fetch subcategories - using direct query instead of 'from'
         const { data: subcategoriesData, error: subcategoriesError } = await supabase
-          .from('subcategories')
+          .rpc('get_subcategories')
           .select('*')
           .order('name');
           
         if (subcategoriesError) {
           console.error('Error fetching subcategories:', subcategoriesError);
-          return;
-        }
-        
-        // Group subcategories by parent_id
-        const subcategoriesByParent: Record<string, Subcategory[]> = {};
-        subcategoriesData.forEach(sub => {
-          if (!subcategoriesByParent[sub.parent_id]) {
-            subcategoriesByParent[sub.parent_id] = [];
+          
+          // Fallback to direct query if RPC doesn't exist yet
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from('subcategories')
+            .select('*')
+            .order('name');
+            
+          if (fallbackError) {
+            console.error('Error in fallback subcategories query:', fallbackError);
+            return;
           }
-          subcategoriesByParent[sub.parent_id].push(sub);
-        });
-        
-        // Attach subcategories to their parent categories
-        const enrichedCategories = categoriesData.map(cat => ({
-          ...cat,
-          subcategories: subcategoriesByParent[cat.id] || []
-        }));
-        
-        setCategories(enrichedCategories);
-        setSubcategories(subcategoriesData);
+          
+          if (fallbackData) {
+            const typedSubcategories = fallbackData.map(sub => ({
+              id: sub.id,
+              name: sub.name,
+              parent_id: sub.parent_id
+            }));
+            setSubcategories(typedSubcategories);
+            
+            // Group subcategories by parent_id
+            const subcategoriesByParent: Record<string, Subcategory[]> = {};
+            typedSubcategories.forEach(sub => {
+              if (!subcategoriesByParent[sub.parent_id]) {
+                subcategoriesByParent[sub.parent_id] = [];
+              }
+              subcategoriesByParent[sub.parent_id].push(sub);
+            });
+            
+            // Attach subcategories to their parent categories
+            const enrichedCategories = categoriesData.map(cat => ({
+              ...cat,
+              subcategories: subcategoriesByParent[cat.id] || []
+            }));
+            
+            setCategories(enrichedCategories);
+          }
+        } else if (subcategoriesData) {
+          const typedSubcategories = subcategoriesData.map(sub => ({
+            id: sub.id,
+            name: sub.name,
+            parent_id: sub.parent_id
+          }));
+          setSubcategories(typedSubcategories);
+          
+          // Group subcategories by parent_id
+          const subcategoriesByParent: Record<string, Subcategory[]> = {};
+          typedSubcategories.forEach(sub => {
+            if (!subcategoriesByParent[sub.parent_id]) {
+              subcategoriesByParent[sub.parent_id] = [];
+            }
+            subcategoriesByParent[sub.parent_id].push(sub);
+          });
+          
+          // Attach subcategories to their parent categories
+          const enrichedCategories = categoriesData.map(cat => ({
+            ...cat,
+            subcategories: subcategoriesByParent[cat.id] || []
+          }));
+          
+          setCategories(enrichedCategories);
+        }
       } catch (error) {
         console.error('Error in fetching filters data:', error);
       } finally {

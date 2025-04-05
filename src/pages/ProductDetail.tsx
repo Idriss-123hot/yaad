@@ -69,7 +69,7 @@ const ProductDetail = () => {
       const related = PRODUCTS
         .filter(p => 
           p.id !== productId && 
-          p.mainCategory === productWithArtisan.mainCategory
+          p.category === productWithArtisan.category
         )
         .slice(0, 4);
       
@@ -159,9 +159,9 @@ const ProductDetail = () => {
                 Accueil
               </Link>
               <ChevronRight className="h-4 w-4 mx-2" />
-              {product.mainCategory && (
+              {product.category && (
                 <>
-                  <Link to={`/categories/${product.mainCategory}`} className="hover:text-terracotta-600 transition-colors">
+                  <Link to={`/categories/${product.category?.toLowerCase().replace(/\s+/g, '-')}`} className="hover:text-terracotta-600 transition-colors">
                     {product.category}
                   </Link>
                   <ChevronRight className="h-4 w-4 mx-2" />
@@ -169,7 +169,7 @@ const ProductDetail = () => {
               )}
               {product.subcategory && (
                 <>
-                  <Link to={`/categories/${product.mainCategory}/${product.subcategory}`} className="hover:text-terracotta-600 transition-colors">
+                  <Link to={`/categories/${product.category?.toLowerCase().replace(/\s+/g, '-')}/${product.subcategory?.toLowerCase().replace(/\s+/g, '-')}`} className="hover:text-terracotta-600 transition-colors">
                     {product.subcategory}
                   </Link>
                   <ChevronRight className="h-4 w-4 mx-2" />

@@ -7,14 +7,13 @@ export type DatabaseProduct = Database['public']['Tables']['products']['Row'] & 
   product_variations?: Database['public']['Tables']['product_variations']['Row'][];
   artisan?: Database['public']['Tables']['artisans']['Row'];
   category?: Database['public']['Tables']['categories']['Row'];
-  categories?: Database['public']['Tables']['categories']['Row'];
   subcategory?: Database['public']['Tables']['subcategories']['Row'];
 };
 
 // Convert a database product to our application Product interface
 export function mapDatabaseProductToProduct(dbProduct: DatabaseProduct): Product {
   // Determine which field to use for category
-  const categoryData = dbProduct.categories || dbProduct.category;
+  const categoryData = dbProduct.category;
   const categoryName = categoryData?.name || '';
   
   // Extract subcategory data if available
@@ -44,7 +43,8 @@ export function mapDatabaseProductToProduct(dbProduct: DatabaseProduct): Product
     material: dbProduct.material || undefined,
     origin: dbProduct.origin || undefined,
     categoryId: categoryData?.id,
-    subcategoryId: dbProduct.subcategory_id || dbProduct.subcategory?.id
+    subcategoryId: dbProduct.subcategory_id,
+    mainCategory: categoryData?.slug // Add mainCategory property
   };
 }
 

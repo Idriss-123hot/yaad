@@ -19,6 +19,7 @@ export interface Product {
   subcategory?: string;
   categoryId?: string;
   subcategoryId?: string;
+  mainCategory?: string; // Added this property
 }
 
 export interface ProductVariation {

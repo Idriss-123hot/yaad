@@ -1,4 +1,3 @@
-
 import { Product, ProductWithArtisan } from '@/models/types';
 import { categoriesData } from './categories';
 
@@ -48,7 +47,8 @@ export const generateCategoryProducts = (): ProductWithArtisan[] => {
         material: 'matériaux marocains authentiques',
         origin: 'maroc',
         subcategory: subcategory.id,
-        mainCategory: mainCategory.id
+        categoryId: mainCategory.id,
+        subcategoryId: subcategory.id
       };
       
       products.push(product);
@@ -130,30 +130,30 @@ export const generateCategoryProducts = (): ProductWithArtisan[] => {
 export const PRODUCTS = generateCategoryProducts();
 
 // Helper function to get products by main category and subcategory - updated to support multiple subcategories
-export const getProductsByCategory = (mainCategory?: string, subcategory?: string): ProductWithArtisan[] => {
-  if (!mainCategory) {
+export const getProductsByCategory = (categoryId?: string, subcategoryId?: string): ProductWithArtisan[] => {
+  if (!categoryId) {
     return PRODUCTS;
   }
   
   // Show all products in the main category if no subcategory filter
-  if (!subcategory) {
-    return PRODUCTS.filter(product => product.mainCategory === mainCategory);
+  if (!subcategoryId) {
+    return PRODUCTS.filter(product => product.categoryId === categoryId);
   }
   
   // For backward compatibility
-  const subcategories = subcategory.split(',');
+  const subcategories = subcategoryId.split(',');
   
   // If multiple subcategories, show all products from any of the selected subcategories
   if (subcategories.length > 1) {
     return PRODUCTS.filter(
-      product => product.mainCategory === mainCategory && 
-                subcategories.includes(product.subcategory || '')
+      product => product.categoryId === categoryId && 
+                subcategories.includes(product.subcategoryId || '')
     );
   }
   
   // Single subcategory case
   return PRODUCTS.filter(
-    product => product.mainCategory === mainCategory && product.subcategory === subcategory
+    product => product.categoryId === categoryId && product.subcategoryId === subcategoryId
   );
 };
 

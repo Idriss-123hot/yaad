@@ -31,16 +31,6 @@ export function mapDatabaseProductToProduct(dbProduct: DatabaseProduct): Product
   const categoryName = dbProduct.category?.name || '';
   const categorySlug = dbProduct.category?.slug || '';
   
-  // Extract main category and subcategory from the slug if available
-  let mainCategory = '';
-  let subcategory = '';
-  
-  if (categorySlug) {
-    const slugParts = categorySlug.split('-');
-    mainCategory = slugParts[0] || '';
-    subcategory = slugParts.slice(1).join('-') || '';
-  }
-  
   return {
     id: dbProduct.id,
     title: dbProduct.title,
@@ -48,8 +38,8 @@ export function mapDatabaseProductToProduct(dbProduct: DatabaseProduct): Product
     price: dbProduct.price,
     discountPrice: dbProduct.discount_price || undefined,
     category: categoryName,
-    mainCategory: mainCategory,
-    subcategory: subcategory,
+    mainCategory: categorySlug, // Using slug as mainCategory
+    subcategory: '', // We'll handle subcategory separately
     tags: dbProduct.tags || [],
     images: dbProduct.images || [],
     stock: dbProduct.stock,

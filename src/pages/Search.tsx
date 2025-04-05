@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -38,34 +37,39 @@ const Search = () => {
             *,
             product_variations(*),
             artisan:artisans(*),
-            category:categories(*),
-            subcategory:subcategories(*)
+            category:categories(*)
           `);
         
         // Filter by category if provided
         if (category) {
+          // Using direct category ID from URL
+          productQuery = productQuery.eq('category_id', category);
+          
+          // Get category name
           const { data: categoryData } = await supabase
             .from('categories')
-            .select('id, name')
+            .select('name')
             .eq('id', category)
-            .maybeSingle();
+            .single();
             
-          if (categoryData?.id) {
-            productQuery = productQuery.eq('category_id', categoryData.id);
+          if (categoryData) {
             setCategoryName(categoryData.name);
           }
         }
         
         // Filter by subcategory if provided
         if (subcategory) {
+          // Using direct subcategory ID from URL
+          productQuery = productQuery.eq('subcategory_id', subcategory);
+          
+          // Get subcategory name
           const { data: subcategoryData } = await supabase
             .from('subcategories')
-            .select('id, name')
+            .select('name')
             .eq('id', subcategory)
-            .maybeSingle();
+            .single();
             
-          if (subcategoryData?.id) {
-            productQuery = productQuery.eq('subcategory_id', subcategoryData.id);
+          if (subcategoryData) {
             setSubcategoryName(subcategoryData.name);
           }
         }
