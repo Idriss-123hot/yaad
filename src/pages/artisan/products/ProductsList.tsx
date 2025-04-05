@@ -83,7 +83,7 @@ const ArtisanProductsList = () => {
           .from('products')
           .select(`
             *,
-            category:categories(name)
+            categories(*)
           `)
           .eq('artisan_id', artisanData.id)
           .order('created_at', { ascending: false });
@@ -98,8 +98,17 @@ const ArtisanProductsList = () => {
           return;
         }
         
-        // Map products data
-        const mappedProducts = productsData.map(product => mapDatabaseProductToProduct(product));
+        // Map products data using the utility function from mapDatabaseProductToProduct
+        const mappedProducts = productsData.map(product => {
+          // Create a properly structured DatabaseProduct object
+          const databaseProduct = {
+            ...product,
+            category: product.categories  // Ensure we use the full category object
+          };
+          
+          return mapDatabaseProductToProduct(databaseProduct);
+        });
+        
         setProducts(mappedProducts);
       } catch (error) {
         console.error('Erreur:', error);

@@ -85,22 +85,24 @@ const AdminArtisansList = () => {
       
       // Fetch product counts for each artisan
       const artisanIds = mappedArtisans.map(artisan => artisan.id);
-      const { data: productCounts, error: productCountError } = await supabase
-        .from('products')
-        .select('artisan_id, count')
-        .in('artisan_id', artisanIds)
-        .group('artisan_id');
       
-      if (!productCountError && productCounts) {
-        // Create a map of artisan_id to product count
-        const countMap = productCounts.reduce((acc, item) => {
-          acc[item.artisan_id] = parseInt(item.count);
-          return acc;
-        }, {});
+      if (artisanIds.length > 0) {
+        // For each artisan, count their products
+        const productCountPromises = artisanIds.map(async (artisanId) => {
+          const { count, error: countError } = await supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true })
+            .eq('artisan_id', artisanId);
+          
+          return { artisanId, count: count || 0 };
+        });
+        
+        const productCounts = await Promise.all(productCountPromises);
         
         // Update artisans with product counts
         mappedArtisans.forEach(artisan => {
-          artisan.productCount = countMap[artisan.id] || 0;
+          const countObj = productCounts.find(pc => pc.artisanId === artisan.id);
+          artisan.productCount = countObj ? countObj.count : 0;
         });
       }
       

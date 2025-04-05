@@ -281,7 +281,14 @@ export function ProductForm({
       
       // Prepare product data
       const productData = {
-        ...data,
+        title: data.title,
+        description: data.description,
+        price: data.price, // This is required by Supabase
+        discount_price: data.discount_price,
+        stock: data.stock,
+        category_id: data.category_id,
+        material: data.material,
+        origin: data.origin,
         artisan_id: artisanId,
         images: imageUrls.length > 0 ? imageUrls : null,
       };

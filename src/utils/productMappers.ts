@@ -7,17 +7,22 @@ export type DatabaseProduct = Database['public']['Tables']['products']['Row'] & 
   product_variations?: Database['public']['Tables']['product_variations']['Row'][];
   artisan?: Database['public']['Tables']['artisans']['Row'];
   category?: Database['public']['Tables']['categories']['Row'];
+  categories?: Database['public']['Tables']['categories']['Row'];
 };
 
 // Convert a database product to our application Product interface
 export function mapDatabaseProductToProduct(dbProduct: DatabaseProduct): Product {
+  // Determine which field to use for category
+  const categoryData = dbProduct.categories || dbProduct.category;
+  const categoryName = categoryData?.name || '';
+  
   return {
     id: dbProduct.id,
     title: dbProduct.title,
     description: dbProduct.description || '',
     price: dbProduct.price,
     discountPrice: dbProduct.discount_price || undefined,
-    category: dbProduct.category?.name || '',
+    category: categoryName,
     tags: dbProduct.tags || [],
     images: dbProduct.images || [],
     variations: dbProduct.product_variations?.map(v => ({
