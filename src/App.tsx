@@ -23,6 +23,14 @@ import FeaturedProductDetail from './pages/FeaturedProductDetail'
 import Contact from './pages/Contact'
 import About from './pages/About'
 import Blog from './pages/Blog'
+import AdminProductsList from './pages/admin/products/ProductsList'
+import AdminProductNew from './pages/admin/products/NewProduct'
+import AdminProductEdit from './pages/admin/products/EditProduct'
+import AdminArtisansList from './pages/admin/artisans/ArtisansList'
+import AdminArtisanNew from './pages/admin/artisans/NewArtisan'
+import ArtisanProductsList from './pages/artisan/products/ProductsList'
+import ArtisanProductNew from './pages/artisan/products/NewProduct'
+import ArtisanProductEdit from './pages/artisan/products/EditProduct'
 
 function App() {
   return (
@@ -54,10 +62,18 @@ function App() {
         {/* Routes administrateur */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/products" element={<AdminProductsList />} />
+        <Route path="/admin/products/new" element={<AdminProductNew />} />
+        <Route path="/admin/products/:id/edit" element={<AdminProductEdit />} />
+        <Route path="/admin/artisans" element={<AdminArtisansList />} />
+        <Route path="/admin/artisans/new" element={<AdminArtisanNew />} />
 
         {/* Routes artisan */}
         <Route path="/artisan/login" element={<ArtisanLogin />} />
         <Route path="/artisan/dashboard" element={<ArtisanDashboard />} />
+        <Route path="/artisan/products" element={<ArtisanProductsList />} />
+        <Route path="/artisan/products/new" element={<ArtisanProductNew />} />
+        <Route path="/artisan/products/:id/edit" element={<ArtisanProductEdit />} />
         
         {/* Route 404 */}
         <Route path="*" element={<NotFound />} />

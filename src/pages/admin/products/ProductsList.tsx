@@ -35,23 +35,21 @@ import {
   Edit, 
   Trash2, 
   Plus, 
+  Image, 
   AlertCircle, 
   Loader2, 
   Search,
   Star,
-  StarOff,
-  User
+  StarOff 
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Artisan } from '@/models/types';
-import { mapDatabaseArtisanToArtisan } from '@/utils/mapDatabaseModels';
+import { ProductWithArtisan } from '@/models/types';
+import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
 import { debounce } from '@/lib/utils';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 
-const AdminArtisansList = () => {
-  const [artisans, setArtisans] = useState<Artisan[]>([]);
+const AdminProductsList = () => {
+  const [products, setProducts] = useState<ProductWithArtisan[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -59,19 +57,23 @@ const AdminArtisansList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Fetch all artisans
-  const fetchArtisans = async (searchTerm = '') => {
+  // Fetch all products
+  const fetchProducts = async (searchTerm = '') => {
     setLoading(true);
     
     try {
       let query = supabase
-        .from('artisans')
-        .select('*')
-        .order('name');
+        .from('products')
+        .select(`
+          *,
+          category:categories(*),
+          artisan:artisans(*)
+        `)
+        .order('created_at', { ascending: false });
       
       // Apply search filter if provided
       if (searchTerm) {
-        query = query.ilike('name', `%${searchTerm}%`);
+        query = query.ilike('title', `%${searchTerm}%`);
       }
       
       const { data, error } = await query;
@@ -80,36 +82,14 @@ const AdminArtisansList = () => {
         throw error;
       }
       
-      // Map artisans data
-      const mappedArtisans = data.map(artisan => mapDatabaseArtisanToArtisan(artisan));
-      
-      // Fetch product counts for each artisan
-      const artisanIds = mappedArtisans.map(artisan => artisan.id);
-      const { data: productCounts, error: productCountError } = await supabase
-        .from('products')
-        .select('artisan_id, count')
-        .in('artisan_id', artisanIds)
-        .group('artisan_id');
-      
-      if (!productCountError && productCounts) {
-        // Create a map of artisan_id to product count
-        const countMap = productCounts.reduce((acc, item) => {
-          acc[item.artisan_id] = parseInt(item.count);
-          return acc;
-        }, {});
-        
-        // Update artisans with product counts
-        mappedArtisans.forEach(artisan => {
-          artisan.productCount = countMap[artisan.id] || 0;
-        });
-      }
-      
-      setArtisans(mappedArtisans);
+      // Map products data
+      const mappedProducts = data.map(product => mapDatabaseProductToProduct(product));
+      setProducts(mappedProducts);
     } catch (error) {
-      console.error('Erreur lors de la récupération des artisans:', error);
+      console.error('Erreur lors de la récupération des produits:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger les artisans",
+        description: "Impossible de charger les produits",
         variant: "destructive",
       });
     } finally {
@@ -118,7 +98,7 @@ const AdminArtisansList = () => {
   };
 
   useEffect(() => {
-    fetchArtisans();
+    fetchProducts();
   }, [toast]);
 
   // Handle search
@@ -128,47 +108,35 @@ const AdminArtisansList = () => {
   };
 
   const debouncedSearch = debounce((value: string) => {
-    fetchArtisans(value);
+    fetchProducts(value);
   }, 300);
 
-  // Delete artisan
-  const handleDelete = async (artisanId: string) => {
-    setDeleting(artisanId);
+  // Delete product
+  const handleDelete = async (productId: string) => {
+    setDeleting(productId);
     
     try {
-      // Get user_id for the artisan
-      const { data: artisanData, error: artisanError } = await supabase
-        .from('artisans')
-        .select('user_id')
-        .eq('id', artisanId)
-        .single();
-      
-      if (artisanError || !artisanData) {
-        throw new Error('Artisan not found');
-      }
-      
-      // Delete the artisan
       const { error } = await supabase
-        .from('artisans')
+        .from('products')
         .delete()
-        .eq('id', artisanId);
+        .eq('id', productId);
       
       if (error) {
         throw error;
       }
       
-      // Update artisans list
-      setArtisans(artisans.filter(artisan => artisan.id !== artisanId));
+      // Update products list
+      setProducts(products.filter(product => product.id !== productId));
       
       toast({
         title: "Succès",
-        description: "L'artisan a été supprimé avec succès",
+        description: "Le produit a été supprimé avec succès",
       });
     } catch (error) {
-      console.error('Erreur lors de la suppression de l\'artisan:', error);
+      console.error('Erreur lors de la suppression du produit:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer l'artisan",
+        description: "Impossible de supprimer le produit",
         variant: "destructive",
       });
     } finally {
@@ -177,36 +145,36 @@ const AdminArtisansList = () => {
   };
 
   // Toggle featured status
-  const handleToggleFeatured = async (artisanId: string, currentStatus: boolean) => {
-    setToggleFeatured(artisanId);
+  const handleToggleFeatured = async (productId: string, currentStatus: boolean) => {
+    setToggleFeatured(productId);
     
     try {
       const { error } = await supabase
-        .from('artisans')
+        .from('products')
         .update({ featured: !currentStatus })
-        .eq('id', artisanId);
+        .eq('id', productId);
       
       if (error) {
         throw error;
       }
       
-      // Update artisans list
-      setArtisans(artisans.map(artisan => {
-        if (artisan.id === artisanId) {
-          return { ...artisan, featured: !currentStatus };
+      // Update products list
+      setProducts(products.map(product => {
+        if (product.id === productId) {
+          return { ...product, featured: !currentStatus };
         }
-        return artisan;
+        return product;
       }));
       
       toast({
         title: "Succès",
-        description: `L'artisan a été ${!currentStatus ? 'mis en avant' : 'retiré des artisans mis en avant'}`,
+        description: `Le produit a été ${!currentStatus ? 'mis en avant' : 'retiré des produits mis en avant'}`,
       });
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de mettre à jour le statut de l'artisan",
+        description: "Impossible de mettre à jour le statut du produit",
         variant: "destructive",
       });
     } finally {
@@ -214,19 +182,24 @@ const AdminArtisansList = () => {
     }
   };
 
-  // Format date
-  const formatDate = (date: Date) => {
-    return format(date, 'PPP', { locale: fr });
+  // Format price
+  const formatPrice = (price?: number) => {
+    if (price === undefined) return '—';
+    return new Intl.NumberFormat('fr-MA', {
+      style: 'currency',
+      currency: 'MAD',
+      minimumFractionDigits: 2,
+    }).format(price);
   };
 
   return (
     <AdminLayout>
       <div className="container mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Gestion des Artisans</h1>
-          <Button onClick={() => navigate('/admin/artisans/new')}>
+          <h1 className="text-2xl font-bold">Gestion des Produits</h1>
+          <Button onClick={() => navigate('/admin/products/new')}>
             <Plus className="mr-2 h-4 w-4" />
-            Nouvel Artisan
+            Nouveau Produit
           </Button>
         </div>
         
@@ -235,7 +208,7 @@ const AdminArtisansList = () => {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Rechercher un artisan..."
+                placeholder="Rechercher un produit..."
                 className="pl-10"
                 value={search}
                 onChange={handleSearchChange}
@@ -246,9 +219,9 @@ const AdminArtisansList = () => {
         
         <Card>
           <CardHeader>
-            <CardTitle>Tous les artisans</CardTitle>
+            <CardTitle>Tous les produits</CardTitle>
             <CardDescription>
-              Gérez les artisans, modifiez leurs informations ou ajoutez-en de nouveaux.
+              Gérez les produits, modifiez les informations ou ajoutez-en de nouveaux.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -256,19 +229,19 @@ const AdminArtisansList = () => {
               <div className="flex justify-center items-center h-40">
                 <Loader2 className="h-8 w-8 animate-spin text-terracotta-600" />
               </div>
-            ) : artisans.length === 0 ? (
+            ) : products.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-40">
                 <AlertCircle className="h-8 w-8 text-muted-foreground mb-2" />
                 <p className="text-muted-foreground">
-                  {search ? 'Aucun artisan ne correspond à votre recherche' : 'Aucun artisan disponible'}
+                  {search ? 'Aucun produit ne correspond à votre recherche' : 'Aucun produit disponible'}
                 </p>
                 {!search && (
                   <Button 
                     variant="link" 
-                    onClick={() => navigate('/admin/artisans/new')}
+                    onClick={() => navigate('/admin/products/new')}
                     className="mt-2"
                   >
-                    Créer le premier artisan
+                    Créer le premier produit
                   </Button>
                 )}
               </div>
@@ -277,75 +250,89 @@ const AdminArtisansList = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[80px]">Photo</TableHead>
-                      <TableHead>Nom</TableHead>
-                      <TableHead>Localisation</TableHead>
-                      <TableHead className="text-center">Produits</TableHead>
-                      <TableHead className="text-center">Évaluation</TableHead>
-                      <TableHead>Depuis</TableHead>
+                      <TableHead className="w-[80px]">Image</TableHead>
+                      <TableHead>Titre</TableHead>
+                      <TableHead>Artisan</TableHead>
+                      <TableHead>Catégorie</TableHead>
+                      <TableHead className="text-right">Prix</TableHead>
+                      <TableHead className="text-center">Stock</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {artisans.map((artisan) => (
-                      <TableRow key={artisan.id}>
+                    {products.map((product) => (
+                      <TableRow key={product.id}>
                         <TableCell>
-                          {artisan.profileImage ? (
-                            <div className="w-12 h-12 rounded-full overflow-hidden border">
+                          {product.images && product.images.length > 0 ? (
+                            <div className="w-16 h-16 rounded overflow-hidden border">
                               <img 
-                                src={artisan.profileImage} 
-                                alt={artisan.name} 
+                                src={product.images[0]} 
+                                alt={product.title} 
                                 className="w-full h-full object-cover"
                               />
                             </div>
                           ) : (
-                            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center border">
-                              <User className="h-6 w-6 text-gray-400" />
+                            <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center border">
+                              <Image className="h-6 w-6 text-gray-400" />
                             </div>
                           )}
                         </TableCell>
                         <TableCell className="font-medium">
                           <div>
                             <Link 
-                              to={`/artisan/${artisan.id}`} 
+                              to={`/products/${product.id}`} 
                               className="hover:text-terracotta-600 transition-colors"
                             >
-                              {artisan.name}
+                              {product.title}
                             </Link>
-                            {artisan.featured && (
+                            {product.featured && (
                               <Badge className="ml-2 bg-amber-500">Mis en avant</Badge>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>{artisan.location || '—'}</TableCell>
-                        <TableCell className="text-center">{artisan.productCount}</TableCell>
-                        <TableCell className="text-center">
-                          {artisan.rating > 0 ? (
-                            <div className="flex items-center justify-center">
-                              <span className="font-medium">{artisan.rating.toFixed(1)}</span>
-                              <Star className="h-4 w-4 text-amber-500 ml-1" />
-                              <span className="text-xs text-muted-foreground ml-1">
-                                ({artisan.reviewCount})
+                        <TableCell>
+                          {product.artisan ? (
+                            <Link 
+                              to={`/artisan/${product.artisan.id}`}
+                              className="hover:text-terracotta-600 transition-colors"
+                            >
+                              {product.artisan.name}
+                            </Link>
+                          ) : '—'}
+                        </TableCell>
+                        <TableCell>{product.category}</TableCell>
+                        <TableCell className="text-right">
+                          {product.discountPrice ? (
+                            <div>
+                              <span className="line-through text-muted-foreground text-sm mr-2">
+                                {formatPrice(product.price)}
+                              </span>
+                              <span className="text-red-600 font-semibold">
+                                {formatPrice(product.discountPrice)}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-muted-foreground text-sm">Pas d'avis</span>
+                            formatPrice(product.price)
                           )}
                         </TableCell>
-                        <TableCell>{formatDate(artisan.joinedDate)}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant={product.stock > 0 ? "outline" : "destructive"}>
+                            {product.stock > 0 ? product.stock : 'Épuisé'}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button
                               variant="outline"
                               size="icon"
-                              onClick={() => handleToggleFeatured(artisan.id, !!artisan.featured)}
-                              title={artisan.featured ? "Retirer des artisans mis en avant" : "Mettre en avant"}
-                              disabled={toggleFeatured === artisan.id}
-                              className={artisan.featured ? "text-amber-500" : ""}
+                              onClick={() => handleToggleFeatured(product.id, !!product.featured)}
+                              title={product.featured ? "Retirer des produits mis en avant" : "Mettre en avant"}
+                              disabled={toggleFeatured === product.id}
+                              className={product.featured ? "text-amber-500" : ""}
                             >
-                              {toggleFeatured === artisan.id ? (
+                              {toggleFeatured === product.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : artisan.featured ? (
+                              ) : product.featured ? (
                                 <StarOff className="h-4 w-4" />
                               ) : (
                                 <Star className="h-4 w-4" />
@@ -355,7 +342,7 @@ const AdminArtisansList = () => {
                             <Button
                               variant="outline"
                               size="icon"
-                              onClick={() => navigate(`/admin/artisans/${artisan.id}/edit`)}
+                              onClick={() => navigate(`/admin/products/${product.id}/edit`)}
                               title="Modifier"
                             >
                               <Edit className="h-4 w-4" />
@@ -376,18 +363,18 @@ const AdminArtisansList = () => {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Êtes-vous sûr de vouloir supprimer cet artisan ? 
-                                    Cette action est irréversible et supprimera également tous ses produits.
+                                    Êtes-vous sûr de vouloir supprimer ce produit ? 
+                                    Cette action est irréversible.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Annuler</AlertDialogCancel>
                                   <AlertDialogAction
                                     className="bg-red-500 hover:bg-red-600"
-                                    onClick={() => handleDelete(artisan.id)}
-                                    disabled={deleting === artisan.id}
+                                    onClick={() => handleDelete(product.id)}
+                                    disabled={deleting === product.id}
                                   >
-                                    {deleting === artisan.id ? (
+                                    {deleting === product.id ? (
                                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                     ) : null}
                                     Supprimer
@@ -410,4 +397,4 @@ const AdminArtisansList = () => {
   );
 };
 
-export default AdminArtisansList;
+export default AdminProductsList;
