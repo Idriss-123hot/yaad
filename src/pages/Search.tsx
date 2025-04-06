@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -18,10 +19,10 @@ const Search = () => {
   const [products, setProducts] = useState<ProductWithArtisan[]>([]);
   const [filters, setFilters] = useState<Partial<SearchFilters>>({
     q: '',
-    category: [],
-    subcategory: [],
+    category: [], // Initialize as empty array
+    subcategory: [], // Initialize as empty array
     priceRange: [0, 1000],
-    sortBy: 'featured',
+    sort: 'featured', // Changed from sortBy to sort
   });
   
   useEffect(() => {
@@ -42,19 +43,21 @@ const Search = () => {
           query = query.textSearch('search_vector', filters.q);
         }
         
-        if (filters.category.length > 0) {
+        if (filters.category && filters.category.length > 0) {
           query = query.in('category_id', filters.category);
         }
         
-        if (filters.subcategory.length > 0) {
+        if (filters.subcategory && filters.subcategory.length > 0) {
           query = query.in('subcategory_id', filters.subcategory);
         }
         
-        query = query
-          .gte('price', filters.priceRange[0])
-          .lte('price', filters.priceRange[1]);
+        if (filters.priceRange) {
+          query = query
+            .gte('price', filters.priceRange[0])
+            .lte('price', filters.priceRange[1]);
+        }
         
-        switch (filters.sortBy) {
+        switch (filters.sort) {
           case 'price-asc':
             query = query.order('price', { ascending: true });
             break;
@@ -148,35 +151,38 @@ const Search = () => {
           </div>
           
           <div className="flex flex-col md:flex-row md:space-x-6 mb-10">
-            <div className={`${showFilters ? 'block' : 'hidden md:block'} w-full md:w-1/4 lg:w-1/5 mb-6 md:mb-0`}>
-              <AdvancedFilters 
-                isOpen={showFilters}
-                onClose={() => setShowFilters(false)}
-                initialFilters={filters}
-                onApplyFilters={handleFilterChange}
-              />
+            <div className="w-full md:w-1/4 lg:w-1/5 mb-6 md:mb-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex md:hidden items-center mb-4 w-full"
+                onClick={handleToggleFilters}
+              >
+                <SlidersHorizontal className="h-4 w-4 mr-2" />
+                {showFilters ? 'Masquer filtres' : 'Afficher filtres'}
+              </Button>
+              
+              <div className={`${showFilters ? 'block' : 'hidden md:block'}`}>
+                <AdvancedFilters 
+                  isOpen={showFilters}
+                  onClose={() => setShowFilters(false)}
+                  initialFilters={filters}
+                  onApplyFilters={handleFilterChange}
+                />
+              </div>
             </div>
             
             <div className="w-full md:w-3/4 lg:w-4/5">
               <div className="flex justify-between items-center mb-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex md:hidden items-center"
-                  onClick={handleToggleFilters}
-                >
-                  <SlidersHorizontal className="h-4 w-4 mr-2" />
-                  {showFilters ? 'Masquer filtres' : 'Afficher filtres'}
-                </Button>
+                <span className="text-sm text-muted-foreground mr-2 hidden sm:inline">
+                  {products.length} produits
+                </span>
                 
-                <div className="flex items-center">
-                  <span className="text-sm text-muted-foreground mr-2 hidden sm:inline">
-                    {products.length} produits
-                  </span>
+                <div className="flex items-center ml-auto">
                   <select
                     className="text-sm border rounded px-2 py-1 bg-white"
-                    value={filters.sortBy}
-                    onChange={(e) => handleFilterChange({ sortBy: e.target.value })}
+                    value={filters.sort}
+                    onChange={(e) => handleFilterChange({ sort: e.target.value })}
                   >
                     <option value="featured">En vedette</option>
                     <option value="price-asc">Prix: Croissant</option>
@@ -220,7 +226,7 @@ const Search = () => {
                         category: [],
                         subcategory: [],
                         priceRange: [0, 1000],
-                        sortBy: 'featured',
+                        sort: 'featured',
                       });
                     }}
                   >

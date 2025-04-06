@@ -42,6 +42,16 @@ const Index = () => {
       queryParams.set('q', filters.q);
     }
     
+    // Handle category if it's an array
+    if (filters.category && filters.category.length > 0) {
+      queryParams.set('category', filters.category[0]);
+    }
+    
+    // Handle subcategory if it's an array
+    if (filters.subcategory && filters.subcategory.length > 0) {
+      queryParams.set('subcategory', filters.subcategory[0]);
+    }
+    
     navigate(`/search?${queryParams.toString()}`);
   };
 
@@ -53,7 +63,11 @@ const Index = () => {
         
         {/* Barre de recherche avancée */}
         <section className="py-12 px-6 md:px-12 bg-cream-50">
-          <SearchBar onSearch={handleSearch} className="max-w-5xl mx-auto" />
+          <SearchBar 
+            onSearch={handleSearch}
+            className="max-w-5xl mx-auto"
+            initialFilters={{ q: '', category: [], subcategory: [] }}
+          />
         </section>
         
         {/* Use translations from translations table */}

@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search as SearchIcon, SlidersHorizontal, X } from 'lucide-react';
@@ -16,7 +17,7 @@ interface SearchBarProps {
 
 export const SearchBar = ({
   onSearch,
-  initialFilters = { q: '' },
+  initialFilters = { q: '', category: [], subcategory: [] }, // Updated with empty arrays
   variant = 'default',
   autoFocus = false,
   className = '',

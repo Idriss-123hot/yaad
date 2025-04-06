@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { debounce } from '@/lib/utils';
 import { Product, Artisan } from '@/models/types';
@@ -6,26 +5,26 @@ import { mapDatabaseProductsToProducts } from '@/utils/productMappers';
 
 export interface SearchFilters {
   q?: string;
-  category?: string;
-  subcategory?: string;
+  category?: string[];
+  subcategory?: string[];
   artisans?: string[];
   minPrice?: number;
   maxPrice?: number;
+  priceRange?: [number, number];
   rating?: number;
   delivery?: string;
   sort?: string;
+  sortBy?: string;
   page?: number;
   limit?: number;
 }
 
-// Create a debounced search function
 export const debouncedSearch = debounce(async (filters: SearchFilters) => {
   return await searchProducts(filters);
 }, 300);
 
 export const searchProducts = async (filters: SearchFilters): Promise<{ products: Product[], total: number }> => {
   try {
-    // Determine if we should use the Edge Function or direct database query
     if (filters.q && filters.q.length >= 2) {
       return await searchProductsWithEdgeFunction(filters);
     } else {
@@ -37,12 +36,10 @@ export const searchProducts = async (filters: SearchFilters): Promise<{ products
   }
 };
 
-// Search using the Edge Function (for text search)
 const searchProductsWithEdgeFunction = async (filters: SearchFilters): Promise<{ products: Product[], total: number }> => {
   try {
     const { q, category, subcategory, minPrice, maxPrice, rating, delivery, artisans, sort, page = 1, limit = 20 } = filters;
     
-    // Build URL for the edge function
     const url = new URL(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/search`);
     
     if (q) url.searchParams.append('q', q);
@@ -62,13 +59,10 @@ const searchProductsWithEdgeFunction = async (filters: SearchFilters): Promise<{
     const data = await response.json();
     let products = data.products || [];
     
-    // Apply additional filters client-side since the edge function only handles text search
     products = filterProductsClientSide(products, filters);
     
-    // Apply sorting
     products = sortProducts(products, sort);
     
-    // Apply pagination
     const paginatedProducts = products.slice((page - 1) * limit, page * limit);
     
     return { 
@@ -81,7 +75,6 @@ const searchProductsWithEdgeFunction = async (filters: SearchFilters): Promise<{
   }
 };
 
-// Search directly in the database (for non-text search or simple filters)
 const searchProductsWithDatabase = async (filters: SearchFilters): Promise<{ products: Product[], total: number }> => {
   try {
     const { category, subcategory, minPrice, maxPrice, rating, delivery, artisans, sort, page = 1, limit = 20 } = filters;
@@ -92,7 +85,6 @@ const searchProductsWithDatabase = async (filters: SearchFilters): Promise<{ pro
       category:category_id(*)
     `, { count: 'exact' });
     
-    // Apply database filters
     if (category) {
       const { data: categoryData } = await supabase
         .from('categories')
@@ -133,7 +125,6 @@ const searchProductsWithDatabase = async (filters: SearchFilters): Promise<{ pro
       query = query.gte('rating', rating);
     }
 
-    // Production time for delivery filter
     if (delivery) {
       switch (delivery) {
         case 'express':
@@ -148,7 +139,6 @@ const searchProductsWithDatabase = async (filters: SearchFilters): Promise<{ pro
       }
     }
     
-    // Apply sorting
     if (sort) {
       switch (sort) {
         case 'price-low':
@@ -170,7 +160,6 @@ const searchProductsWithDatabase = async (filters: SearchFilters): Promise<{ pro
       query = query.order('featured', { ascending: false });
     }
     
-    // Apply pagination
     query = query.range((page - 1) * limit, (page * limit) - 1);
     
     const { data, error, count } = await query;
@@ -187,22 +176,18 @@ const searchProductsWithDatabase = async (filters: SearchFilters): Promise<{ pro
   }
 };
 
-// Apply additional filters client-side
 const filterProductsClientSide = (products: any[], filters: SearchFilters) => {
   const { category, subcategory, minPrice, maxPrice, rating, delivery, artisans } = filters;
   
   return products.filter(product => {
-    // Category filter
     if (category && product.category_id !== category) {
       return false;
     }
     
-    // Subcategory filter
     if (subcategory && product.category_id !== subcategory) {
       return false;
     }
     
-    // Price range filter
     if (minPrice !== undefined && product.price < minPrice) {
       return false;
     }
@@ -211,12 +196,10 @@ const filterProductsClientSide = (products: any[], filters: SearchFilters) => {
       return false;
     }
     
-    // Rating filter
     if (rating !== undefined && product.rating < rating) {
       return false;
     }
     
-    // Delivery time filter
     if (delivery) {
       if (delivery === 'express' && product.production_time > 3) {
         return false;
@@ -227,7 +210,6 @@ const filterProductsClientSide = (products: any[], filters: SearchFilters) => {
       }
     }
     
-    // Artisan filter
     if (artisans && artisans.length > 0 && !artisans.includes(product.artisan_id)) {
       return false;
     }
@@ -236,7 +218,6 @@ const filterProductsClientSide = (products: any[], filters: SearchFilters) => {
   });
 };
 
-// Sort products client-side
 const sortProducts = (products: any[], sort?: string) => {
   if (!sort) return products;
   
@@ -256,12 +237,11 @@ const sortProducts = (products: any[], sort?: string) => {
   }
 };
 
-// Get search filters from URL parameters
 export const getFiltersFromURL = (searchParams: URLSearchParams): SearchFilters => {
   return {
     q: searchParams.get('q') || undefined,
-    category: searchParams.get('category') || undefined,
-    subcategory: searchParams.get('subcategory') || undefined,
+    category: searchParams.get('category') ? [searchParams.get('category') as string] : undefined,
+    subcategory: searchParams.get('subcategory') ? [searchParams.get('subcategory') as string] : undefined,
     artisans: searchParams.get('artisan') ? [searchParams.get('artisan') as string] : undefined,
     minPrice: searchParams.get('minPrice') ? parseInt(searchParams.get('minPrice') as string) : undefined,
     maxPrice: searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice') as string) : undefined,
@@ -272,13 +252,12 @@ export const getFiltersFromURL = (searchParams: URLSearchParams): SearchFilters 
   };
 };
 
-// Convert filters to URL parameters
 export const filtersToURLParams = (filters: SearchFilters): URLSearchParams => {
   const params = new URLSearchParams();
   
   if (filters.q) params.set('q', filters.q);
-  if (filters.category) params.set('category', filters.category);
-  if (filters.subcategory) params.set('subcategory', filters.subcategory);
+  if (filters.category && filters.category.length > 0) params.set('category', filters.category[0]);
+  if (filters.subcategory && filters.subcategory.length > 0) params.set('subcategory', filters.subcategory[0]);
   if (filters.artisans && filters.artisans.length > 0) params.set('artisan', filters.artisans[0]);
   if (filters.minPrice !== undefined) params.set('minPrice', filters.minPrice.toString());
   if (filters.maxPrice !== undefined) params.set('maxPrice', filters.maxPrice.toString());

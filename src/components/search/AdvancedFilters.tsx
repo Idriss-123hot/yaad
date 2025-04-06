@@ -22,7 +22,7 @@ export interface AdvancedFiltersProps {
   onApplyFilters: (filters: Partial<SearchFilters>) => void;
 }
 
-export const AdvancedFilters = ({
+const AdvancedFilters = ({
   isOpen,
   onClose,
   initialFilters,
@@ -64,7 +64,7 @@ export const AdvancedFilters = ({
       const { data, error } = await supabase
         .from('subcategories')
         .select('id, name, parent_id')
-        .in('parent_id', filters.category || []);
+        .in('parent_id', filters.category);
       
       if (error) {
         console.error('Error fetching subcategories:', error);
