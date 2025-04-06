@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { debounce } from '@/lib/utils';
 import { Product, Artisan } from '@/models/types';
@@ -14,7 +15,6 @@ export interface SearchFilters {
   rating?: number;
   delivery?: string;
   sort?: string;
-  sortBy?: string;
   page?: number;
   limit?: number;
 }
@@ -85,28 +85,15 @@ const searchProductsWithDatabase = async (filters: SearchFilters): Promise<{ pro
       category:category_id(*)
     `, { count: 'exact' });
     
-    if (category) {
-      const { data: categoryData } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('id', category)
-        .single();
-        
-      if (categoryData) {
-        query = query.eq('category_id', categoryData.id);
-      }
+    if (category && category.length > 0) {
+      // Use the first category from the array for now
+      // In the future, we could use .in() to search for multiple categories
+      query = query.eq('category_id', category[0]);
     }
     
-    if (subcategory) {
-      const { data: subcategoryData } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('id', subcategory)
-        .single();
-        
-      if (subcategoryData) {
-        query = query.eq('category_id', subcategoryData.id);
-      }
+    if (subcategory && subcategory.length > 0) {
+      // Use the first subcategory from the array
+      query = query.eq('category_id', subcategory[0]);
     }
     
     if (artisans && artisans.length > 0) {
@@ -180,11 +167,11 @@ const filterProductsClientSide = (products: any[], filters: SearchFilters) => {
   const { category, subcategory, minPrice, maxPrice, rating, delivery, artisans } = filters;
   
   return products.filter(product => {
-    if (category && product.category_id !== category) {
+    if (category && category.length > 0 && product.category_id !== category[0]) {
       return false;
     }
     
-    if (subcategory && product.category_id !== subcategory) {
+    if (subcategory && subcategory.length > 0 && product.category_id !== subcategory[0]) {
       return false;
     }
     
