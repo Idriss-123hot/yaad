@@ -1,11 +1,10 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search as SearchIcon, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AdvancedFilters from './AdvancedFilters';
-import { SearchFilters } from '@/services/searchService';
+import { SearchFilters } from '@/services/search';
 
 interface SearchBarProps {
   onSearch: (filters: Partial<SearchFilters>) => void;
@@ -17,7 +16,7 @@ interface SearchBarProps {
 
 export const SearchBar = ({
   onSearch,
-  initialFilters = { q: '', category: [], subcategory: [] }, // Updated with empty arrays
+  initialFilters = { q: '', category: [], subcategory: [] },
   variant = 'default',
   autoFocus = false,
   className = '',

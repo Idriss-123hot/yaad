@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -11,7 +10,7 @@ import AdvancedFilters from '@/components/search/AdvancedFilters';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductWithArtisan } from '@/models/types';
 import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
-import { SearchFilters } from '@/services/searchService';
+import { SearchFilters } from '@/services/search';
 
 const Search = () => {
   const [isLoading, setIsLoading] = useState(false);

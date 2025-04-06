@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -10,7 +9,7 @@ import { ArtisanSpotlight } from '@/components/home/ArtisanSpotlight';
 import SearchBar from '@/components/search/SearchBar';
 import { ensureBucketsExist } from '@/utils/storageUtils';
 import { useTranslations } from '@/lib/i18n';
-import { SearchFilters } from '@/services/searchService';
+import { SearchFilters } from '@/services/search';
 
 const Index = () => {
   // Get translations from our translations table

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   Sheet, 
@@ -13,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { Subcategory } from '@/models/types';
-import { SearchFilters } from '@/services/searchService';
+import { SearchFilters } from '@/services/search';
 
 export interface AdvancedFiltersProps {
   isOpen: boolean;
