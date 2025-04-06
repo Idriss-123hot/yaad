@@ -43,7 +43,11 @@ export const createSpecificProducts = async (products: any[]): Promise<boolean> 
     const { data, error } = await supabase.functions.invoke('populate-products', {
       method: 'POST',
       body: { products },
-      query: { mode: 'specific' }
+      headers: {
+        'Content-Type': 'application/json',
+        // Add mode as a URL parameter using the correct format
+        'x-mode': 'specific'
+      }
     });
     
     if (error) {

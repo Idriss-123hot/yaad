@@ -113,8 +113,8 @@ serve(async (req) => {
   }
   
   try {
-    const requestUrl = new URL(req.url);
-    const mode = requestUrl.searchParams.get('mode') || 'subcategory';
+    // Get the mode from headers instead of URL parameters
+    const mode = req.headers.get('x-mode') || 'subcategory';
     
     // Handle specific products mode
     if (mode === 'specific' && req.method === 'POST') {

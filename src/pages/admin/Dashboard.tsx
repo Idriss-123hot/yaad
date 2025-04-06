@@ -33,7 +33,10 @@ const AdminDashboard = () => {
             <DashboardStats />
           </div>
           <div className="lg:col-span-4">
-            <RecentActivity />
+            <RecentActivity 
+              title="Activité récente" 
+              type="products" 
+            />
           </div>
         </div>
       </div>
