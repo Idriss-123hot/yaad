@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -7,32 +6,24 @@ import { ProductCard } from '@/components/ui/ProductCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search as SearchIcon, X, SlidersHorizontal, Loader2 } from 'lucide-react';
-import { AdvancedFilters } from '@/components/search/AdvancedFilters';
+import AdvancedFilters from '@/components/search/AdvancedFilters';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductWithArtisan } from '@/models/types';
 import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
-
-interface SearchFilters {
-  query: string;
-  selectedCategories: string[];
-  selectedSubcategories: string[];
-  priceRange: [number, number];
-  sortBy: string;
-}
+import { SearchFilters } from '@/services/searchService';
 
 const Search = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [products, setProducts] = useState<ProductWithArtisan[]>([]);
-  const [filters, setFilters] = useState<SearchFilters>({
-    query: '',
-    selectedCategories: [],
-    selectedSubcategories: [],
+  const [filters, setFilters] = useState<Partial<SearchFilters>>({
+    q: '',
+    category: [],
+    subcategory: [],
     priceRange: [0, 1000],
     sortBy: 'featured',
   });
   
-  // Effect to search products when filters change
   useEffect(() => {
     const searchProducts = async () => {
       setIsLoading(true);
@@ -47,28 +38,22 @@ const Search = () => {
             subcategory:subcategories(*)
           `);
         
-        // Apply search query if exists
-        if (filters.query) {
-          // Use textSearch for full-text search
-          query = query.textSearch('search_vector', filters.query);
+        if (filters.q) {
+          query = query.textSearch('search_vector', filters.q);
         }
         
-        // Apply category filter if any categories are selected
-        if (filters.selectedCategories.length > 0) {
-          query = query.in('category_id', filters.selectedCategories);
+        if (filters.category.length > 0) {
+          query = query.in('category_id', filters.category);
         }
         
-        // Apply subcategory filter if any subcategories are selected
-        if (filters.selectedSubcategories.length > 0) {
-          query = query.in('subcategory_id', filters.selectedSubcategories);
+        if (filters.subcategory.length > 0) {
+          query = query.in('subcategory_id', filters.subcategory);
         }
         
-        // Apply price range filter
         query = query
           .gte('price', filters.priceRange[0])
           .lte('price', filters.priceRange[1]);
         
-        // Apply sorting
         switch (filters.sortBy) {
           case 'price-asc':
             query = query.order('price', { ascending: true });
@@ -88,14 +73,12 @@ const Search = () => {
             break;
         }
         
-        // Get data
         const { data, error } = await query;
         
         if (error) {
           throw error;
         }
         
-        // Map database products to our model
         const mappedProducts = data.map(product => mapDatabaseProductToProduct(product));
         setProducts(mappedProducts);
       } catch (error) {
@@ -106,7 +89,6 @@ const Search = () => {
       setIsLoading(false);
     };
     
-    // Debounce the search to avoid too many queries
     const timerId = setTimeout(() => {
       searchProducts();
     }, 300);
@@ -117,14 +99,14 @@ const Search = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters(prev => ({
       ...prev,
-      query: e.target.value
+      q: e.target.value
     }));
   };
   
   const handleClearSearch = () => {
     setFilters(prev => ({
       ...prev,
-      query: ''
+      q: ''
     }));
   };
   
@@ -146,17 +128,16 @@ const Search = () => {
         <div className="max-w-7xl mx-auto">
           <h1 className="font-serif text-3xl md:text-4xl font-bold mb-4">Explorer Nos Produits</h1>
           
-          {/* Search Input */}
           <div className="relative mb-6">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <Input
               type="text"
               placeholder="Rechercher un produit..."
               className="pl-10 pr-10"
-              value={filters.query}
+              value={filters.q}
               onChange={handleSearchChange}
             />
-            {filters.query && (
+            {filters.q && (
               <button
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 onClick={handleClearSearch}
@@ -167,15 +148,15 @@ const Search = () => {
           </div>
           
           <div className="flex flex-col md:flex-row md:space-x-6 mb-10">
-            {/* Filters Panel */}
             <div className={`${showFilters ? 'block' : 'hidden md:block'} w-full md:w-1/4 lg:w-1/5 mb-6 md:mb-0`}>
               <AdvancedFilters 
-                filters={filters} 
-                onFilterChange={handleFilterChange}
+                isOpen={showFilters}
+                onClose={() => setShowFilters(false)}
+                initialFilters={filters}
+                onApplyFilters={handleFilterChange}
               />
             </div>
             
-            {/* Products Grid */}
             <div className="w-full md:w-3/4 lg:w-4/5">
               <div className="flex justify-between items-center mb-4">
                 <Button
@@ -235,9 +216,9 @@ const Search = () => {
                     variant="outline"
                     onClick={() => {
                       setFilters({
-                        query: '',
-                        selectedCategories: [],
-                        selectedSubcategories: [],
+                        q: '',
+                        category: [],
+                        subcategory: [],
                         priceRange: [0, 1000],
                         sortBy: 'featured',
                       });

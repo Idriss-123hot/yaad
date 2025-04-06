@@ -22,7 +22,7 @@ export interface AdvancedFiltersProps {
   onApplyFilters: (filters: Partial<SearchFilters>) => void;
 }
 
-const AdvancedFilters = ({
+export const AdvancedFilters = ({
   isOpen,
   onClose,
   initialFilters,
@@ -56,7 +56,7 @@ const AdvancedFilters = ({
   // Fetch subcategories
   useEffect(() => {
     const fetchSubcategories = async () => {
-      if (!filters.categories || filters.categories.length === 0) {
+      if (!filters.category || filters.category.length === 0) {
         setSubcategories([]);
         return;
       }
@@ -64,7 +64,7 @@ const AdvancedFilters = ({
       const { data, error } = await supabase
         .from('subcategories')
         .select('id, name, parent_id')
-        .in('parent_id', filters.categories || []);
+        .in('parent_id', filters.category || []);
       
       if (error) {
         console.error('Error fetching subcategories:', error);
@@ -75,7 +75,7 @@ const AdvancedFilters = ({
     };
     
     fetchSubcategories();
-  }, [filters.categories]);
+  }, [filters.category]);
   
   // Fetch artisans
   useEffect(() => {
@@ -104,14 +104,14 @@ const AdvancedFilters = ({
   // Handle category change
   const handleCategoryChange = (id: string, checked: boolean) => {
     setFilters(prev => {
-      const prevCategories = prev.categories || [];
+      const prevCategories = prev.category || [];
       
       if (checked) {
-        return { ...prev, categories: [...prevCategories, id] };
+        return { ...prev, category: [...prevCategories, id] };
       } else {
         // Remove category and any subcategories belonging to it
         const newCategories = prevCategories.filter(c => c !== id);
-        const prevSubcategories = prev.subcategories || [];
+        const prevSubcategories = prev.subcategory || [];
         const newSubcategories = prevSubcategories.filter(sc => {
           const subcategory = subcategories.find(s => s.id === sc);
           return subcategory?.parent_id !== id;
@@ -119,8 +119,8 @@ const AdvancedFilters = ({
         
         return { 
           ...prev, 
-          categories: newCategories,
-          subcategories: newSubcategories
+          category: newCategories,
+          subcategory: newSubcategories
         };
       }
     });
@@ -129,14 +129,14 @@ const AdvancedFilters = ({
   // Handle subcategory change
   const handleSubcategoryChange = (id: string, checked: boolean) => {
     setFilters(prev => {
-      const prevSubcategories = prev.subcategories || [];
+      const prevSubcategories = prev.subcategory || [];
       
       if (checked) {
-        return { ...prev, subcategories: [...prevSubcategories, id] };
+        return { ...prev, subcategory: [...prevSubcategories, id] };
       } else {
         return { 
           ...prev, 
-          subcategories: prevSubcategories.filter(sc => sc !== id)
+          subcategory: prevSubcategories.filter(sc => sc !== id)
         };
       }
     });
@@ -188,7 +188,7 @@ const AdvancedFilters = ({
                 <div key={category.id} className="flex items-center space-x-2">
                   <Checkbox 
                     id={`category-${category.id}`}
-                    checked={(filters.categories || []).includes(category.id)}
+                    checked={(filters.category || []).includes(category.id)}
                     onCheckedChange={(checked) => 
                       handleCategoryChange(category.id, checked === true)
                     }
@@ -211,7 +211,7 @@ const AdvancedFilters = ({
                     <div key={subcategory.id} className="flex items-center space-x-2">
                       <Checkbox 
                         id={`subcategory-${subcategory.id}`}
-                        checked={(filters.subcategories || []).includes(subcategory.id)}
+                        checked={(filters.subcategory || []).includes(subcategory.id)}
                         onCheckedChange={(checked) => 
                           handleSubcategoryChange(subcategory.id, checked === true)
                         }

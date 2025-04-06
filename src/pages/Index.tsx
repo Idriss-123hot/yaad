@@ -1,18 +1,21 @@
 
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Hero } from '@/components/home/Hero';
 import { Categories } from '@/components/home/Categories';
 import { FeaturedProducts } from '@/components/home/FeaturedProducts';
 import { ArtisanSpotlight } from '@/components/home/ArtisanSpotlight';
-import { SearchBar } from '@/components/search/SearchBar';
+import SearchBar from '@/components/search/SearchBar';
 import { ensureBucketsExist } from '@/utils/storageUtils';
 import { useTranslations } from '@/lib/i18n';
+import { SearchFilters } from '@/services/searchService';
 
 const Index = () => {
   // Get translations from our translations table
   const { t, isLoading } = useTranslations('fr');
+  const navigate = useNavigate();
 
   // Smooth scroll to top on page load
   useEffect(() => {
@@ -31,6 +34,17 @@ const Index = () => {
     });
   }, []);
 
+  // Handle search from the homepage
+  const handleSearch = (filters: Partial<SearchFilters>) => {
+    const queryParams = new URLSearchParams();
+    
+    if (filters.q) {
+      queryParams.set('q', filters.q);
+    }
+    
+    navigate(`/search?${queryParams.toString()}`);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -39,7 +53,7 @@ const Index = () => {
         
         {/* Barre de recherche avancée */}
         <section className="py-12 px-6 md:px-12 bg-cream-50">
-          <SearchBar className="max-w-5xl mx-auto" />
+          <SearchBar onSearch={handleSearch} className="max-w-5xl mx-auto" />
         </section>
         
         {/* Use translations from translations table */}
