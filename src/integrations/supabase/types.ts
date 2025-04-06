@@ -142,6 +142,39 @@ export type Database = {
         }
         Relationships: []
       }
+      modification_logs: {
+        Row: {
+          id: string
+          modification_date: string
+          new_values: Json | null
+          old_values: Json | null
+          row_id: string
+          table_name: string
+          user_id: string | null
+          user_role: string | null
+        }
+        Insert: {
+          id?: string
+          modification_date?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          row_id: string
+          table_name: string
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          id?: string
+          modification_date?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          row_id?: string
+          table_name?: string
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       order_products: {
         Row: {
           created_at: string
