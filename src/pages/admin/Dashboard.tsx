@@ -1,111 +1,44 @@
 
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { DashboardStats } from '@/components/admin/DashboardStats';
 import { RecentActivity } from '@/components/admin/RecentActivity';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowUpRight, Users, ShoppingBag } from 'lucide-react';
+import { populateProductsForSubcategories, createRequestedProducts } from '@/utils/productPopulation';
 
-/**
- * Composant du tableau de bord administrateur
- * 
- * Affiche une vue d'ensemble de la marketplace avec des statistiques,
- * des raccourcis vers les fonctionnalités principales et l'activité récente.
- */
-export default function Dashboard() {
-  const navigate = useNavigate();
-
+const AdminDashboard = () => {
   return (
     <AdminLayout>
-      <div className="p-6 space-y-6">
-        {/* En-tête du tableau de bord */}
-        <div className="flex flex-col justify-between space-y-2 md:flex-row md:items-center md:space-y-0">
-          <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Overview of your marketplace
-            </p>
+      <div className="container mx-auto py-8 px-4">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold">Tableau de bord administrateur</h1>
+          <div className="flex space-x-2">
+            <Button 
+              onClick={() => populateProductsForSubcategories()}
+              variant="outline"
+            >
+              Créer produits par sous-catégorie
+            </Button>
+            <Button 
+              onClick={() => createRequestedProducts()}
+              variant="default"
+            >
+              Créer les produits spécifiques
+            </Button>
           </div>
         </div>
-
-        {/* Statistiques du tableau de bord */}
-        <DashboardStats />
-
-        {/* Cartes de raccourcis vers les fonctionnalités principales */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Gestion des artisans */}
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-              <Users className="h-8 w-8 text-terracotta-600" />
-              <div>
-                <CardTitle>Artisan Management</CardTitle>
-                <CardDescription>
-                  Create and manage artisan accounts
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm">
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>Add new artisan accounts</li>
-                  <li>Edit artisan profiles and details</li>
-                  <li>Review artisan products</li>
-                  <li>Track artisan performance</li>
-                </ul>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                onClick={() => navigate('/admin/artisans')}
-                className="w-full gap-1 bg-terracotta-600 hover:bg-terracotta-700"
-              >
-                Manage Artisans
-                <ArrowUpRight className="h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
-
-          {/* Gestion des produits */}
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-              <ShoppingBag className="h-8 w-8 text-terracotta-600" />
-              <div>
-                <CardTitle>Product Management</CardTitle>
-                <CardDescription>
-                  Add and manage products in your marketplace
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm">
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>Add new products to the marketplace</li>
-                  <li>Edit product details and pricing</li>
-                  <li>Manage categories and tags</li>
-                  <li>Track product performance</li>
-                </ul>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                onClick={() => navigate('/admin/products')}
-                className="w-full gap-1 bg-terracotta-600 hover:bg-terracotta-700"
-              >
-                Manage Products
-                <ArrowUpRight className="h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-
-        {/* Activité récente */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <RecentActivity title="Recent Artisans" type="artisans" />
-          <RecentActivity title="Recent Products" type="products" />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8">
+            <DashboardStats />
+          </div>
+          <div className="lg:col-span-4">
+            <RecentActivity />
+          </div>
         </div>
       </div>
     </AdminLayout>
   );
-}
+};
+
+export default AdminDashboard;

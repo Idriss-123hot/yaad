@@ -53,6 +53,58 @@ async function createProduct(
   return product
 }
 
+// Function to create products with specific data
+async function createSpecificProducts(productsData) {
+  const results = [];
+  
+  for (const product of productsData) {
+    // Parse the image URL into an array of the same URL to fill all image slots
+    const imageArray = Array(4).fill(product.images);
+    
+    // Parse tags from comma-separated string to array
+    const tagsArray = product.tags.split(',').map(tag => tag.trim());
+    
+    // Format for insert
+    const productData = {
+      title: product.title,
+      description: product.description,
+      price: parseFloat(product.price),
+      discount_price: product.discount_price ? parseFloat(product.discount_price) : null,
+      category_id: product.category_id,
+      subcategory_id: product.subcategory_id,
+      artisan_id: product.artisan_id,
+      stock: parseInt(product.stock),
+      rating: parseFloat(product.rating),
+      review_count: parseInt(product.review_count),
+      featured: product.featured === 'true',
+      is_custom_order: product.is_custom_order === 'true',
+      production_time: product.production_time,
+      material: product.material,
+      origin: product.origin,
+      tags: tagsArray,
+      images: imageArray
+    };
+    
+    // Insert the product
+    const { data, error } = await supabase
+      .from('products')
+      .insert(productData)
+      .select();
+    
+    if (error) {
+      console.error(`Error creating product ${product.title}:`, error);
+    } else if (data) {
+      results.push({
+        title: product.title,
+        productId: data[0].id
+      });
+      console.log(`Created product: ${product.title}`);
+    }
+  }
+  
+  return results;
+}
+
 // Main handler function
 serve(async (req) => {
   // Handle CORS
@@ -61,6 +113,37 @@ serve(async (req) => {
   }
   
   try {
+    const requestUrl = new URL(req.url);
+    const mode = requestUrl.searchParams.get('mode') || 'subcategory';
+    
+    // Handle specific products mode
+    if (mode === 'specific' && req.method === 'POST') {
+      const requestData = await req.json();
+      
+      if (!requestData.products || !Array.isArray(requestData.products)) {
+        throw new Error('Invalid request format. Expected an array of products.');
+      }
+      
+      const products = requestData.products;
+      const results = await createSpecificProducts(products);
+      
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: `Created ${results.length} specific products`,
+          products: results
+        }),
+        {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          },
+          status: 200
+        }
+      )
+    }
+    
+    // Original functionality - populate by subcategory
     // Get available artisans to distribute products among them
     const { data: artisans, error: artisansError } = await supabase
       .from('artisans')
