@@ -23,6 +23,7 @@ export interface Product {
   origin?: string;
   categoryId?: string;
   subcategoryId?: string;
+  variations?: ProductVariation[];
 }
 
 export interface ProductVariation {
@@ -60,6 +61,7 @@ export interface Category {
   description?: string;
   image?: string;
   subcategories?: Subcategory[];
+  productCount?: number;
 }
 
 export interface Subcategory {

@@ -1,302 +1,264 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader, 
+  SheetTitle,
+  SheetFooter
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { Category, Subcategory } from '@/models/types';
+import { Subcategory } from '@/models/types';
+import { SearchFilters } from '@/services/searchService';
 
-interface AdvancedFiltersProps {
-  filters: {
-    query: string;
-    selectedCategories: string[];
-    selectedSubcategories: string[];
-    priceRange: [number, number];
-    sortBy: string;
-  };
-  onFilterChange: (filters: any) => void;
+export interface AdvancedFiltersProps {
+  isOpen: boolean;
+  onClose: () => void;
+  initialFilters: Partial<SearchFilters>;
+  onApplyFilters: (filters: Partial<SearchFilters>) => void;
 }
 
-export function AdvancedFilters({ filters, onFilterChange }: AdvancedFiltersProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
+const AdvancedFilters = ({
+  isOpen,
+  onClose,
+  initialFilters,
+  onApplyFilters
+}: AdvancedFiltersProps) => {
+  // Local state for filters
+  const [filters, setFilters] = useState<Partial<SearchFilters>>(initialFilters);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
-  const [openSections, setOpenSections] = useState({
-    categories: true,
-    price: true
-  });
-  const [loading, setLoading] = useState(true);
+  const [artisans, setArtisans] = useState<{ id: string; name: string }[]>([]);
   
-  // Load categories
+  // Fetch categories
   useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const { data: categoriesData, error: categoriesError } = await supabase
-          .from('categories')
-          .select('*')
-          .order('name');
-        
-        if (categoriesError) {
-          throw categoriesError;
-        }
-        
-        setCategories(categoriesData || []);
-      } catch (error) {
-        console.error('Error loading categories:', error);
-      }
-    };
-    
-    loadCategories();
-  }, []);
-  
-  // Load subcategories
-  useEffect(() => {
-    const loadSubcategories = async () => {
-      setLoading(true);
-      try {
-        const { data: subcategoriesData, error } = await supabase
-          .from('subcategories')
-          .select('*')
-          .order('name');
-        
-        if (error) {
-          throw error;
-        }
-        
-        setSubcategories(subcategoriesData || []);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error loading subcategories:', error);
-        setLoading(false);
-      }
-    };
-    
-    loadSubcategories();
-  }, []);
-  
-  // Toggle section open/closed
-  const toggleSection = (section: keyof typeof openSections) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-  
-  // Handle category selection
-  const handleCategoryChange = (categoryId: string, checked: boolean) => {
-    let newSelectedCategories = [...filters.selectedCategories];
-    
-    if (checked) {
-      newSelectedCategories.push(categoryId);
-    } else {
-      newSelectedCategories = newSelectedCategories.filter(id => id !== categoryId);
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name')
+        .order('name');
       
-      // Also remove any subcategories related to this category
-      const categorySubcatIds = subcategories
-        .filter(sc => sc.parent_id === categoryId)
-        .map(sc => sc.id);
-      
-      const newSelectedSubcategories = filters.selectedSubcategories.filter(
-        id => !categorySubcatIds.includes(id)
-      );
-      
-      onFilterChange({
-        selectedCategories: newSelectedCategories,
-        selectedSubcategories: newSelectedSubcategories
-      });
-      return;
-    }
-    
-    onFilterChange({ selectedCategories: newSelectedCategories });
-  };
-  
-  // Handle subcategory selection
-  const handleSubcategoryChange = (subcategoryId: string, checked: boolean) => {
-    let newSelectedSubcategories = [...filters.selectedSubcategories];
-    
-    if (checked) {
-      newSelectedSubcategories.push(subcategoryId);
-      
-      // Make sure parent category is also selected
-      const subcategory = subcategories.find(sc => sc.id === subcategoryId);
-      if (subcategory && !filters.selectedCategories.includes(subcategory.parent_id)) {
-        const newSelectedCategories = [...filters.selectedCategories, subcategory.parent_id];
-        onFilterChange({
-          selectedCategories: newSelectedCategories,
-          selectedSubcategories: newSelectedSubcategories
-        });
+      if (error) {
+        console.error('Error fetching categories:', error);
         return;
       }
-    } else {
-      newSelectedSubcategories = newSelectedSubcategories.filter(id => id !== subcategoryId);
-    }
+      
+      setCategories(data || []);
+    };
     
-    onFilterChange({ selectedSubcategories: newSelectedSubcategories });
-  };
+    fetchCategories();
+  }, []);
   
-  // Handle price range change
-  const handlePriceChange = (values: number[]) => {
-    onFilterChange({ priceRange: values as [number, number] });
-  };
+  // Fetch subcategories
+  useEffect(() => {
+    const fetchSubcategories = async () => {
+      if (!filters.categories || filters.categories.length === 0) {
+        setSubcategories([]);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('subcategories')
+        .select('id, name, parent_id')
+        .in('parent_id', filters.categories || []);
+      
+      if (error) {
+        console.error('Error fetching subcategories:', error);
+        return;
+      }
+      
+      setSubcategories(data || []);
+    };
+    
+    fetchSubcategories();
+  }, [filters.categories]);
   
-  // Reset all filters
-  const handleResetFilters = () => {
-    onFilterChange({
-      selectedCategories: [],
-      selectedSubcategories: [],
-      priceRange: [0, 1000]
+  // Fetch artisans
+  useEffect(() => {
+    const fetchArtisans = async () => {
+      const { data, error } = await supabase
+        .from('artisans')
+        .select('id, name')
+        .order('name');
+      
+      if (error) {
+        console.error('Error fetching artisans:', error);
+        return;
+      }
+      
+      setArtisans(data || []);
+    };
+    
+    fetchArtisans();
+  }, []);
+  
+  // Initialize filters from props
+  useEffect(() => {
+    setFilters(initialFilters);
+  }, [initialFilters]);
+  
+  // Handle category change
+  const handleCategoryChange = (id: string, checked: boolean) => {
+    setFilters(prev => {
+      const prevCategories = prev.categories || [];
+      
+      if (checked) {
+        return { ...prev, categories: [...prevCategories, id] };
+      } else {
+        // Remove category and any subcategories belonging to it
+        const newCategories = prevCategories.filter(c => c !== id);
+        const prevSubcategories = prev.subcategories || [];
+        const newSubcategories = prevSubcategories.filter(sc => {
+          const subcategory = subcategories.find(s => s.id === sc);
+          return subcategory?.parent_id !== id;
+        });
+        
+        return { 
+          ...prev, 
+          categories: newCategories,
+          subcategories: newSubcategories
+        };
+      }
     });
   };
-
-  // Get subcategories for a specific category
-  const getCategorySubcategories = (categoryId: string) => {
-    return subcategories.filter(sc => sc.parent_id === categoryId);
+  
+  // Handle subcategory change
+  const handleSubcategoryChange = (id: string, checked: boolean) => {
+    setFilters(prev => {
+      const prevSubcategories = prev.subcategories || [];
+      
+      if (checked) {
+        return { ...prev, subcategories: [...prevSubcategories, id] };
+      } else {
+        return { 
+          ...prev, 
+          subcategories: prevSubcategories.filter(sc => sc !== id)
+        };
+      }
+    });
   };
-
+  
+  // Handle artisan change
+  const handleArtisanChange = (id: string, checked: boolean) => {
+    setFilters(prev => {
+      const prevArtisans = prev.artisans || [];
+      
+      if (checked) {
+        return { ...prev, artisans: [...prevArtisans, id] };
+      } else {
+        return { 
+          ...prev, 
+          artisans: prevArtisans.filter(a => a !== id)
+        };
+      }
+    });
+  };
+  
+  // Apply filters
+  const handleApply = () => {
+    onApplyFilters(filters);
+    onClose();
+  };
+  
+  // Reset filters
+  const handleReset = () => {
+    const resetFilters = { q: filters.q };
+    setFilters(resetFilters);
+    onApplyFilters(resetFilters);
+    onClose();
+  };
+  
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle>Filtres</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4">
-          <div className="space-y-5">
-            {/* Categories Section */}
-            <Collapsible open={openSections.categories}>
-              <div className="flex justify-between items-center pb-2">
-                <h3 className="font-medium">Catégories</h3>
-                <CollapsibleTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 w-7 p-0" 
-                    onClick={() => toggleSection('categories')}
-                  >
-                    {openSections.categories ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-              </div>
-              
-              <CollapsibleContent>
-                <div className="space-y-3 pt-1 pl-1">
-                  {loading ? (
-                    <div className="text-sm text-muted-foreground pl-6">Chargement...</div>
-                  ) : (
-                    categories.map(category => {
-                      const categorySubcategories = getCategorySubcategories(category.id);
-                      return (
-                        <div key={category.id} className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox 
-                              id={`category-${category.id}`} 
-                              checked={filters.selectedCategories.includes(category.id)}
-                              onCheckedChange={(checked) => 
-                                handleCategoryChange(category.id, checked === true)
-                              }
-                            />
-                            <Label 
-                              htmlFor={`category-${category.id}`}
-                              className="cursor-pointer text-sm"
-                            >
-                              {category.name}
-                            </Label>
-                          </div>
-                          
-                          {/* Render subcategories if the category is selected */}
-                          {filters.selectedCategories.includes(category.id) && categorySubcategories.length > 0 && (
-                            <div className="ml-6 space-y-1">
-                              {categorySubcategories.map(subcategory => (
-                                <div key={subcategory.id} className="flex items-center space-x-2">
-                                  <Checkbox 
-                                    id={`subcategory-${subcategory.id}`} 
-                                    checked={filters.selectedSubcategories.includes(subcategory.id)}
-                                    onCheckedChange={(checked) => 
-                                      handleSubcategoryChange(subcategory.id, checked === true)
-                                    }
-                                  />
-                                  <Label 
-                                    htmlFor={`subcategory-${subcategory.id}`}
-                                    className="cursor-pointer text-xs text-muted-foreground"
-                                  >
-                                    {subcategory.name}
-                                  </Label>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent className="w-[400px] sm:max-w-none overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Advanced Filters</SheetTitle>
+        </SheetHeader>
+        
+        <div className="py-6 space-y-6">
+          {/* Categories */}
+          <div>
+            <h3 className="font-medium mb-3">Categories</h3>
+            <div className="space-y-2">
+              {categories.map(category => (
+                <div key={category.id} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`category-${category.id}`}
+                    checked={(filters.categories || []).includes(category.id)}
+                    onCheckedChange={(checked) => 
+                      handleCategoryChange(category.id, checked === true)
+                    }
+                  />
+                  <Label htmlFor={`category-${category.id}`}>{category.name}</Label>
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
-            
-            {/* Price Range Section */}
-            <Collapsible open={openSections.price}>
-              <div className="flex justify-between items-center pb-2">
-                <h3 className="font-medium">Prix</h3>
-                <CollapsibleTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 w-7 p-0" 
-                    onClick={() => toggleSection('price')}
-                  >
-                    {openSections.price ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-              </div>
-              
-              <CollapsibleContent>
-                <div className="space-y-4 pt-1">
-                  <div className="pl-1">
-                    <Slider 
-                      defaultValue={[0, 1000]} 
-                      value={filters.priceRange} 
-                      onValueChange={handlePriceChange} 
-                      min={0} 
-                      max={1000} 
-                      step={10}
-                    />
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <div>Min: {filters.priceRange[0]}€</div>
-                    <div>Max: {filters.priceRange[1]}€</div>
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-            
-            {/* Reset Filters Button */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full mt-2" 
-              onClick={handleResetFilters}
-              disabled={
-                filters.selectedCategories.length === 0 &&
-                filters.selectedSubcategories.length === 0 &&
-                filters.priceRange[0] === 0 && 
-                filters.priceRange[1] === 1000
-              }
-            >
-              Réinitialiser les filtres
-            </Button>
+              ))}
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          
+          <Separator />
+          
+          {/* Subcategories */}
+          {subcategories.length > 0 && (
+            <>
+              <div>
+                <h3 className="font-medium mb-3">Subcategories</h3>
+                <div className="space-y-2">
+                  {subcategories.map(subcategory => (
+                    <div key={subcategory.id} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`subcategory-${subcategory.id}`}
+                        checked={(filters.subcategories || []).includes(subcategory.id)}
+                        onCheckedChange={(checked) => 
+                          handleSubcategoryChange(subcategory.id, checked === true)
+                        }
+                      />
+                      <Label htmlFor={`subcategory-${subcategory.id}`}>{subcategory.name}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <Separator />
+            </>
+          )}
+          
+          {/* Artisans */}
+          <div>
+            <h3 className="font-medium mb-3">Artisans</h3>
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+              {artisans.map(artisan => (
+                <div key={artisan.id} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`artisan-${artisan.id}`}
+                    checked={(filters.artisans || []).includes(artisan.id)}
+                    onCheckedChange={(checked) => 
+                      handleArtisanChange(artisan.id, checked === true)
+                    }
+                  />
+                  <Label htmlFor={`artisan-${artisan.id}`}>{artisan.name}</Label>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Add more filter sections as needed */}
+        </div>
+        
+        <SheetFooter className="flex flex-row space-x-2 sm:space-x-0">
+          <Button variant="outline" onClick={handleReset}>
+            Reset
+          </Button>
+          <Button onClick={handleApply}>
+            Apply Filters
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
-}
+};
+
+export default AdvancedFilters;

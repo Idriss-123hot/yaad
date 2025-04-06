@@ -1,139 +1,131 @@
-
-import { useState, useEffect } from 'react';
-import { Search, Filter, X } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Search as SearchIcon, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger
-} from '@/components/ui/sheet';
-import { AdvancedFilters } from './AdvancedFilters';
-import { useNavigate } from 'react-router-dom';
+import AdvancedFilters from './AdvancedFilters';
 import { SearchFilters } from '@/services/searchService';
 
 interface SearchBarProps {
+  onSearch: (filters: Partial<SearchFilters>) => void;
+  initialFilters?: Partial<SearchFilters>;
+  variant?: 'default' | 'minimal' | 'expanded';
+  autoFocus?: boolean;
   className?: string;
-  initialQuery?: string;
-  onSearch?: (term: string) => void;
-  onFilterApply?: (filters: Partial<SearchFilters>) => void;
-  isCompact?: boolean;
 }
 
-export function SearchBar({ 
-  className = "", 
-  initialQuery = "", 
-  onSearch, 
-  onFilterApply,
-  isCompact = false
-}: SearchBarProps) {
-  const [searchTerm, setSearchTerm] = useState(initialQuery);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+export const SearchBar = ({
+  onSearch,
+  initialFilters = { q: '' },
+  variant = 'default',
+  autoFocus = false,
+  className = '',
+}: SearchBarProps) => {
+  const [searchQuery, setSearchQuery] = useState(initialFilters.q || '');
+  const [showFilters, setShowFilters] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-
+  const location = useLocation();
+  
   useEffect(() => {
-    setSearchTerm(initialQuery);
-  }, [initialQuery]);
-
-  const handleSearch = (e: React.FormEvent) => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus]);
+  
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    if (onSearch) {
-      onSearch(searchTerm);
-    } else {
-      const params = new URLSearchParams();
-      if (searchTerm) params.set('q', searchTerm);
-      navigate(`/search?${params.toString()}`);
+    if (location.pathname !== '/search') {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      return;
     }
-  };
-
-  const clearSearch = () => {
-    setSearchTerm('');
-    if (onSearch) {
-      onSearch('');
-    }
-  };
-
-  const handleFilterApply = (filters: Partial<SearchFilters>) => {
-    setIsFilterOpen(false);
     
-    if (onFilterApply) {
-      onFilterApply(filters);
-    } else {
-      const params = new URLSearchParams();
-      if (searchTerm) params.set('q', searchTerm);
-      
-      if (filters.category) params.set('category', filters.category);
-      if (filters.subcategory) params.set('subcategory', filters.subcategory);
-      if (filters.artisans?.length) params.set('artisan', filters.artisans[0]);
-      if (filters.minPrice !== undefined) params.set('minPrice', filters.minPrice.toString());
-      if (filters.maxPrice !== undefined) params.set('maxPrice', filters.maxPrice.toString());
-      if (filters.rating !== undefined) params.set('rating', filters.rating.toString());
-      if (filters.delivery) params.set('delivery', filters.delivery);
-      
-      navigate(`/search?${params.toString()}`);
-    }
+    onSearch({ ...initialFilters, q: searchQuery });
   };
-
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+  
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+    
+    if (!searchQuery) return;
+    
+    onSearch({ ...initialFilters, q: '' });
+  };
+  
+  const handleApplyFilters = (filters: Partial<SearchFilters>) => {
+    onSearch({ ...filters, q: searchQuery });
+  };
+  
+  let containerClasses = 'flex items-center gap-2 ';
+  let inputClasses = 'flex-grow ';
+  
+  switch (variant) {
+    case 'minimal':
+      containerClasses += 'max-w-xs';
+      break;
+    case 'expanded':
+      containerClasses += 'w-full max-w-4xl';
+      inputClasses += 'py-6 text-lg';
+      break;
+    default:
+      containerClasses += 'w-full max-w-md';
+  }
+  
   return (
-    <div className={`w-full max-w-4xl mx-auto ${className}`}>
-      <form onSubmit={handleSearch} className="relative flex items-center">
+    <>
+      <form 
+        onSubmit={handleSubmit} 
+        className={`${containerClasses} ${className}`}
+      >
         <div className="relative flex-grow">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            type="text"
-            placeholder="Rechercher un produit, un artisan, une catégorie..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={`pl-10 pr-10 w-full rounded-l-full ${isCompact ? 'py-2' : 'py-6'}`}
+            ref={inputRef}
+            type="search"
+            placeholder="Search products, artisans, etc."
+            value={searchQuery}
+            onChange={handleInputChange}
+            className={`pr-8 ${inputClasses}`}
           />
-          {searchTerm && (
+          {searchQuery && (
             <button
               type="button"
-              onClick={clearSearch}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              onClick={handleClearSearch}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
             >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Clear search</span>
+              <X size={16} />
             </button>
           )}
         </div>
-
-        <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-          <SheetTrigger asChild>
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="ml-2 rounded-r-full border-l-0 px-4"
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Filtres
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle>Filtres avancés</SheetTitle>
-            </SheetHeader>
-            <AdvancedFilters 
-              onApply={handleFilterApply} 
-              initialFilters={{
-                q: searchTerm,
-              }}
-            />
-          </SheetContent>
-        </Sheet>
+        
+        <Button type="submit" size="icon">
+          <SearchIcon size={18} />
+        </Button>
         
         <Button 
-          type="submit" 
-          className="ml-2 rounded-full bg-terracotta-600 hover:bg-terracotta-700 text-white"
+          type="button" 
+          size="icon" 
+          variant="outline"
+          onClick={() => setShowFilters(true)}
         >
-          Rechercher
+          <SlidersHorizontal size={18} />
         </Button>
       </form>
-    </div>
+      
+      <AdvancedFilters
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
+        initialFilters={initialFilters}
+        onApplyFilters={handleApplyFilters}
+      />
+    </>
   );
-}
+};
 
 export default SearchBar;

@@ -12,20 +12,55 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from '@/components/ui/pagination';
-import { SAMPLE_CATEGORIES, SAMPLE_PRODUCTS, Product } from '@/models/types';
+import { Product, Category } from '@/models/types';
+import { supabase } from '@/integrations/supabase/client';
+import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
+import { useQuery } from '@tanstack/react-query';
+
+// Helper function to fetch category by slug
+const fetchCategoryBySlug = async (slug: string) => {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+  
+  if (error) throw error;
+  return data as Category;
+};
+
+// Helper function to fetch products by category ID
+const fetchProductsByCategory = async (categoryId: string) => {
+  const { data, error } = await supabase
+    .from('products')
+    .select(`
+      *,
+      artisan:artisan_id (*)
+    `)
+    .eq('category_id', categoryId);
+  
+  if (error) throw error;
+  return data.map(mapDatabaseProductToProduct);
+};
 
 const CategoryDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 6;
 
-  // Find the category by slug
-  const category = SAMPLE_CATEGORIES.find(cat => cat.slug === slug);
-  
-  // Filter products by category name
-  const categoryProducts = SAMPLE_PRODUCTS.filter(
-    product => product.category === category?.name
-  );
+  // Fetch category data
+  const { data: category, isLoading: categoryLoading, error: categoryError } = useQuery({
+    queryKey: ['category', slug],
+    queryFn: () => fetchCategoryBySlug(slug || ''),
+    enabled: !!slug
+  });
+
+  // Fetch products for the category
+  const { data: categoryProducts = [], isLoading: productsLoading } = useQuery({
+    queryKey: ['categoryProducts', category?.id],
+    queryFn: () => fetchProductsByCategory(category?.id || ''),
+    enabled: !!category?.id
+  });
   
   // Calculate pagination
   const totalPages = Math.ceil(categoryProducts.length / productsPerPage);
@@ -48,7 +83,26 @@ const CategoryDetail = () => {
     setCurrentPage(1);
   }, [slug]);
 
-  if (!category) {
+  // Loading state
+  if (categoryLoading || productsLoading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-grow pt-24 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="font-serif text-3xl font-bold mb-4">Loading...</h1>
+            <p className="text-muted-foreground">
+              Please wait while we fetch the category details.
+            </p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Error state
+  if (categoryError || !category) {
     return (
       <div className="flex flex-col min-h-screen">
         <Navbar />
