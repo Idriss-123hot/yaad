@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -11,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ProductWithArtisan } from '@/models/types';
 import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
 import { SearchFilters } from '@/services/search';
+import { searchProducts } from '@/services/search';
 
 const Search = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,68 +23,17 @@ const Search = () => {
     category: [], // Initialize as empty array
     subcategory: [], // Initialize as empty array
     priceRange: [0, 1000],
-    sort: 'featured', // Changed from sortBy to sort
+    sort: 'featured',
   });
   
   useEffect(() => {
-    const searchProducts = async () => {
+    const fetchProducts = async () => {
       setIsLoading(true);
       
       try {
-        let query = supabase
-          .from('products')
-          .select(`
-            *,
-            artisan:artisans(*),
-            category:categories(*),
-            subcategory:subcategories(*)
-          `);
-        
-        if (filters.q) {
-          query = query.textSearch('search_vector', filters.q);
-        }
-        
-        if (filters.category && filters.category.length > 0) {
-          query = query.in('category_id', filters.category);
-        }
-        
-        if (filters.subcategory && filters.subcategory.length > 0) {
-          query = query.in('subcategory_id', filters.subcategory);
-        }
-        
-        if (filters.priceRange) {
-          query = query
-            .gte('price', filters.priceRange[0])
-            .lte('price', filters.priceRange[1]);
-        }
-        
-        switch (filters.sort) {
-          case 'price-asc':
-            query = query.order('price', { ascending: true });
-            break;
-          case 'price-desc':
-            query = query.order('price', { ascending: false });
-            break;
-          case 'newest':
-            query = query.order('created_at', { ascending: false });
-            break;
-          case 'rating':
-            query = query.order('rating', { ascending: false });
-            break;
-          case 'featured':
-          default:
-            query = query.order('featured', { ascending: false }).order('rating', { ascending: false });
-            break;
-        }
-        
-        const { data, error } = await query;
-        
-        if (error) {
-          throw error;
-        }
-        
-        const mappedProducts = data.map(product => mapDatabaseProductToProduct(product));
-        setProducts(mappedProducts);
+        // Use the searchProducts function from our search service
+        const results = await searchProducts(filters);
+        setProducts(results.products);
       } catch (error) {
         console.error('Error searching products:', error);
         setProducts([]);
@@ -91,8 +42,9 @@ const Search = () => {
       setIsLoading(false);
     };
     
+    // Debounce search to avoid too many requests
     const timerId = setTimeout(() => {
-      searchProducts();
+      fetchProducts();
     }, 300);
     
     return () => clearTimeout(timerId);

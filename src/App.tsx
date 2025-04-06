@@ -29,6 +29,7 @@ import AdminProductNew from './pages/admin/products/NewProduct'
 import AdminProductEdit from './pages/admin/products/EditProduct'
 import AdminArtisansList from './pages/admin/artisans/ArtisansList'
 import AdminArtisanNew from './pages/admin/artisans/NewArtisan'
+import AdminArtisanEdit from './pages/admin/artisans/EditArtisan'
 import ArtisanProductsList from './pages/artisan/products/ProductsList'
 import ArtisanProductNew from './pages/artisan/products/NewProduct'
 import ArtisanProductEdit from './pages/artisan/products/EditProduct'
@@ -68,6 +69,7 @@ function App() {
         <Route path="/admin/products/:id/edit" element={<AdminProductEdit />} />
         <Route path="/admin/artisans" element={<AdminArtisansList />} />
         <Route path="/admin/artisans/new" element={<AdminArtisanNew />} />
+        <Route path="/admin/artisans/:id/edit" element={<AdminArtisanEdit />} />
 
         {/* Routes artisan */}
         <Route path="/artisan/login" element={<ArtisanLogin />} />
