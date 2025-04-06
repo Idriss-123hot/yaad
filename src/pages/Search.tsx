@@ -1,244 +1,255 @@
 
-import { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
-import { SearchBar } from '@/components/search/SearchBar';
-import { AdvancedFilters } from '@/components/search/AdvancedFilters';
 import { ProductCard } from '@/components/ui/ProductCard';
-import { getProductsByCategory, PRODUCTS } from '@/data/products';
-import { ProductWithArtisan } from '@/models/types';
-import { Filter, SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Search as SearchIcon, X, SlidersHorizontal, Loader2 } from 'lucide-react';
+import { AdvancedFilters } from '@/components/search/AdvancedFilters';
 import { supabase } from '@/integrations/supabase/client';
-import { mapDatabaseProductToProduct } from '@/utils/productMappers';
+import { ProductWithArtisan } from '@/models/types';
+import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
+
+interface SearchFilters {
+  query: string;
+  selectedCategories: string[];
+  selectedSubcategories: string[];
+  priceRange: [number, number];
+  sortBy: string;
+}
 
 const Search = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [products, setProducts] = useState<ProductWithArtisan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [categoryName, setCategoryName] = useState<string>('');
-  const [subcategoryName, setSubcategoryName] = useState<string>('');
+  const [filters, setFilters] = useState<SearchFilters>({
+    query: '',
+    selectedCategories: [],
+    selectedSubcategories: [],
+    priceRange: [0, 1000],
+    sortBy: 'featured',
+  });
   
-  const query = searchParams.get('q') || '';
-  const category = searchParams.get('category') || '';
-  const subcategory = searchParams.get('subcategory') || '';
-  
+  // Effect to search products when filters change
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
+    const searchProducts = async () => {
+      setIsLoading(true);
       
       try {
-        // Start building the query
-        let productQuery = supabase
+        let query = supabase
           .from('products')
           .select(`
             *,
-            product_variations(*),
             artisan:artisans(*),
-            category:categories(*)
+            category:categories(*),
+            subcategory:subcategories(*)
           `);
         
-        // Filter by category if provided
-        if (category) {
-          // Using direct category ID from URL
-          productQuery = productQuery.eq('category_id', category);
-          
-          // Get category name
-          const { data: categoryData } = await supabase
-            .from('categories')
-            .select('name')
-            .eq('id', category)
-            .single();
-            
-          if (categoryData) {
-            setCategoryName(categoryData.name);
-          }
+        // Apply search query if exists
+        if (filters.query) {
+          // Use textSearch for full-text search
+          query = query.textSearch('search_vector', filters.query);
         }
         
-        // Filter by subcategory if provided
-        if (subcategory) {
-          // Using direct subcategory ID from URL
-          productQuery = productQuery.eq('subcategory_id', subcategory);
-          
-          // Get subcategory name
-          const { data: subcategoryData, error: subcategoryError } = await supabase
-            .from('subcategories')
-            .select('name')
-            .eq('id', subcategory)
-            .single();
-            
-          if (subcategoryData && !subcategoryError) {
-            setSubcategoryName(subcategoryData.name);
-          }
+        // Apply category filter if any categories are selected
+        if (filters.selectedCategories.length > 0) {
+          query = query.in('category_id', filters.selectedCategories);
         }
         
-        // Add text search if query is provided
-        if (query) {
-          productQuery = productQuery.textSearch('search_vector', query, {
-            config: 'english'
-          });
+        // Apply subcategory filter if any subcategories are selected
+        if (filters.selectedSubcategories.length > 0) {
+          query = query.in('subcategory_id', filters.selectedSubcategories);
         }
         
-        const { data, error } = await productQuery;
+        // Apply price range filter
+        query = query
+          .gte('price', filters.priceRange[0])
+          .lte('price', filters.priceRange[1]);
+        
+        // Apply sorting
+        switch (filters.sortBy) {
+          case 'price-asc':
+            query = query.order('price', { ascending: true });
+            break;
+          case 'price-desc':
+            query = query.order('price', { ascending: false });
+            break;
+          case 'newest':
+            query = query.order('created_at', { ascending: false });
+            break;
+          case 'rating':
+            query = query.order('rating', { ascending: false });
+            break;
+          case 'featured':
+          default:
+            query = query.order('featured', { ascending: false }).order('rating', { ascending: false });
+            break;
+        }
+        
+        // Get data
+        const { data, error } = await query;
         
         if (error) {
-          console.error('Error fetching products:', error);
-          setProducts([]);
-        } else if (data) {
-          const mappedProducts = data.map(product => mapDatabaseProductToProduct(product));
-          setProducts(mappedProducts);
+          throw error;
         }
+        
+        // Map database products to our model
+        const mappedProducts = data.map(product => mapDatabaseProductToProduct(product));
+        setProducts(mappedProducts);
       } catch (error) {
-        console.error('Error in search:', error);
-        
-        // Fallback to static data if Supabase query fails
-        let filteredProducts = PRODUCTS;
-        
-        if (category) {
-          filteredProducts = getProductsByCategory(category, subcategory);
-        }
-        
-        if (query) {
-          const searchTerms = query.toLowerCase().split(' ');
-          filteredProducts = filteredProducts.filter(product => {
-            const searchableText = `${product.title} ${product.description} ${product.category}`.toLowerCase();
-            return searchTerms.some(term => searchableText.includes(term));
-          });
-        }
-        
-        setProducts(filteredProducts);
-      } finally {
-        setLoading(false);
+        console.error('Error searching products:', error);
+        setProducts([]);
       }
+      
+      setIsLoading(false);
     };
     
-    fetchProducts();
-  }, [query, category, subcategory]);
+    // Debounce the search to avoid too many queries
+    const timerId = setTimeout(() => {
+      searchProducts();
+    }, 300);
+    
+    return () => clearTimeout(timerId);
+  }, [filters]);
   
-  // Handle filter application - now automatic without button click
-  const handleFilterApply = (filters: any) => {
-    // Update search params based on filters
-    const newParams = new URLSearchParams(searchParams);
-    
-    if (filters.category) newParams.set('category', filters.category);
-    else newParams.delete('category');
-    
-    if (filters.subcategory) newParams.set('subcategory', filters.subcategory);
-    else newParams.delete('subcategory');
-    
-    if (filters.q) newParams.set('q', filters.q);
-    else if (filters.q === '') newParams.delete('q');
-    
-    if (filters.minPrice !== undefined) newParams.set('minPrice', filters.minPrice.toString());
-    else newParams.delete('minPrice');
-    
-    if (filters.maxPrice !== undefined) newParams.set('maxPrice', filters.maxPrice.toString());
-    else newParams.delete('maxPrice');
-    
-    setSearchParams(newParams);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters(prev => ({
+      ...prev,
+      query: e.target.value
+    }));
   };
   
+  const handleClearSearch = () => {
+    setFilters(prev => ({
+      ...prev,
+      query: ''
+    }));
+  };
+  
+  const handleToggleFilters = () => {
+    setShowFilters(prev => !prev);
+  };
+  
+  const handleFilterChange = (newFilters: Partial<SearchFilters>) => {
+    setFilters(prev => ({
+      ...prev,
+      ...newFilters
+    }));
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-grow pt-24">
-        {/* Search Header */}
-        <section className="bg-cream-50 py-6 px-6 md:px-12">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col space-y-4">
-              {/* Breadcrumb */}
-              <div className="flex items-center text-sm text-muted-foreground mb-2">
-                <Link to="/" className="hover:text-terracotta-600 transition-colors">
-                  Accueil
-                </Link>
-                <ChevronRight className="h-4 w-4 mx-2" />
-                <span>Recherche</span>
-                {categoryName && (
-                  <>
-                    <ChevronRight className="h-4 w-4 mx-2" />
-                    <span className="hover:text-terracotta-600 transition-colors">
-                      {categoryName}
-                    </span>
-                  </>
-                )}
-                {subcategoryName && (
-                  <>
-                    <ChevronRight className="h-4 w-4 mx-2" />
-                    <span>{subcategoryName}</span>
-                  </>
-                )}
-              </div>
-              
-              {/* Search Bar */}
-              <SearchBar initialQuery={query} />
-              
-              {/* Search Info */}
-              <div className="flex justify-between items-center mt-4">
-                <div>
-                  <h1 className="text-xl font-medium">
-                    {subcategoryName 
-                      ? subcategoryName
-                      : categoryName 
-                        ? categoryName
-                        : query 
-                          ? `Résultats pour "${query}"`
-                          : 'Tous les produits'
-                    }
-                  </h1>
-                  <p className="text-sm text-muted-foreground">
-                    {products.length} produits trouvés
-                  </p>
+      <main className="flex-grow pt-24 pb-16 px-4 md:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="font-serif text-3xl md:text-4xl font-bold mb-4">Explorer Nos Produits</h1>
+          
+          {/* Search Input */}
+          <div className="relative mb-6">
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Rechercher un produit..."
+              className="pl-10 pr-10"
+              value={filters.query}
+              onChange={handleSearchChange}
+            />
+            {filters.query && (
+              <button
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={handleClearSearch}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+          
+          <div className="flex flex-col md:flex-row md:space-x-6 mb-10">
+            {/* Filters Panel */}
+            <div className={`${showFilters ? 'block' : 'hidden md:block'} w-full md:w-1/4 lg:w-1/5 mb-6 md:mb-0`}>
+              <AdvancedFilters 
+                filters={filters} 
+                onFilterChange={handleFilterChange}
+              />
+            </div>
+            
+            {/* Products Grid */}
+            <div className="w-full md:w-3/4 lg:w-4/5">
+              <div className="flex justify-between items-center mb-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex md:hidden items-center"
+                  onClick={handleToggleFilters}
+                >
+                  <SlidersHorizontal className="h-4 w-4 mr-2" />
+                  {showFilters ? 'Masquer filtres' : 'Afficher filtres'}
+                </Button>
+                
+                <div className="flex items-center">
+                  <span className="text-sm text-muted-foreground mr-2 hidden sm:inline">
+                    {products.length} produits
+                  </span>
+                  <select
+                    className="text-sm border rounded px-2 py-1 bg-white"
+                    value={filters.sortBy}
+                    onChange={(e) => handleFilterChange({ sortBy: e.target.value })}
+                  >
+                    <option value="featured">En vedette</option>
+                    <option value="price-asc">Prix: Croissant</option>
+                    <option value="price-desc">Prix: Décroissant</option>
+                    <option value="newest">Plus récent</option>
+                    <option value="rating">Les mieux notés</option>
+                  </select>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-        
-        {/* Main Content */}
-        <section className="py-8 px-6 md:px-12">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              {/* Filters Sidebar - Now Always Visible */}
-              <aside className="md:block">
-                <h2 className="font-medium text-lg mb-4">Filtres</h2>
-                <AdvancedFilters 
-                  onApply={handleFilterApply}
-                  initialFilters={{
-                    q: query,
-                    category: category,
-                    subcategory: subcategory
-                  }}
-                />
-              </aside>
               
-              {/* Products Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:col-span-3">
-                {loading ? (
-                  [...Array(6)].map((_, i) => (
-                    <div key={i} className="aspect-square bg-gray-100 rounded-lg animate-pulse"></div>
-                  ))
-                ) : products.length === 0 ? (
-                  <div className="col-span-full text-center py-12">
-                    <h2 className="text-2xl font-medium mb-2">Aucun produit trouvé</h2>
-                    <p className="text-muted-foreground mb-6">
-                      Essayez d'autres termes de recherche ou filtres.
-                    </p>
-                    <Button asChild>
-                      <Link to="/categories">Voir toutes les catégories</Link>
-                    </Button>
-                  </div>
-                ) : (
-                  products.map(product => (
+              {isLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="h-8 w-8 animate-spin text-terracotta-600" />
+                  <span className="ml-2 text-lg text-terracotta-600">Chargement...</span>
+                </div>
+              ) : products.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {products.map((product) => (
                     <ProductCard key={product.id} product={product} />
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <img 
+                    src="https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//no-results.svg" 
+                    alt="Aucun produit trouvé" 
+                    className="h-40 w-40 mb-4 opacity-50"
+                    onError={(e) => {
+                      e.currentTarget.src = "/no-results.svg";
+                    }}
+                  />
+                  <h3 className="text-xl font-bold mb-2">Aucun produit trouvé</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Essayez de modifier vos filtres ou d'utiliser un autre terme de recherche.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setFilters({
+                        query: '',
+                        selectedCategories: [],
+                        selectedSubcategories: [],
+                        priceRange: [0, 1000],
+                        sortBy: 'featured',
+                      });
+                    }}
+                  >
+                    Réinitialiser les filtres
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
-        </section>
+        </div>
       </main>
       <Footer />
       <FixedNavMenu />

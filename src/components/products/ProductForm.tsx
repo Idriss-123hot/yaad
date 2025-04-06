@@ -23,6 +23,7 @@ const productSchema = z.object({
   discount_price: z.coerce.number().nonnegative().optional(),
   stock: z.coerce.number().int().nonnegative({ message: 'Le stock ne peut pas être négatif' }).default(0),
   category_id: z.string().uuid({ message: 'Veuillez sélectionner une catégorie' }),
+  subcategory_id: z.string().uuid({ message: 'Veuillez sélectionner une sous-catégorie' }).optional(),
   material: z.string().optional(),
   origin: z.string().optional(),
   artisan_id: z.string().uuid({ message: 'Veuillez sélectionner un artisan' }).optional(),
@@ -50,9 +51,12 @@ export function ProductForm({
   const [uploading, setUploading] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [subcategories, setSubcategories] = useState<{ id: string; name: string; parent_id: string }[]>([]);
+  const [filteredSubcategories, setFilteredSubcategories] = useState<{ id: string; name: string; parent_id: string }[]>([]);
   const [artisans, setArtisans] = useState<{ id: string; name: string }[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const MAX_IMAGES = 4; // Maximum number of images allowed per product
 
   // Initialize form with default values
   const form = useForm<ProductFormValues>({
@@ -63,6 +67,7 @@ export function ProductForm({
       price: 0,
       stock: 0,
       category_id: '',
+      subcategory_id: '',
       material: '',
       origin: '',
       artisan_id: '',
@@ -92,6 +97,47 @@ export function ProductForm({
     
     fetchCategories();
   }, [toast]);
+
+  // Fetch subcategories for dropdown
+  useEffect(() => {
+    const fetchSubcategories = async () => {
+      const { data, error } = await supabase
+        .from('subcategories')
+        .select('id, name, parent_id')
+        .order('name');
+      
+      if (error) {
+        console.error('Error fetching subcategories:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de charger les sous-catégories',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      setSubcategories(data || []);
+    };
+    
+    fetchSubcategories();
+  }, [toast]);
+
+  // Filter subcategories when category changes
+  useEffect(() => {
+    const categoryId = form.watch('category_id');
+    if (categoryId && subcategories.length > 0) {
+      const filtered = subcategories.filter(sc => sc.parent_id === categoryId);
+      setFilteredSubcategories(filtered);
+      
+      // If current subcategory is not valid for this category, reset it
+      const currentSubcategory = form.watch('subcategory_id');
+      if (currentSubcategory && !filtered.some(sc => sc.id === currentSubcategory)) {
+        form.setValue('subcategory_id', '');
+      }
+    } else {
+      setFilteredSubcategories([]);
+    }
+  }, [form.watch('category_id'), subcategories, form]);
 
   // Fetch artisans for dropdown (admin only)
   useEffect(() => {
@@ -150,6 +196,7 @@ export function ProductForm({
             discount_price: data.discount_price || undefined,
             stock: data.stock,
             category_id: data.category_id || '',
+            subcategory_id: data.subcategory_id || '',
             material: data.material || '',
             origin: data.origin || '',
             artisan_id: data.artisan_id,
@@ -205,6 +252,17 @@ export function ProductForm({
   // Handle image upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) {
+      return;
+    }
+    
+    // Check if adding these files would exceed the maximum allowed
+    const totalImages = images.length + e.target.files.length;
+    if (totalImages > MAX_IMAGES) {
+      toast({
+        title: 'Limite d\'images atteinte',
+        description: `Vous pouvez télécharger au maximum ${MAX_IMAGES} images par produit.`,
+        variant: 'destructive',
+      });
       return;
     }
     
@@ -283,10 +341,11 @@ export function ProductForm({
       const productData = {
         title: data.title,
         description: data.description,
-        price: data.price, // This is required by Supabase
+        price: data.price,
         discount_price: data.discount_price,
         stock: data.stock,
         category_id: data.category_id,
+        subcategory_id: data.subcategory_id,
         material: data.material,
         origin: data.origin,
         artisan_id: artisanId,
@@ -351,7 +410,7 @@ export function ProductForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Product Images */}
             <div className="space-y-2">
-              <FormLabel>Images du produit</FormLabel>
+              <FormLabel>Images du produit ({images.length}/{MAX_IMAGES})</FormLabel>
               <div className="flex flex-wrap gap-4 mb-4">
                 {images.map((image, index) => (
                   <div key={index} className="relative group">
@@ -372,22 +431,24 @@ export function ProductForm({
                   </div>
                 ))}
                 
-                <label className="w-24 h-24 border-2 border-dashed rounded flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
-                  <div className="flex flex-col items-center">
-                    <Upload className="h-6 w-6 text-gray-400" />
-                    <span className="text-xs text-gray-500 mt-1">Ajouter</span>
-                  </div>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    multiple 
-                    onChange={handleImageUpload} 
-                    className="hidden" 
-                  />
-                </label>
+                {images.length < MAX_IMAGES && (
+                  <label className="w-24 h-24 border-2 border-dashed rounded flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                    <div className="flex flex-col items-center">
+                      <Upload className="h-6 w-6 text-gray-400" />
+                      <span className="text-xs text-gray-500 mt-1">Ajouter</span>
+                    </div>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      multiple 
+                      onChange={handleImageUpload} 
+                      className="hidden" 
+                    />
+                  </label>
+                )}
               </div>
               <p className="text-sm text-gray-500">
-                Formats acceptés: JPG, PNG. Max 5Mo par image.
+                Formats acceptés: JPG, PNG. Max 5Mo par image. Maximum {MAX_IMAGES} images par produit.
               </p>
             </div>
 
@@ -508,6 +569,43 @@ export function ProductForm({
                 )}
               />
             </div>
+
+            {/* Subcategory Selection - Added this field */}
+            <FormField
+              control={form.control}
+              name="subcategory_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sous-catégorie</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                    value={field.value}
+                    disabled={!form.watch('category_id') || filteredSubcategories.length === 0}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={
+                          !form.watch('category_id') 
+                            ? "Sélectionnez d'abord une catégorie" 
+                            : filteredSubcategories.length === 0 
+                              ? "Aucune sous-catégorie disponible" 
+                              : "Sélectionner une sous-catégorie"
+                        } />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {filteredSubcategories.map((subcategory) => (
+                        <SelectItem key={subcategory.id} value={subcategory.id}>
+                          {subcategory.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Material and Origin Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

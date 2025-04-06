@@ -23,7 +23,9 @@ export function mapDatabaseArtisanToArtisan(dbArtisan: Database['public']['Table
     reviewCount: dbArtisan.review_count || 0,
     productCount: 0, // Not directly available from DB, would need separate query
     featured: dbArtisan.featured || false,
-    joinedDate: new Date(dbArtisan.joined_date)
+    joinedDate: new Date(dbArtisan.joined_date),
+    description: dbArtisan.description || '',
+    website: dbArtisan.website || ''
   };
 }
 

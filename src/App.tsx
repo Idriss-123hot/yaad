@@ -19,6 +19,7 @@ import CategoryDetail from './pages/CategoryDetail'
 import CategoryDetailWithProducts from './pages/CategoryDetailWithProducts'
 import ArtisanDetail from './pages/ArtisanDetail'
 import ProductDetail from './pages/ProductDetail'
+import ProductPage from './pages/ProductPage'
 import FeaturedProductDetail from './pages/FeaturedProductDetail'
 import Contact from './pages/Contact'
 import About from './pages/About'
@@ -47,7 +48,7 @@ function App() {
         <Route path="/categories/:mainCategory/:subCategory" element={<CategoryDetailWithProducts />} />
         
         {/* Routes des produits */}
-        <Route path="/products/:productId" element={<ProductDetail />} />
+        <Route path="/products/:productId" element={<ProductPage />} />
         <Route path="/featured/:productId" element={<FeaturedProductDetail />} />
 
         {/* Routes de contenu statique */}
