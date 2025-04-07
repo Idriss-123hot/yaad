@@ -4,7 +4,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
 import { ProductCard } from '@/components/ui/ProductCard';
-import { SAMPLE_PRODUCTS } from '@/models/types';
+import { SAMPLE_PRODUCTS } from '@/data/sampleData'; // Changed import source to data/sampleData
 
 const Products = () => {
   const [products, setProducts] = useState(SAMPLE_PRODUCTS);
