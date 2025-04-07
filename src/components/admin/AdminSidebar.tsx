@@ -1,190 +1,203 @@
 
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   ShoppingBag, 
   Users, 
-  FolderTree,
-  Store
+  Tag, 
+  FileText, 
+  Bell,
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react';
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetDescription, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetTrigger,
-} from "@/components/ui/sheet"
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
-const linkClasses = (isActive: boolean) => {
-  return `flex items-center gap-3 rounded-md p-2 text-sm font-medium transition-colors hover:bg-gray-100 ${
-    isActive ? 'bg-gray-100 font-bold' : 'text-gray-700'
-  }`;
-};
+interface AdminSidebarProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}
 
-export function AdminSidebar({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+export function AdminSidebar({ open, setOpen }: AdminSidebarProps) {
+  const location = useLocation();
+  const { toast } = useToast();
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: 'Déconnexion réussie',
+        description: 'Vous avez été déconnecté avec succès.',
+      });
+      
+      // Redirection vers la page de connexion
+      window.location.href = '/admin/login';
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la déconnexion.',
+        variant: 'destructive',
+      });
+    }
   };
+
+  const isActive = (path: string) => {
+    if (path === '/admin/dashboard') {
+      return location.pathname === path;
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  const Overlay = () => (
+    <div 
+      className={cn(
+        "fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity", 
+        open ? "opacity-100" : "opacity-0 pointer-events-none"
+      )}
+      onClick={() => setOpen(false)}
+    />
+  );
 
   return (
     <>
-      {/* Mobile drawer */}
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="sm" className="lg:hidden">
-            <Menu className="h-5 w-5" />
+      <Overlay />
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 bg-background shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:z-0",
+          open ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="flex h-16 items-center justify-between px-4 lg:hidden">
+          <div className="font-medium">Administration</div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setOpen(false)}
+          >
+            <X className="h-5 w-5" />
           </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-64">
-          <SheetHeader className="text-left">
-            <SheetTitle>Admin Dashboard</SheetTitle>
-            <SheetDescription>
-              Manage your store settings and content.
-            </SheetDescription>
-          </SheetHeader>
-          <nav className="mt-4">
-            <div className="space-y-6">
-              <div>
-                <div className="mb-2 text-xs font-semibold uppercase text-gray-500">Catalogue</div>
-                <div className="space-y-1">
-                  <NavLink 
-                    to="/admin/dashboard" 
-                    className={({isActive}) => linkClasses(isActive)} 
-                    end
-                  >
-                    <LayoutDashboard className="h-5 w-5" />
-                    <span>Tableau de bord</span>
-                  </NavLink>
-                  
-                  <div className="pt-2">
-                    <NavLink 
-                      to="/admin/products" 
-                      className={({isActive}) => linkClasses(isActive)} 
-                      end
-                    >
-                      <ShoppingBag className="h-5 w-5" />
-                      <span>Produits</span>
-                    </NavLink>
-                  </div>
-                  
-                  <div className="pt-2">
-                    <NavLink 
-                      to="/admin/categories" 
-                      className={({isActive}) => linkClasses(isActive)} 
-                      end
-                    >
-                      <FolderTree className="h-5 w-5" />
-                      <span>Catégories</span>
-                    </NavLink>
-                  </div>
-                </div>
-              </div>
+        </div>
+        
+        <div className="hidden h-16 items-center px-6 lg:flex">
+          <div className="font-medium">Administration</div>
+        </div>
+        
+        <div className="space-y-4 py-4">
+          <div className="px-3 py-2">
+            <h3 className="mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Navigation
+            </h3>
+            <div className="space-y-1">
+              <Link 
+                to="/admin/dashboard"
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-md",
+                  isActive('/admin/dashboard') 
+                    ? "bg-terracotta-500 text-white" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+                onClick={() => setOpen(false)}
+              >
+                <LayoutDashboard className="mr-3 h-5 w-5" />
+                Tableau de bord
+              </Link>
               
-              <div>
-                <div className="mb-2 text-xs font-semibold uppercase text-gray-500">Artisans</div>
-                <div className="space-y-1">
-                  <NavLink 
-                    to="/admin/artisans" 
-                    className={({isActive}) => linkClasses(isActive)} 
-                    end
-                  >
-                    <Users className="h-5 w-5" />
-                    <span>Artisans</span>
-                  </NavLink>
-                </div>
-              </div>
-            </div>
-          </nav>
-        </SheetContent>
-      </Sheet>
-      
-      {/* Desktop sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-20 hidden w-64 bg-white shadow-lg transition-transform duration-300 lg:block ${open ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex h-full flex-col">
-          <div className="p-4 border-b">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 bg-terracotta-600 text-white rounded flex items-center justify-center">
-                <Store className="h-5 w-5" />
-              </div>
-              <div className="font-semibold">Admin Dashboard</div>
+              <Link 
+                to="/admin/products"
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-md",
+                  isActive('/admin/products') 
+                    ? "bg-terracotta-500 text-white" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+                onClick={() => setOpen(false)}
+              >
+                <ShoppingBag className="mr-3 h-5 w-5" />
+                Produits
+              </Link>
+              
+              <Link 
+                to="/admin/artisans"
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-md",
+                  isActive('/admin/artisans') && !isActive('/admin/artisans/modifications')
+                    ? "bg-terracotta-500 text-white" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+                onClick={() => setOpen(false)}
+              >
+                <Users className="mr-3 h-5 w-5" />
+                Artisans
+              </Link>
+              
+              <Link 
+                to="/admin/artisans/modifications"
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-md",
+                  isActive('/admin/artisans/modifications') 
+                    ? "bg-terracotta-500 text-white" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+                onClick={() => setOpen(false)}
+              >
+                <Bell className="mr-3 h-5 w-5" />
+                Modifications Artisans
+              </Link>
+              
+              <Link 
+                to="/admin/categories"
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-md",
+                  isActive('/admin/categories') 
+                    ? "bg-terracotta-500 text-white" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+                onClick={() => setOpen(false)}
+              >
+                <Tag className="mr-3 h-5 w-5" />
+                Catégories
+              </Link>
+              
+              <Link 
+                to="/admin/blog"
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-md",
+                  isActive('/admin/blog') 
+                    ? "bg-terracotta-500 text-white" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+                onClick={() => setOpen(false)}
+              >
+                <FileText className="mr-3 h-5 w-5" />
+                Blog
+              </Link>
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-4">
-            <nav className="space-y-6">
-              <div>
-                <div className="mb-2 text-xs font-semibold uppercase text-gray-500">Catalogue</div>
-                <div className="space-y-1">
-                  <NavLink 
-                    to="/admin/dashboard" 
-                    className={({isActive}) => linkClasses(isActive)} 
-                    end
-                  >
-                    <LayoutDashboard className="h-5 w-5" />
-                    <span>Tableau de bord</span>
-                  </NavLink>
-                  
-                  <div className="pt-2">
-                    <NavLink 
-                      to="/admin/products" 
-                      className={({isActive}) => linkClasses(isActive)} 
-                      end
-                    >
-                      <ShoppingBag className="h-5 w-5" />
-                      <span>Produits</span>
-                    </NavLink>
-                  </div>
-                  
-                  <div className="pt-2">
-                    <NavLink 
-                      to="/admin/categories" 
-                      className={({isActive}) => linkClasses(isActive)} 
-                      end
-                    >
-                      <FolderTree className="h-5 w-5" />
-                      <span>Catégories</span>
-                    </NavLink>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <div className="mb-2 text-xs font-semibold uppercase text-gray-500">Artisans</div>
-                <div className="space-y-1">
-                  <NavLink 
-                    to="/admin/artisans" 
-                    className={({isActive}) => linkClasses(isActive)} 
-                    end
-                  >
-                    <Users className="h-5 w-5" />
-                    <span>Artisans</span>
-                  </NavLink>
-                </div>
-              </div>
-              
-              
-            </nav>
-          </div>
-          
-          <div className="border-t p-4">
-            
+          <div className="px-3 py-2">
+            <h3 className="mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Compte
+            </h3>
+            <div className="space-y-1">
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={handleSignOut}
+              >
+                <LogOut className="mr-3 h-5 w-5" />
+                Déconnexion
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-      
-      {/* Backdrop */}
-      {open && (
-        <div 
-          className="fixed inset-0 z-10 bg-black/50 lg:hidden" 
-          onClick={() => setOpen(false)}
-        />
-      )}
+      </aside>
     </>
   );
 }

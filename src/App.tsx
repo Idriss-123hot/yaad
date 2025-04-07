@@ -19,8 +19,14 @@ import EditProduct from './pages/admin/products/EditProduct';
 import ArtisansList from './pages/admin/artisans/ArtisansList';
 import AdminArtisanNew from './pages/admin/artisans/NewArtisan';
 import EditArtisan from './pages/admin/artisans/EditArtisan';
+import ArtisanModifications from './pages/admin/artisans/ArtisanModifications';
 import CategoriesList from './pages/admin/categories/CategoriesList';
 import Index from './pages/Index';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
+import BlogsList from './pages/admin/blog/BlogsList';
+import NewBlog from './pages/admin/blog/NewBlog';
+import EditBlog from './pages/admin/blog/EditBlog';
 
 function App() {
   useEffect(() => {
@@ -40,6 +46,8 @@ function App() {
       <Route path="/search" element={<SearchResults />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/blog" element={<Blog />} />
+      <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="*" element={<NotFound />} />
       
       {/* Admin Routes */}
@@ -51,7 +59,11 @@ function App() {
       <Route path="/admin/artisans" element={<ArtisansList />} />
       <Route path="/admin/artisans/new" element={<AdminArtisanNew />} />
       <Route path="/admin/artisans/:id" element={<EditArtisan />} />
+      <Route path="/admin/artisans/modifications" element={<ArtisanModifications />} />
       <Route path="/admin/categories" element={<CategoriesList />} />
+      <Route path="/admin/blog" element={<BlogsList />} />
+      <Route path="/admin/blog/new" element={<NewBlog />} />
+      <Route path="/admin/blog/edit/:id" element={<EditBlog />} />
     </Routes>
   );
 }
