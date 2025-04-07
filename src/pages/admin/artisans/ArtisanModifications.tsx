@@ -61,12 +61,21 @@ const ArtisanModifications = () => {
               JSON.stringify(mod.old_values[key]) !== JSON.stringify(mod.new_values[key])
             )
           : [];
-          
-        return {
+        
+        // Handle case where artisans might be an error object
+        const hasArtisanData = mod.artisans && 
+                              typeof mod.artisans === 'object' && 
+                              !('error' in mod.artisans);
+        
+        // Create a safe artisan modification log object
+        const artisanMod: ArtisanModificationLog = {
           ...mod,
           changedFields,
-          artisanName: mod.artisans?.name || 'Inconnu'
-        } as ArtisanModificationLog;
+          artisanName: hasArtisanData ? (mod.artisans as any).name : 'Inconnu',
+          artisans: hasArtisanData ? mod.artisans as any : null
+        };
+        
+        return artisanMod;
       });
       
       setModifications(processedData);
@@ -93,7 +102,6 @@ const ArtisanModifications = () => {
     try {
       // Apply changes to artisans table
       // We need to explicitly type the new_values as any to prevent TypeScript errors
-      // since the structure is dynamically determined
       const { error } = await supabase
         .from('artisans')
         .update(selectedMod.new_values as any)
@@ -104,7 +112,7 @@ const ArtisanModifications = () => {
       // Mark the modification as approved
       await supabase
         .from('modification_logs')
-        .update({ status: 'approved' })
+        .update({ status: 'approved' } as any)
         .eq('id', selectedMod.id);
         
       toast({
@@ -131,7 +139,7 @@ const ArtisanModifications = () => {
       // Mark the modification as rejected
       await supabase
         .from('modification_logs')
-        .update({ status: 'rejected' })
+        .update({ status: 'rejected' } as any)
         .eq('id', selectedMod.id);
         
       toast({
@@ -233,11 +241,11 @@ const ArtisanModifications = () => {
                         {mod.artisans?.profile_photo && (
                           <img
                             src={mod.artisans.profile_photo}
-                            alt={mod.artisanName}
+                            alt={mod.artisanName || "Artisan"}
                             className="w-8 h-8 rounded-full object-cover"
                           />
                         )}
-                        {mod.artisanName}
+                        {mod.artisanName || "Artisan inconnu"}
                       </div>
                     </TableCell>
                     <TableCell>

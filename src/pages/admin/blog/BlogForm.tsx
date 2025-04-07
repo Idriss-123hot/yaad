@@ -1,441 +1,432 @@
 
+// This is a new BlogForm component for creating and editing blog posts
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { AdminLayout } from '@/components/admin/AdminLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/components/ui/use-toast';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
-import { ArrowLeft, Save, Image as ImageIcon } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { BlogPost } from '@/types/supabase-custom';
 
+// Define the form schema using Zod
+const formSchema = z.object({
+  title: z.string().min(3, "Le titre doit contenir au moins 3 caractères."),
+  slug: z.string().min(3, "Le slug doit contenir au moins 3 caractères."),
+  content: z.string().min(10, "Le contenu doit contenir au moins 10 caractères."),
+  excerpt: z.string().optional(),
+  category: z.string().optional(),
+  featured_image: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  published: z.boolean().default(false),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 const BlogForm = () => {
   const { id } = useParams();
-  const isEditing = Boolean(id);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [tagInput, setTagInput] = useState('');
+  const [loadingBlog, setLoadingBlog] = useState(id ? true : false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   
-  const [formData, setFormData] = useState({
-    title: '',
-    slug: '',
-    content: '',
-    excerpt: '',
-    category: '',
-    featured_image: '',
-    tags: [] as string[],
-    published: false
+  // Initialize the form
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: '',
+      slug: '',
+      content: '',
+      excerpt: '',
+      category: '',
+      featured_image: '',
+      tags: [],
+      published: false,
+    }
   });
   
-  const [loading, setLoading] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState('');
-  const [tagInput, setTagInput] = useState('');
-  
+  // Fetch blog data if editing
   useEffect(() => {
-    if (isEditing) {
-      fetchBlogPost();
-    }
-  }, [id]);
+    const fetchBlog = async () => {
+      if (!id) return;
+      
+      try {
+        setLoadingBlog(true);
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .eq('id', id)
+          .single();
+          
+        if (error) throw error;
+        
+        if (data) {
+          // Set form values
+          form.setValue('title', data.title);
+          form.setValue('slug', data.slug);
+          form.setValue('content', data.content);
+          form.setValue('excerpt', data.excerpt || '');
+          form.setValue('category', data.category || '');
+          form.setValue('featured_image', data.featured_image || '');
+          form.setValue('tags', data.tags || []);
+          form.setValue('published', data.published || false);
+          
+          // Set image preview
+          if (data.featured_image) {
+            setImagePreview(data.featured_image);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching blog post:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de récupérer l'article de blog.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingBlog(false);
+      }
+    };
+    
+    fetchBlog();
+  }, [id, form, toast]);
   
-  const fetchBlogPost = async () => {
+  // Handle form submission
+  const onSubmit = async (values: FormValues) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('id', id)
-        .single();
-        
-      if (error) throw error;
-      
-      if (data) {
-        const blogPost = data as unknown as BlogPost;
-        setFormData({
-          title: blogPost.title || '',
-          slug: blogPost.slug || '',
-          content: blogPost.content || '',
-          excerpt: blogPost.excerpt || '',
-          category: blogPost.category || '',
-          featured_image: blogPost.featured_image || '',
-          tags: blogPost.tags || [],
-          published: blogPost.published || false
-        });
-        
-        if (blogPost.featured_image) {
-          setImagePreview(blogPost.featured_image);
-        }
-      }
-    } catch (error: any) {
-      console.error('Error fetching blog post:', error);
-      toast({
-        title: 'Erreur',
-        description: "Impossible de récupérer l'article de blog.",
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }));
-    
-    // Auto-generate slug from title if slug is empty
-    if (name === 'title' && !formData.slug) {
-      const generatedSlug = value
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-');
-      setFormData(prev => ({ ...prev, slug: generatedSlug }));
-    }
-  };
-  
-  const handleCheckboxChange = (checked: boolean) => {
-    setFormData(prev => ({ ...prev, published: checked }));
-  };
-  
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const preview = URL.createObjectURL(file);
-      setImagePreview(preview);
-    }
-  };
-  
-  const handleTagAdd = () => {
-    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, tagInput.trim()]
-      }));
-      setTagInput('');
-    }
-  };
-  
-  const handleTagRemove = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
-  
-  const uploadImage = async () => {
-    if (!imageFile) return formData.featured_image;
-    
-    const fileExt = imageFile.name.split('.').pop();
-    const fileName = `${uuidv4()}.${fileExt}`;
-    const filePath = `blog/${fileName}`;
-    
-    try {
-      const { error: uploadError } = await supabase.storage
-        .from('products')
-        .upload(filePath, imageFile);
-        
-      if (uploadError) throw uploadError;
-      
-      const { data } = supabase.storage
-        .from('products')
-        .getPublicUrl(filePath);
-        
-      return data.publicUrl;
-    } catch (error: any) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: 'Erreur',
-        description: "Impossible de télécharger l'image.",
-        variant: 'destructive',
-      });
-      return null;
-    }
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.title || !formData.content) {
-      toast({
-        title: 'Erreur',
-        description: "Le titre et le contenu sont obligatoires.",
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    setLoading(true);
-    
-    try {
-      // Upload image if there's a new one
-      let imageUrl = formData.featured_image;
-      if (imageFile) {
-        imageUrl = await uploadImage();
-        if (!imageUrl) return; // Exit if image upload failed
-      }
-      
-      const { data: session } = await supabase.auth.getSession();
-      const currentUser = session?.session?.user?.id;
       
       const blogData = {
-        ...formData,
-        featured_image: imageUrl,
-        published_at: formData.published ? new Date().toISOString() : null,
-        author_id: currentUser
+        ...values,
+        published_at: values.published ? new Date().toISOString() : null,
+        author_id: (await supabase.auth.getUser()).data.user?.id,
       };
       
-      let result;
+      let response;
       
-      if (isEditing) {
-        const { data, error } = await supabase
+      if (id) {
+        // Update existing blog post
+        response = await supabase
           .from('blog_posts')
           .update(blogData)
-          .eq('id', id)
-          .select()
-          .single();
-          
-        if (error) throw error;
-        result = data;
+          .eq('id', id);
       } else {
-        const { data, error } = await supabase
+        // Create new blog post
+        response = await supabase
           .from('blog_posts')
-          .insert([blogData])
-          .select()
-          .single();
-          
-        if (error) throw error;
-        result = data;
+          .insert([blogData]);
       }
       
+      if (response.error) throw response.error;
+      
       toast({
-        title: 'Succès',
-        description: isEditing
-          ? "L'article a été mis à jour."
-          : "L'article a été créé."
+        title: "Succès",
+        description: id ? "Article mis à jour avec succès." : "Article créé avec succès.",
       });
       
       navigate('/admin/blog');
     } catch (error: any) {
       console.error('Error saving blog post:', error);
       toast({
-        title: 'Erreur',
-        description: "Impossible d'enregistrer l'article de blog.",
-        variant: 'destructive',
+        title: "Erreur",
+        description: "Impossible de sauvegarder l'article de blog.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
   
-  if (loading && isEditing) {
+  // Add a tag to the tags array
+  const addTag = () => {
+    if (!tagInput.trim()) return;
+    
+    const currentTags = form.getValues('tags') || [];
+    if (!currentTags.includes(tagInput.trim())) {
+      form.setValue('tags', [...currentTags, tagInput.trim()]);
+    }
+    setTagInput('');
+  };
+  
+  // Remove a tag from the tags array
+  const removeTag = (tagToRemove: string) => {
+    const currentTags = form.getValues('tags') || [];
+    form.setValue('tags', currentTags.filter(tag => tag !== tagToRemove));
+  };
+  
+  // Handle image input change
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value;
+    form.setValue('featured_image', url);
+    setImagePreview(url);
+  };
+  
+  // Generate a slug from the title
+  const generateSlug = () => {
+    const title = form.getValues('title');
+    if (!title) return;
+    
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    
+    form.setValue('slug', slug);
+  };
+  
+  if (loadingBlog) {
     return (
-      <AdminLayout>
-        <div className="container mx-auto py-8 px-4 flex justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-terracotta-600"></div>
-        </div>
-      </AdminLayout>
+      <div className="flex justify-center p-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-gray-900"></div>
+      </div>
     );
   }
   
   return (
-    <AdminLayout>
-      <div className="container mx-auto py-8 px-4">
-        <div className="flex items-center mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/admin/blog')}
-            className="mr-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour
-          </Button>
-          <h1 className="text-2xl font-bold">
-            {isEditing ? "Modifier l'article" : "Nouvel article"}
-          </h1>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="title">Titre *</Label>
-                <Input
-                  id="title"
+    <div className="container mx-auto py-8 px-4">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold">{id ? "Modifier l'article" : "Nouvel article"}</h1>
+      </div>
+      
+      <div className="bg-white rounded-lg shadow p-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
                   name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  required
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Titre</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Titre de l'article" 
+                          {...field} 
+                          onChange={(e) => {
+                            field.onChange(e);
+                            if (!id && !form.getValues('slug')) {
+                              setTimeout(() => generateSlug(), 500);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              
-              <div>
-                <Label htmlFor="slug">Slug *</Label>
-                <Input
-                  id="slug"
-                  name="slug"
-                  value={formData.slug}
-                  onChange={handleChange}
-                  required
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  L'identifiant URL unique pour cet article 
-                  (ex: mon-article-de-blog)
-                </p>
-              </div>
-              
-              <div>
-                <Label htmlFor="category">Catégorie</Label>
-                <Input
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="excerpt">Extrait</Label>
-                <Textarea
-                  id="excerpt"
-                  name="excerpt"
-                  value={formData.excerpt}
-                  onChange={handleChange}
-                  rows={3}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Un court résumé qui sera affiché dans les listes d'articles
-                </p>
-              </div>
-              
-              <div>
-                <Label>Tags</Label>
-                <div className="flex gap-2 mb-2">
-                  <Input
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    placeholder="Ajouter un tag"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleTagAdd();
-                      }
-                    }}
-                  />
-                  <Button 
-                    type="button" 
-                    onClick={handleTagAdd}
-                    variant="outline"
-                  >
-                    Ajouter
-                  </Button>
-                </div>
                 
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.tags.map(tag => (
-                    <Badge key={tag} variant="secondary" className="flex gap-1 items-center">
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => handleTagRemove(tag)}
-                        className="ml-1 text-xs font-bold"
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
+                <FormField
+                  control={form.control}
+                  name="slug"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Slug</FormLabel>
+                      <div className="flex gap-2">
+                        <FormControl>
+                          <Input placeholder="slug-de-article" {...field} />
+                        </FormControl>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={generateSlug}
+                          size="sm"
+                        >
+                          Générer
+                        </Button>
+                      </div>
+                      <FormDescription>
+                        L'identifiant unique pour l'URL de l'article
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Catégorie</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Catégorie" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="featured_image"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Image à la une</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="URL de l'image" 
+                          {...field} 
+                          onChange={(e) => handleImageChange(e)}
+                        />
+                      </FormControl>
+                      {imagePreview && (
+                        <div className="mt-2">
+                          <img 
+                            src={imagePreview} 
+                            alt="Aperçu" 
+                            className="w-full h-40 object-cover rounded"
+                            onError={() => setImagePreview(null)}
+                          />
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div>
+                  <FormLabel>Tags</FormLabel>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Input
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      placeholder="Ajouter un tag"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addTag();
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={addTag}
+                      size="sm"
+                    >
+                      Ajouter
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {form.watch('tags')?.map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                        {tag}
+                        <button 
+                          type="button"
+                          onClick={() => removeTag(tag)}
+                          className="text-xs ml-1"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="published"
-                  checked={formData.published}
-                  onCheckedChange={handleCheckboxChange}
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="excerpt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Extrait</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Bref résumé de l'article" 
+                          className="h-24" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Une courte description qui apparaîtra dans les listes d'articles
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                <Label htmlFor="published">
-                  Publier cet article immédiatement
-                </Label>
+                
+                <FormField
+                  control={form.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contenu</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Contenu de l'article" 
+                          className="h-64" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="published"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
+                      <div className="space-y-0.5">
+                        <FormLabel>Publier l'article</FormLabel>
+                        <FormDescription>
+                          L'article sera visible par tous les utilisateurs
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
             
-            <div>
-              <div className="mb-4">
-                <Label htmlFor="featured_image">Image principale</Label>
-                <div className="mt-1 flex items-center">
-                  <label className="block w-full cursor-pointer">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg px-4 py-8 text-center">
-                      {imagePreview ? (
-                        <div className="mb-4">
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="mx-auto max-h-48 object-contain"
-                          />
-                        </div>
-                      ) : (
-                        <div className="text-center mb-4">
-                          <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        </div>
-                      )}
-                      <span className="mt-2 block text-sm font-medium">
-                        {imagePreview ? "Changer l'image" : "Ajouter une image"}
-                      </span>
-                    </div>
-                    <Input
-                      id="featured_image"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageChange}
-                    />
-                  </label>
-                </div>
-              </div>
+            <div className="flex justify-end gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => navigate('/admin/blog')}
+              >
+                Annuler
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-current mr-2"></div>
+                    {id ? "Mise à jour..." : "Création..."}
+                  </>
+                ) : (
+                  id ? "Mettre à jour" : "Créer"
+                )}
+              </Button>
             </div>
-          </div>
-          
-          <div>
-            <Label htmlFor="content">Contenu *</Label>
-            <Textarea
-              id="content"
-              name="content"
-              value={formData.content}
-              onChange={handleChange}
-              required
-              className="min-h-[300px]"
-            />
-          </div>
-          
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/admin/blog')}
-              className="mr-2"
-            >
-              Annuler
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-t-2 border-current"></div>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  {isEditing ? "Mettre à jour" : "Publier"}
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
+          </form>
+        </Form>
       </div>
-    </AdminLayout>
+    </div>
   );
 };
 

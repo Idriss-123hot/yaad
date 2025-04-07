@@ -1,28 +1,41 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { Button } from '@/components/ui/button';
-import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
 } from '@/components/ui/table';
-import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { useDataTable } from '@/hooks/use-data-table';
+import { 
+  Eye, 
+  Edit, 
+  Trash2, 
+  Plus, 
+  Search 
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { BlogPost } from '@/types/supabase-custom';
 
 const BlogsList = () => {
-  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const dataTable = useDataTable<BlogPost>({
+    data: blogPosts,
+    searchFields: ['title', 'excerpt', 'category']
+  });
 
   useEffect(() => {
     fetchBlogPosts();
@@ -33,57 +46,20 @@ const BlogsList = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('blog_posts')
-        .select(`
-          *,
-          profiles:author_id (
-            first_name,
-            last_name,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setBlogPosts(data || []);
+      setBlogPosts(data as BlogPost[]);
     } catch (error: any) {
       console.error('Error fetching blog posts:', error);
       toast({
-        title: 'Erreur',
-        description: "Impossible de récupérer les articles de blog.",
-        variant: 'destructive',
+        title: "Erreur",
+        description: "Impossible de récupérer les articles de blog",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const togglePublishStatus = async (id: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('blog_posts')
-        .update({ 
-          published: !currentStatus,
-          published_at: !currentStatus ? new Date().toISOString() : null
-        })
-        .eq('id', id);
-
-      if (error) throw error;
-      
-      toast({
-        title: 'Succès',
-        description: !currentStatus 
-          ? "L'article a été publié." 
-          : "L'article a été dépublié.",
-      });
-      
-      fetchBlogPosts();
-    } catch (error: any) {
-      console.error('Error toggling publish status:', error);
-      toast({
-        title: 'Erreur',
-        description: "Impossible de modifier le statut de publication.",
-        variant: 'destructive',
-      });
     }
   };
 
@@ -95,114 +71,153 @@ const BlogsList = () => {
         .from('blog_posts')
         .delete()
         .eq('id', id);
-
+        
       if (error) throw error;
       
       toast({
-        title: 'Succès',
-        description: "L'article a été supprimé.",
+        title: "Succès",
+        description: "Article supprimé avec succès",
       });
       
-      fetchBlogPosts();
+      // Update the local state
+      setBlogPosts(prev => prev.filter(post => post.id !== id));
     } catch (error: any) {
       console.error('Error deleting blog post:', error);
       toast({
-        title: 'Erreur',
-        description: "Impossible de supprimer l'article.",
-        variant: 'destructive',
+        title: "Erreur",
+        description: "Impossible de supprimer l'article",
+        variant: "destructive",
       });
     }
   };
 
-  const getAuthorName = (profile: any) => {
-    if (!profile) return 'Inconnu';
-    if (profile.first_name || profile.last_name) {
-      return `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+  const togglePublishStatus = async (post: BlogPost) => {
+    try {
+      const newStatus = !post.published;
+      const { error } = await supabase
+        .from('blog_posts')
+        .update({ 
+          published: newStatus,
+          published_at: newStatus ? new Date().toISOString() : null
+        })
+        .eq('id', post.id);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Succès",
+        description: newStatus 
+          ? "Article publié avec succès" 
+          : "Article retiré de la publication",
+      });
+      
+      // Update the local state
+      setBlogPosts(prev => prev.map(p => 
+        p.id === post.id 
+          ? { ...p, published: newStatus, published_at: newStatus ? new Date().toISOString() : null } 
+          : p
+      ));
+    } catch (error: any) {
+      console.error('Error updating publish status:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le statut de publication",
+        variant: "destructive",
+      });
     }
-    return profile.email;
   };
 
   return (
     <AdminLayout>
       <div className="container mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">Gestion des Articles de Blog</h1>
-          <Button
-            onClick={() => navigate('/admin/blog/new')}
-            className="flex items-center"
-          >
-            <Plus className="mr-2 h-4 w-4" /> Nouvel Article
+          <h1 className="text-2xl font-bold">Articles de Blog</h1>
+          <Button onClick={() => navigate('/admin/blog/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvel Article
           </Button>
         </div>
-
-        {loading ? (
-          <div className="flex justify-center p-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-terracotta-600"></div>
+        
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="p-4 border-b">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Rechercher un article..."
+                value={dataTable.searchQuery}
+                onChange={(e) => dataTable.setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
           </div>
-        ) : blogPosts.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Aucun article de blog trouvé</p>
-            <Button
-              onClick={() => navigate('/admin/blog/new')}
-              variant="outline"
-              className="mt-4"
-            >
-              Créer votre premier article
-            </Button>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          
+          {loading ? (
+            <div className="flex justify-center p-8">
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-gray-900"></div>
+            </div>
+          ) : dataTable.processedData.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Aucun article trouvé</p>
+            </div>
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Titre</TableHead>
-                  <TableHead>Auteur</TableHead>
                   <TableHead>Catégorie</TableHead>
-                  <TableHead>Statut</TableHead>
                   <TableHead>Date</TableHead>
+                  <TableHead>Statut</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {blogPosts.map((post) => (
+                {dataTable.paginatedData.map((post) => (
                   <TableRow key={post.id}>
                     <TableCell className="font-medium">{post.title}</TableCell>
-                    <TableCell>{getAuthorName(post.profiles)}</TableCell>
                     <TableCell>{post.category || '-'}</TableCell>
                     <TableCell>
-                      <Badge variant={post.published ? "default" : "secondary"}>
-                        {post.published ? 'Publié' : 'Brouillon'}
-                      </Badge>
+                      {format(new Date(post.created_at), 'dd/MM/yyyy')}
                     </TableCell>
                     <TableCell>
-                      {post.published_at 
-                        ? format(new Date(post.published_at), 'dd/MM/yyyy')
-                        : format(new Date(post.created_at), 'dd/MM/yyyy') + ' (créé)'
-                      }
+                      <Badge 
+                        variant={post.published ? "secondary" : "outline"}
+                        className={post.published ? "bg-green-100 text-green-800" : ""}
+                      >
+                        {post.published ? "Publié" : "Brouillon"}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => togglePublishStatus(post.id, post.published)}
-                          title={post.published ? "Dépublier" : "Publier"}
+                      <div className="flex justify-end space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate(`/blog/${post.slug}`)}
                         >
-                          {post.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          <Eye className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
                           onClick={() => navigate(`/admin/blog/edit/${post.id}`)}
-                          title="Modifier"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => togglePublishStatus(post)}
+                        >
+                          <Badge 
+                            variant={post.published ? "outline" : "secondary"}
+                            className={!post.published ? "bg-green-100 text-green-800" : ""}
+                          >
+                            {post.published ? "Retirer" : "Publier"}
+                          </Badge>
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
                           onClick={() => deleteBlogPost(post.id)}
-                          title="Supprimer"
                           className="text-red-500 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -213,8 +228,8 @@ const BlogsList = () => {
                 ))}
               </TableBody>
             </Table>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </AdminLayout>
   );

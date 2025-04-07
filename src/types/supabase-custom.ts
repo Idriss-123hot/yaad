@@ -33,9 +33,9 @@ export interface ModificationLog {
 // Extended interface for modification logs with artisan details
 export interface ArtisanModificationLog extends ModificationLog {
   artisans?: {
-    name: string;
+    name?: string;
     profile_photo?: string;
-  };
+  } | null;
   artisanName?: string;
   changedFields?: string[];
 }
