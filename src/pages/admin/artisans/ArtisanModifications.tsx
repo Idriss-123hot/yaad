@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { ModificationLog, ArtisanModificationLog } from '@/types/supabase-custom';
+import { ModificationLog, ArtisanModificationLog, ArtisanData, QueryError } from '@/types/supabase-custom';
 
 const ArtisanModifications = () => {
   const [modifications, setModifications] = useState<ArtisanModificationLog[]>([]);
@@ -61,19 +62,29 @@ const ArtisanModifications = () => {
             )
           : [];
         
-        // Check if artisans is a valid object with the expected structure
-        const isValidArtisanObject = mod.artisans && 
-                                    typeof mod.artisans === 'object' && 
-                                    !('error' in mod.artisans);
-        
-        // Get the artisan name safely, with fallback
+        // Safe type checking for artisans data
         let artisanName = 'Inconnu';
-        if (isValidArtisanObject && mod.artisans) {
-          // We've already checked that artisans exists and is a valid object
-          artisanName = typeof mod.artisans.name === 'string' ? mod.artisans.name : 'Inconnu';
-        } else if (mod.new_values && typeof mod.new_values.name === 'string') {
-          // If artisan data can't be joined, try to get the name from new_values
-          artisanName = mod.new_values.name;
+        let artisanData = null;
+        
+        // Check if artisans exists and is a valid object (not an error)
+        if (mod.artisans && typeof mod.artisans === 'object') {
+          // Check if it's not an error object or null before accessing properties
+          if (!('error' in mod.artisans) && mod.artisans !== null) {
+            // Safe type cast - we've verified it's a valid object with name property
+            const safeArtisanData = mod.artisans as ArtisanData;
+            if (safeArtisanData.name && typeof safeArtisanData.name === 'string') {
+              artisanName = safeArtisanData.name;
+            }
+            artisanData = safeArtisanData;
+          }
+        } 
+        
+        // Fallback to new_values.name if available
+        if (artisanName === 'Inconnu' && mod.new_values && typeof mod.new_values === 'object') {
+          const newValues = mod.new_values as Record<string, any>;
+          if (newValues.name && typeof newValues.name === 'string') {
+            artisanName = newValues.name;
+          }
         }
         
         // Create a safe artisan modification log object
@@ -81,8 +92,7 @@ const ArtisanModifications = () => {
           ...mod,
           changedFields,
           artisanName,
-          // Only keep artisans data if it's valid
-          artisans: isValidArtisanObject ? mod.artisans : null
+          artisans: artisanData
         };
         
         return artisanMod;
@@ -247,7 +257,7 @@ const ArtisanModifications = () => {
                   <TableRow key={mod.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
-                        {mod.artisans && mod.artisans.profile_photo && (
+                        {mod.artisans && 'profile_photo' in mod.artisans && mod.artisans.profile_photo && (
                           <img
                             src={mod.artisans.profile_photo}
                             alt={mod.artisanName || "Artisan"}

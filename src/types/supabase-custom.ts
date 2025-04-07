@@ -30,13 +30,24 @@ export interface ModificationLog {
   status?: string; // Status field for tracking approval state
 }
 
+// Define a type for valid artisan data
+export interface ArtisanData {
+  name?: string;
+  profile_photo?: string;
+}
+
+// Define a separate type for error response
+export interface QueryError {
+  error: string;
+  code?: string;
+  details?: string;
+  hint?: string;
+}
+
 // Extended interface for modification logs with artisan details
 export interface ArtisanModificationLog extends ModificationLog {
-  // Define artisans as a potentially undefined or null value, or an error object
-  artisans?: {
-    name?: string;
-    profile_photo?: string;
-  } | null | { error: string };
-  artisanName?: string; 
+  // Define artisans as a potentially undefined, null, or an object with specific properties
+  artisans?: ArtisanData | null | QueryError;
+  artisanName: string; // Make this non-optional with a default value
   changedFields?: string[];
 }
