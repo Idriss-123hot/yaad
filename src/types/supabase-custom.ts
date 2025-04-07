@@ -32,10 +32,11 @@ export interface ModificationLog {
 
 // Extended interface for modification logs with artisan details
 export interface ArtisanModificationLog extends ModificationLog {
+  // Define artisans as a potentially undefined or null value, or an error object
   artisans?: {
     name?: string;
     profile_photo?: string;
-  } | null;
-  artisanName?: string; // Make sure this is clearly defined as optional string
+  } | null | { error: string };
+  artisanName?: string; 
   changedFields?: string[];
 }

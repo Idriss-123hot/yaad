@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -62,20 +61,28 @@ const ArtisanModifications = () => {
             )
           : [];
         
-        // Handle case where artisans might be null or an error object
-        const hasArtisanData = mod.artisans && 
-                              typeof mod.artisans === 'object' && 
-                              !('error' in mod.artisans);
+        // Check if artisans is a valid object with the expected structure
+        const isValidArtisanObject = mod.artisans && 
+                                    typeof mod.artisans === 'object' && 
+                                    !('error' in mod.artisans);
         
-        // Create a safe artisan modification log object with better type safety
+        // Get the artisan name safely, with fallback
+        let artisanName = 'Inconnu';
+        if (isValidArtisanObject && mod.artisans) {
+          // We've already checked that artisans exists and is a valid object
+          artisanName = typeof mod.artisans.name === 'string' ? mod.artisans.name : 'Inconnu';
+        } else if (mod.new_values && typeof mod.new_values.name === 'string') {
+          // If artisan data can't be joined, try to get the name from new_values
+          artisanName = mod.new_values.name;
+        }
+        
+        // Create a safe artisan modification log object
         const artisanMod: ArtisanModificationLog = {
           ...mod,
           changedFields,
-          // Ensure artisanName is a string, with fallback to 'Inconnu'
-          artisanName: hasArtisanData && mod.artisans && 'name' in mod.artisans && typeof mod.artisans.name === 'string' 
-            ? mod.artisans.name 
-            : 'Inconnu',
-          artisans: hasArtisanData ? mod.artisans : null
+          artisanName,
+          // Only keep artisans data if it's valid
+          artisans: isValidArtisanObject ? mod.artisans : null
         };
         
         return artisanMod;
@@ -240,7 +247,7 @@ const ArtisanModifications = () => {
                   <TableRow key={mod.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
-                        {mod.artisans?.profile_photo && (
+                        {mod.artisans && mod.artisans.profile_photo && (
                           <img
                             src={mod.artisans.profile_photo}
                             alt={mod.artisanName || "Artisan"}
