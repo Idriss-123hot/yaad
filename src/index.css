@@ -5,6 +5,7 @@
 
 @layer base {
   :root {
+    /* Light theme colors - restoring the original lighter theme */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -49,6 +50,7 @@
     --cream-950: 24 31% 9%;
   }
 
+  /* Keeping dark theme variables for proper styling when dark mode is enabled manually */
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;

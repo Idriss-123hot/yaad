@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
 import { Hero } from '@/components/home/Hero';
 import { Categories } from '@/components/home/Categories';
 import { Button } from '@/components/ui/button';
@@ -39,8 +40,8 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Featured Products Section */}
-        <div className="py-16 px-4 md:px-6 lg:px-8">
+        {/* Featured Products Section - Using lighter background */}
+        <div className="py-16 px-4 md:px-6 lg:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Produits en Vedette</h2>
@@ -60,8 +61,8 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Featured Artisans Section */}
-        <div className="py-16 px-4 md:px-6 lg:px-8 bg-muted/30">
+        {/* Featured Artisans Section - Using lighter background */}
+        <div className="py-16 px-4 md:px-6 lg:px-8 bg-cream-100">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-10">
               <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Nos Artisans</h2>
@@ -82,6 +83,7 @@ const Home = () => {
         </div>
       </main>
       <Footer />
+      <FixedNavMenu />
     </div>
   );
 };

@@ -43,7 +43,7 @@ const Artisans = () => {
   );
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
       <main className="flex-grow pt-24 pb-16 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
