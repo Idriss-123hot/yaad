@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -66,12 +67,15 @@ const ArtisanModifications = () => {
                               typeof mod.artisans === 'object' && 
                               !('error' in mod.artisans);
         
-        // Create a safe artisan modification log object
+        // Create a safe artisan modification log object with better type safety
         const artisanMod: ArtisanModificationLog = {
           ...mod,
           changedFields,
-          artisanName: hasArtisanData && mod.artisans && 'name' in mod.artisans ? mod.artisans.name : 'Inconnu',
-          artisans: hasArtisanData ? mod.artisans as any : null
+          // Ensure artisanName is a string, with fallback to 'Inconnu'
+          artisanName: hasArtisanData && mod.artisans && 'name' in mod.artisans && typeof mod.artisans.name === 'string' 
+            ? mod.artisans.name 
+            : 'Inconnu',
+          artisans: hasArtisanData ? mod.artisans : null
         };
         
         return artisanMod;

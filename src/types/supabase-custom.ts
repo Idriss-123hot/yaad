@@ -36,6 +36,6 @@ export interface ArtisanModificationLog extends ModificationLog {
     name?: string;
     profile_photo?: string;
   } | null;
-  artisanName?: string;
+  artisanName?: string; // Make sure this is clearly defined as optional string
   changedFields?: string[];
 }
