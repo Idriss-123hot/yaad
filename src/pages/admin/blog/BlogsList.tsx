@@ -16,9 +16,10 @@ import {
 } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { BlogPost } from '@/types/supabase-custom';
 
 const BlogsList = () => {
-  const [blogPosts, setBlogPosts] = useState([]);
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -44,7 +45,7 @@ const BlogsList = () => {
 
       if (error) throw error;
       setBlogPosts(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching blog posts:', error);
       toast({
         title: 'Erreur',
@@ -56,7 +57,7 @@ const BlogsList = () => {
     }
   };
 
-  const togglePublishStatus = async (id, currentStatus) => {
+  const togglePublishStatus = async (id: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
         .from('blog_posts')
@@ -76,7 +77,7 @@ const BlogsList = () => {
       });
       
       fetchBlogPosts();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error toggling publish status:', error);
       toast({
         title: 'Erreur',
@@ -86,7 +87,7 @@ const BlogsList = () => {
     }
   };
 
-  const deleteBlogPost = async (id) => {
+  const deleteBlogPost = async (id: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) return;
     
     try {
@@ -103,7 +104,7 @@ const BlogsList = () => {
       });
       
       fetchBlogPosts();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting blog post:', error);
       toast({
         title: 'Erreur',
@@ -113,7 +114,7 @@ const BlogsList = () => {
     }
   };
 
-  const getAuthorName = (profile) => {
+  const getAuthorName = (profile: any) => {
     if (!profile) return 'Inconnu';
     if (profile.first_name || profile.last_name) {
       return `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
@@ -169,7 +170,7 @@ const BlogsList = () => {
                     <TableCell>{getAuthorName(post.profiles)}</TableCell>
                     <TableCell>{post.category || '-'}</TableCell>
                     <TableCell>
-                      <Badge variant={post.published ? "success" : "secondary"}>
+                      <Badge variant={post.published ? "default" : "secondary"}>
                         {post.published ? 'Publié' : 'Brouillon'}
                       </Badge>
                     </TableCell>

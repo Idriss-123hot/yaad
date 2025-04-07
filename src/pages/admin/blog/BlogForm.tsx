@@ -11,6 +11,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { ArrowLeft, Save, Image as ImageIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { BlogPost } from '@/types/supabase-custom';
 
 const BlogForm = () => {
   const { id } = useParams();
@@ -25,12 +27,12 @@ const BlogForm = () => {
     excerpt: '',
     category: '',
     featured_image: '',
-    tags: [],
+    tags: [] as string[],
     published: false
   });
   
   const [loading, setLoading] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
   const [tagInput, setTagInput] = useState('');
   
@@ -52,22 +54,23 @@ const BlogForm = () => {
       if (error) throw error;
       
       if (data) {
+        const blogPost = data as unknown as BlogPost;
         setFormData({
-          title: data.title || '',
-          slug: data.slug || '',
-          content: data.content || '',
-          excerpt: data.excerpt || '',
-          category: data.category || '',
-          featured_image: data.featured_image || '',
-          tags: data.tags || [],
-          published: data.published || false
+          title: blogPost.title || '',
+          slug: blogPost.slug || '',
+          content: blogPost.content || '',
+          excerpt: blogPost.excerpt || '',
+          category: blogPost.category || '',
+          featured_image: blogPost.featured_image || '',
+          tags: blogPost.tags || [],
+          published: blogPost.published || false
         });
         
-        if (data.featured_image) {
-          setImagePreview(data.featured_image);
+        if (blogPost.featured_image) {
+          setImagePreview(blogPost.featured_image);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching blog post:', error);
       toast({
         title: 'Erreur',
@@ -79,11 +82,11 @@ const BlogForm = () => {
     }
   };
   
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
     
     // Auto-generate slug from title if slug is empty
@@ -96,8 +99,12 @@ const BlogForm = () => {
     }
   };
   
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const handleCheckboxChange = (checked: boolean) => {
+    setFormData(prev => ({ ...prev, published: checked }));
+  };
+  
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
       const preview = URL.createObjectURL(file);
@@ -115,7 +122,7 @@ const BlogForm = () => {
     }
   };
   
-  const handleTagRemove = (tagToRemove) => {
+  const handleTagRemove = (tagToRemove: string) => {
     setFormData(prev => ({
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
@@ -141,7 +148,7 @@ const BlogForm = () => {
         .getPublicUrl(filePath);
         
       return data.publicUrl;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading image:', error);
       toast({
         title: 'Erreur',
@@ -152,7 +159,7 @@ const BlogForm = () => {
     }
   };
   
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.title || !formData.content) {
@@ -215,7 +222,7 @@ const BlogForm = () => {
       });
       
       navigate('/admin/blog');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving blog post:', error);
       toast({
         title: 'Erreur',
@@ -349,11 +356,8 @@ const BlogForm = () => {
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="published"
-                  name="published"
                   checked={formData.published}
-                  onCheckedChange={(checked) => 
-                    setFormData(prev => ({ ...prev, published: checked === true }))
-                  }
+                  onCheckedChange={handleCheckboxChange}
                 />
                 <Label htmlFor="published">
                   Publier cet article immédiatement

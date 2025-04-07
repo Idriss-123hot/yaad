@@ -22,12 +22,13 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
+import { ModificationLog } from '@/types/supabase-custom';
 
 const ArtisanModifications = () => {
-  const [modifications, setModifications] = useState([]);
+  const [modifications, setModifications] = useState<ModificationLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
-  const [selectedMod, setSelectedMod] = useState(null);
+  const [selectedMod, setSelectedMod] = useState<(ModificationLog & { artisanName?: string; artisans?: any; changedFields?: string[] }) | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -69,7 +70,7 @@ const ArtisanModifications = () => {
       });
       
       setModifications(processedData);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching modifications:', error);
       toast({
         title: 'Erreur',
@@ -81,7 +82,7 @@ const ArtisanModifications = () => {
     }
   };
 
-  const handleViewDetails = (mod) => {
+  const handleViewDetails = (mod: any) => {
     setSelectedMod(mod);
     setShowDetails(true);
   };
@@ -101,7 +102,7 @@ const ArtisanModifications = () => {
       // Marquer la modification comme validée
       await supabase
         .from('modification_logs')
-        .update({ status: 'approved' })
+        .update({ status: 'approved' }) // Status field added to our custom type
         .eq('id', selectedMod.id);
         
       toast({
@@ -111,7 +112,7 @@ const ArtisanModifications = () => {
       
       setShowDetails(false);
       fetchModifications();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error approving modification:', error);
       toast({
         title: 'Erreur',
@@ -128,7 +129,7 @@ const ArtisanModifications = () => {
       // Marquer la modification comme rejetée
       await supabase
         .from('modification_logs')
-        .update({ status: 'rejected' })
+        .update({ status: 'rejected' }) // Status field added to our custom type
         .eq('id', selectedMod.id);
         
       toast({
@@ -138,7 +139,7 @@ const ArtisanModifications = () => {
       
       setShowDetails(false);
       fetchModifications();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error rejecting modification:', error);
       toast({
         title: 'Erreur',
