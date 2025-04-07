@@ -70,7 +70,7 @@ const ArtisanModifications = () => {
         const artisanMod: ArtisanModificationLog = {
           ...mod,
           changedFields,
-          artisanName: hasArtisanData && mod.artisans ? (mod.artisans as any).name : 'Inconnu',
+          artisanName: hasArtisanData && mod.artisans && 'name' in mod.artisans ? mod.artisans.name : 'Inconnu',
           artisans: hasArtisanData ? mod.artisans as any : null
         };
         
