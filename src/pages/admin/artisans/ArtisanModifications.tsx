@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -52,9 +51,7 @@ const ArtisanModifications = () => {
 
       if (error) throw error;
       
-      // Process data for better display
       const processedData = data.map(mod => {
-        // Extract changed fields by comparing old_values and new_values
         const changedFields = mod.new_values 
           ? Object.keys(mod.new_values).filter(key => 
               mod.old_values && 
@@ -62,25 +59,16 @@ const ArtisanModifications = () => {
             )
           : [];
         
-        // Safe type checking for artisans data
         let artisanName = 'Inconnu';
         let artisanData = null;
         
-        // Check if artisans exists and is a valid object (not an error)
         if (mod.artisans !== null && mod.artisans !== undefined && typeof mod.artisans === 'object') {
-          // Create a local variable that TypeScript knows is non-null
           const artisansObj = mod.artisans;
           
-          // TypeScript still thinks artisansObj could be null here despite our checks above
-          // We need to use a type assertion to tell TypeScript it's definitely not null
-          // First we check if it's an error object
-          if ('error' in artisansObj!) {
-            // It's an error object, don't try to access name
+          if (artisansObj && 'error' in artisansObj) {
             console.log('Error in artisan data:', (artisansObj as QueryError).error);
-          } else {
-            // Safe type cast - we've verified it's a valid object with name property
-            // First assert that artisansObj is definitely not null, then cast to ArtisanData
-            const safeArtisanData = artisansObj! as ArtisanData;
+          } else if (artisansObj) {
+            const safeArtisanData = artisansObj as ArtisanData;
             if (safeArtisanData.name && typeof safeArtisanData.name === 'string') {
               artisanName = safeArtisanData.name;
             }
@@ -88,7 +76,6 @@ const ArtisanModifications = () => {
           }
         } 
         
-        // Fallback to new_values.name if available
         if (artisanName === 'Inconnu' && mod.new_values && typeof mod.new_values === 'object') {
           const newValues = mod.new_values as Record<string, any>;
           if (newValues.name && typeof newValues.name === 'string') {
@@ -96,7 +83,6 @@ const ArtisanModifications = () => {
           }
         }
         
-        // Create a safe artisan modification log object
         const artisanMod: ArtisanModificationLog = {
           ...mod,
           changedFields,
@@ -129,7 +115,6 @@ const ArtisanModifications = () => {
     if (!selectedMod) return;
     
     try {
-      // Apply changes to artisans table
       const { error } = await supabase
         .from('artisans')
         .update(selectedMod.new_values as any)
@@ -137,7 +122,6 @@ const ArtisanModifications = () => {
         
       if (error) throw error;
       
-      // Mark the modification as approved
       await supabase
         .from('modification_logs')
         .update({ status: 'approved' })
@@ -164,7 +148,6 @@ const ArtisanModifications = () => {
     if (!selectedMod) return;
     
     try {
-      // Mark the modification as rejected
       await supabase
         .from('modification_logs')
         .update({ status: 'rejected' })
@@ -312,7 +295,6 @@ const ArtisanModifications = () => {
         )}
       </div>
 
-      {/* Dialog for modification details */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
