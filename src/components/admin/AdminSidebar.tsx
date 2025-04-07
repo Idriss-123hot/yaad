@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -5,7 +6,7 @@ import {
   ShoppingBag, 
   Users, 
   FolderTree,
-  BuildingStorefront
+  Store
 } from 'lucide-react';
 import { 
   Sheet, 
@@ -109,7 +110,7 @@ export function AdminSidebar({ open, setOpen }: { open: boolean; setOpen: (open:
           <div className="p-4 border-b">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 bg-terracotta-600 text-white rounded flex items-center justify-center">
-                <BuildingStorefront className="h-5 w-5" />
+                <Store className="h-5 w-5" />
               </div>
               <div className="font-semibold">Admin Dashboard</div>
             </div>

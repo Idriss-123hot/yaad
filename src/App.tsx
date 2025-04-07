@@ -1,24 +1,25 @@
+
 import React, { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Home } from './pages/Home';
-import { Products } from './pages/Products';
-import { ProductDetail } from './pages/ProductDetail';
-import { Artisans } from './pages/Artisans';
-import { ArtisanDetail } from './pages/ArtisanDetail';
-import { Categories } from './pages/Categories';
-import { SearchResults } from './pages/SearchResults';
-import { About } from './pages/About';
-import { Contact } from './pages/Contact';
-import { NotFound } from './pages/NotFound';
-import { AdminLogin } from './pages/admin/AdminLogin';
-import { AdminDashboard } from './pages/admin/Dashboard';
-import { ProductsList } from './pages/admin/products/ProductsList';
-import { NewProduct } from './pages/admin/products/NewProduct';
-import { EditProduct } from './pages/admin/products/EditProduct';
-import { ArtisansList } from './pages/admin/artisans/ArtisansList';
-import { AdminArtisanNew } from './pages/admin/artisans/NewArtisan';
-import { EditArtisan } from './pages/admin/artisans/EditArtisan';
-import { CategoriesList } from './pages/admin/categories/CategoriesList';
+import Home from './pages/Home';
+import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail';
+import Artisans from './pages/Artisans';
+import ArtisanDetail from './pages/ArtisanDetail';
+import Categories from './pages/Categories';
+import SearchResults from './pages/SearchResults';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import NotFound from './pages/NotFound';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/Dashboard';
+import ProductsList from './pages/admin/products/ProductsList';
+import NewProduct from './pages/admin/products/NewProduct';
+import EditProduct from './pages/admin/products/EditProduct';
+import ArtisansList from './pages/admin/artisans/ArtisansList';
+import AdminArtisanNew from './pages/admin/artisans/NewArtisan';
+import EditArtisan from './pages/admin/artisans/EditArtisan';
+import CategoriesList from './pages/admin/categories/CategoriesList';
 
 function App() {
   useEffect(() => {
