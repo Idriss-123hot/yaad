@@ -70,12 +70,14 @@ const ArtisanModifications = () => {
         if (mod.artisans !== null && mod.artisans !== undefined && typeof mod.artisans === 'object') {
           // Before checking for 'error', make sure mod.artisans is not null
           // TypeScript now knows mod.artisans is a non-null object at this point
-          if ('error' in mod.artisans) {
+          const artisans = mod.artisans; // Create a local variable that TypeScript knows is non-null
+          
+          if ('error' in artisans) {
             // It's an error object, don't try to access name
-            console.log('Error in artisan data:', mod.artisans.error);
+            console.log('Error in artisan data:', artisans.error);
           } else {
             // Safe type cast - we've verified it's a valid object with name property
-            const safeArtisanData = mod.artisans as ArtisanData;
+            const safeArtisanData = artisans as ArtisanData;
             if (safeArtisanData.name && typeof safeArtisanData.name === 'string') {
               artisanName = safeArtisanData.name;
             }
