@@ -67,9 +67,9 @@ const ArtisanModifications = () => {
         let artisanData = null;
         
         // Check if artisans exists and is a valid object (not an error)
-        if (mod.artisans && typeof mod.artisans === 'object') {
-          // Check if it's not an error object or null before accessing properties
-          if (!('error' in mod.artisans) && mod.artisans !== null) {
+        if (mod.artisans !== null && mod.artisans !== undefined && typeof mod.artisans === 'object') {
+          // Check if it's not an error object before accessing properties
+          if (!('error' in mod.artisans)) {
             // Safe type cast - we've verified it's a valid object with name property
             const safeArtisanData = mod.artisans as ArtisanData;
             if (safeArtisanData.name && typeof safeArtisanData.name === 'string') {
