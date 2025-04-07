@@ -27,6 +27,9 @@ import BlogPost from './pages/BlogPost';
 import BlogsList from './pages/admin/blog/BlogsList';
 import NewBlog from './pages/admin/blog/NewBlog';
 import EditBlog from './pages/admin/blog/EditBlog';
+import Auth from './pages/Auth';
+import Cart from './pages/Cart';
+import Favorites from './pages/Favorites';
 
 function App() {
   useEffect(() => {
@@ -48,6 +51,9 @@ function App() {
       <Route path="/contact" element={<Contact />} />
       <Route path="/blog" element={<Blog />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/cart" element={<Cart />} />
+      <Route path="/favorites" element={<Favorites />} />
       <Route path="*" element={<NotFound />} />
       
       {/* Admin Routes */}
