@@ -71,14 +71,16 @@ const ArtisanModifications = () => {
           // Create a local variable that TypeScript knows is non-null
           const artisansObj = mod.artisans;
           
-          // Check if it's an error object
-          if ('error' in artisansObj) {
+          // TypeScript still thinks artisansObj could be null here despite our checks above
+          // We need to use a type assertion to tell TypeScript it's definitely not null
+          // First we check if it's an error object
+          if ('error' in artisansObj!) {
             // It's an error object, don't try to access name
-            console.log('Error in artisan data:', artisansObj.error);
+            console.log('Error in artisan data:', (artisansObj as QueryError).error);
           } else {
             // Safe type cast - we've verified it's a valid object with name property
-            // Use as unknown first to avoid TypeScript error, then cast to ArtisanData
-            const safeArtisanData = artisansObj as unknown as ArtisanData;
+            // First assert that artisansObj is definitely not null, then cast to ArtisanData
+            const safeArtisanData = artisansObj! as ArtisanData;
             if (safeArtisanData.name && typeof safeArtisanData.name === 'string') {
               artisanName = safeArtisanData.name;
             }
