@@ -22,13 +22,13 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { ModificationLog } from '@/types/supabase-custom';
+import { ModificationLog, ArtisanModificationLog } from '@/types/supabase-custom';
 
 const ArtisanModifications = () => {
-  const [modifications, setModifications] = useState<ModificationLog[]>([]);
+  const [modifications, setModifications] = useState<ArtisanModificationLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
-  const [selectedMod, setSelectedMod] = useState<(ModificationLog & { artisanName?: string; artisans?: any; changedFields?: string[] }) | null>(null);
+  const [selectedMod, setSelectedMod] = useState<ArtisanModificationLog | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -52,9 +52,9 @@ const ArtisanModifications = () => {
 
       if (error) throw error;
       
-      // Organiser les données pour un meilleur affichage
+      // Process data for better display
       const processedData = data.map(mod => {
-        // Extraire les champs modifiés en comparant old_values et new_values
+        // Extract changed fields by comparing old_values and new_values
         const changedFields = mod.new_values 
           ? Object.keys(mod.new_values).filter(key => 
               mod.old_values && 
@@ -66,7 +66,7 @@ const ArtisanModifications = () => {
           ...mod,
           changedFields,
           artisanName: mod.artisans?.name || 'Inconnu'
-        };
+        } as ArtisanModificationLog;
       });
       
       setModifications(processedData);
@@ -82,7 +82,7 @@ const ArtisanModifications = () => {
     }
   };
 
-  const handleViewDetails = (mod: any) => {
+  const handleViewDetails = (mod: ArtisanModificationLog) => {
     setSelectedMod(mod);
     setShowDetails(true);
   };
@@ -91,18 +91,20 @@ const ArtisanModifications = () => {
     if (!selectedMod) return;
     
     try {
-      // Appliquer les modifications à la table artisans
+      // Apply changes to artisans table
+      // We need to explicitly type the new_values as any to prevent TypeScript errors
+      // since the structure is dynamically determined
       const { error } = await supabase
         .from('artisans')
-        .update(selectedMod.new_values)
+        .update(selectedMod.new_values as any)
         .eq('id', selectedMod.row_id);
         
       if (error) throw error;
       
-      // Marquer la modification comme validée
+      // Mark the modification as approved
       await supabase
         .from('modification_logs')
-        .update({ status: 'approved' }) // Status field added to our custom type
+        .update({ status: 'approved' })
         .eq('id', selectedMod.id);
         
       toast({
@@ -126,10 +128,10 @@ const ArtisanModifications = () => {
     if (!selectedMod) return;
     
     try {
-      // Marquer la modification comme rejetée
+      // Mark the modification as rejected
       await supabase
         .from('modification_logs')
-        .update({ status: 'rejected' }) // Status field added to our custom type
+        .update({ status: 'rejected' })
         .eq('id', selectedMod.id);
         
       toast({
@@ -149,8 +151,8 @@ const ArtisanModifications = () => {
     }
   };
 
-  const formatFieldName = (field) => {
-    const fieldMap = {
+  const formatFieldName = (field: string) => {
+    const fieldMap: Record<string, string> = {
       name: 'Nom',
       bio: 'Biographie',
       location: 'Localisation',
@@ -164,7 +166,7 @@ const ArtisanModifications = () => {
     return fieldMap[field] || field;
   };
 
-  const renderFieldValue = (field, value) => {
+  const renderFieldValue = (field: string, value: any) => {
     if (field === 'profile_photo' || field.includes('_images')) {
       return value ? (
         <div className="max-w-xs">
@@ -239,7 +241,7 @@ const ArtisanModifications = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {mod.changedFields.length > 0 ? (
+                      {mod.changedFields && mod.changedFields.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {mod.changedFields.map(field => (
                             <span key={field} className="bg-gray-100 text-xs px-2 py-1 rounded">
@@ -274,7 +276,7 @@ const ArtisanModifications = () => {
         )}
       </div>
 
-      {/* Dialog pour afficher les détails de la modification */}
+      {/* Dialog for modification details */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -289,7 +291,7 @@ const ArtisanModifications = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-medium mb-2">Anciennes valeurs</h3>
-                  {selectedMod.changedFields.length > 0 ? (
+                  {selectedMod.changedFields && selectedMod.changedFields.length > 0 ? (
                     <div className="space-y-4 border p-4 rounded-md">
                       {selectedMod.changedFields.map(field => (
                         <div key={`old-${field}`} className="space-y-1">
@@ -308,7 +310,7 @@ const ArtisanModifications = () => {
                 <div>
                   <h3 className="font-medium mb-2">Nouvelles valeurs</h3>
                   <div className="space-y-4 border p-4 rounded-md">
-                    {selectedMod.changedFields.length > 0 ? (
+                    {selectedMod.changedFields && selectedMod.changedFields.length > 0 ? (
                       selectedMod.changedFields.map(field => (
                         <div key={`new-${field}`} className="space-y-1">
                           <p className="text-sm font-medium">{formatFieldName(field)}</p>
@@ -318,7 +320,7 @@ const ArtisanModifications = () => {
                         </div>
                       ))
                     ) : (
-                      Object.keys(selectedMod.new_values || {}).map(field => (
+                      selectedMod.new_values && Object.keys(selectedMod.new_values).map(field => (
                         <div key={`new-${field}`} className="space-y-1">
                           <p className="text-sm font-medium">{formatFieldName(field)}</p>
                           <div className="text-sm">

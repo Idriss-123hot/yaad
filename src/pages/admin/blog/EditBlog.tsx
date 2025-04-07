@@ -5,7 +5,9 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 
 const EditBlog = () => {
   return (
-    <BlogForm />
+    <AdminLayout>
+      <BlogForm />
+    </AdminLayout>
   );
 };
 

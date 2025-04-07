@@ -27,5 +27,15 @@ export interface ModificationLog {
   user_role?: string;
   user_id?: string;
   modification_date: string;
-  status?: string; // Adding status field
+  status?: string; // Status field for tracking approval state
+}
+
+// Extended interface for modification logs with artisan details
+export interface ArtisanModificationLog extends ModificationLog {
+  artisans?: {
+    name: string;
+    profile_photo?: string;
+  };
+  artisanName?: string;
+  changedFields?: string[];
 }
