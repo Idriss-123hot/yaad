@@ -11,7 +11,7 @@ import SearchResults from './pages/SearchResults';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
-import AdminLogin from './pages/admin/AdminLogin';
+import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import ProductsList from './pages/admin/products/ProductsList';
 import NewProduct from './pages/admin/products/NewProduct';
@@ -20,6 +20,7 @@ import ArtisansList from './pages/admin/artisans/ArtisansList';
 import AdminArtisanNew from './pages/admin/artisans/NewArtisan';
 import EditArtisan from './pages/admin/artisans/EditArtisan';
 import CategoriesList from './pages/admin/categories/CategoriesList';
+import Index from './pages/Index';
 
 function App() {
   useEffect(() => {
@@ -29,7 +30,8 @@ function App() {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<Index />} />
+      <Route path="/home" element={<Home />} />
       <Route path="/products" element={<Products />} />
       <Route path="/products/:id" element={<ProductDetail />} />
       <Route path="/artisans" element={<Artisans />} />
