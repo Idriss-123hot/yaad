@@ -4,39 +4,43 @@ import { cn, getImageWithFallback } from '@/lib/utils';
 import { ProductWithArtisan } from '@/models/types';
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { FEATURED_PRODUCTS } from '@/components/home/FeaturedProducts';
-import { getArtisanById } from '@/utils/productUtils';
 
 interface ProductCardProps {
   product: ProductWithArtisan;
   className?: string;
 }
 
+/**
+ * ProductCard Component
+ * 
+ * Displays a product card with image, title, artisan info, rating, and price.
+ * Used in various product listing pages and carousels.
+ * 
+ * @param product - The product data to display
+ * @param className - Optional additional CSS classes
+ */
 export function ProductCard({ product, className }: ProductCardProps) {
-  const { id, title, price, discountPrice, rating, reviewCount, images, artisanId } = product;
+  const { id, title, price, discountPrice, rating, reviewCount, images, artisan } = product;
   
   const firstImage = images && images.length > 0 ? images[0] : undefined;
   const imageUrl = getImageWithFallback(firstImage);
   
-  // Récupérer les informations sur l'artisan
-  const artisan = product.artisan || (artisanId ? getArtisanById(artisanId) : undefined);
+  // Get artisan information
   const artisanName = artisan?.name || 'Artisan Marocain';
+  const artisanId = artisan?.id || product.artisanId;
   
-  // Déterminer l'URL correcte pour le produit
-  // Les produits en vedette utilisent /featured/:id, les autres utilisent /products/:id
-  const isFeaturedProduct = FEATURED_PRODUCTS.some(p => p.id === id);
-  const productLink = isFeaturedProduct ? `/featured/${id}` : `/products/${id}`;
-  
-  // Si l'artisan est disponible, créer un lien vers sa page
-  const artisanLink = artisan ? `/artisan/${artisanId}` : undefined;
+  // Calculate discount percentage if both prices are available
+  const discountPercentage = price && discountPrice 
+    ? Math.round(((price - discountPrice) / price) * 100) 
+    : 0;
   
   return (
     <div className={cn(
-      "group flex flex-col overflow-hidden rounded-lg transition-all duration-300",
+      "group flex flex-col overflow-hidden rounded-lg transition-all duration-300 hover-lift",
       className
     )}>
       {/* Product Image */}
-      <Link to={productLink} className="block aspect-square overflow-hidden rounded-lg bg-muted mb-3 relative">
+      <Link to={`/products/${id}`} className="block aspect-square overflow-hidden rounded-lg bg-muted mb-3 relative">
         <img
           src={imageUrl}
           alt={title}
@@ -46,25 +50,25 @@ export function ProductCard({ product, className }: ProductCardProps) {
           }}
         />
         
-        {discountPrice && (
+        {discountPrice && discountPercentage > 0 && (
           <Badge 
             className="absolute top-2 left-2 bg-terracotta-600/90 hover:bg-terracotta-600"
           >
-            -{Math.round(((price - discountPrice) / price) * 100)}%
+            -{discountPercentage}%
           </Badge>
         )}
       </Link>
       
       {/* Product Info */}
       <div className="flex-1 flex flex-col">
-        <Link to={productLink}>
+        <Link to={`/products/${id}`}>
           <h3 className="font-medium text-base line-clamp-2 mb-1 group-hover:text-terracotta-600">
             {title}
           </h3>
         </Link>
         
-        {artisanLink ? (
-          <Link to={artisanLink} className="text-sm text-muted-foreground mb-2 hover:text-terracotta-600">
+        {artisanId ? (
+          <Link to={`/artisans/${artisanId}`} className="text-sm text-muted-foreground mb-2 hover:text-terracotta-600">
             Par {artisanName}
           </Link>
         ) : (

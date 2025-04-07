@@ -11,6 +11,15 @@ import { ArrowRight } from 'lucide-react';
 import FeaturedProductsCarousel from '@/components/home/FeaturedProductsCarousel';
 import FeaturedArtisansCarousel from '@/components/home/FeaturedArtisansCarousel';
 
+/**
+ * Home page component
+ * 
+ * Displays the main landing page with featured sections including:
+ * - Hero banner
+ * - Product categories
+ * - Featured products from Supabase (automatically rotates)
+ * - Featured artisans
+ */
 const Home = () => {
   useEffect(() => {
     // Smooth scroll to top when component mounts
@@ -40,28 +49,24 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Featured Products Section - Using lighter background */}
+        {/* Featured Products Section - Savoir-Faire Exceptionnel */}
         <div className="py-16 px-4 md:px-6 lg:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-10">
-              <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Produits en Vedette</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Découvrez notre sélection de produits artisanaux exceptionnels
-              </p>
-            </div>
-            <FeaturedProductsCarousel />
-            <div className="text-center mt-8">
-              <Button asChild variant="outline">
-                <Link to="/products" className="inline-flex items-center">
+            <div className="flex justify-between items-center mb-10">
+              <h2 className="font-serif text-3xl md:text-4xl font-bold">Savoir-Faire Exceptionnel</h2>
+              <Button asChild variant="ghost" className="flex items-center">
+                <Link to="/products" className="flex items-center text-terracotta-600 hover:text-terracotta-700">
                   Voir tous les produits 
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             </div>
+            {/* Dynamic featured products carousel connected to Supabase */}
+            <FeaturedProductsCarousel />
           </div>
         </div>
 
-        {/* Featured Artisans Section - Using lighter background */}
+        {/* Featured Artisans Section */}
         <div className="py-16 px-4 md:px-6 lg:px-8 bg-cream-100">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-10">
