@@ -1,5 +1,4 @@
-
-// This is a new BlogForm component for creating and editing blog posts
+// This is a BlogForm component for creating and editing blog posts
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -113,7 +112,14 @@ const BlogForm = () => {
       setLoading(true);
       
       const blogData = {
-        ...values,
+        title: values.title,
+        slug: values.slug,
+        content: values.content,
+        excerpt: values.excerpt,
+        category: values.category,
+        featured_image: values.featured_image,
+        tags: values.tags,
+        published: values.published,
         published_at: values.published ? new Date().toISOString() : null,
         author_id: (await supabase.auth.getUser()).data.user?.id,
       };

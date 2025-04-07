@@ -224,6 +224,7 @@ export type Database = {
           new_values: Json | null
           old_values: Json | null
           row_id: string
+          status: string | null
           table_name: string
           user_id: string | null
           user_role: string | null
@@ -234,6 +235,7 @@ export type Database = {
           new_values?: Json | null
           old_values?: Json | null
           row_id: string
+          status?: string | null
           table_name: string
           user_id?: string | null
           user_role?: string | null
@@ -244,6 +246,7 @@ export type Database = {
           new_values?: Json | null
           old_values?: Json | null
           row_id?: string
+          status?: string | null
           table_name?: string
           user_id?: string | null
           user_role?: string | null

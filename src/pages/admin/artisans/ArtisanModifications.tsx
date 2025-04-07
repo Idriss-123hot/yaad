@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -62,7 +61,7 @@ const ArtisanModifications = () => {
             )
           : [];
         
-        // Handle case where artisans might be an error object
+        // Handle case where artisans might be null or an error object
         const hasArtisanData = mod.artisans && 
                               typeof mod.artisans === 'object' && 
                               !('error' in mod.artisans);
@@ -71,7 +70,7 @@ const ArtisanModifications = () => {
         const artisanMod: ArtisanModificationLog = {
           ...mod,
           changedFields,
-          artisanName: hasArtisanData ? (mod.artisans as any).name : 'Inconnu',
+          artisanName: hasArtisanData && mod.artisans ? (mod.artisans as any).name : 'Inconnu',
           artisans: hasArtisanData ? mod.artisans as any : null
         };
         
@@ -101,7 +100,6 @@ const ArtisanModifications = () => {
     
     try {
       // Apply changes to artisans table
-      // We need to explicitly type the new_values as any to prevent TypeScript errors
       const { error } = await supabase
         .from('artisans')
         .update(selectedMod.new_values as any)
@@ -112,7 +110,7 @@ const ArtisanModifications = () => {
       // Mark the modification as approved
       await supabase
         .from('modification_logs')
-        .update({ status: 'approved' } as any)
+        .update({ status: 'approved' })
         .eq('id', selectedMod.id);
         
       toast({
@@ -139,7 +137,7 @@ const ArtisanModifications = () => {
       // Mark the modification as rejected
       await supabase
         .from('modification_logs')
-        .update({ status: 'rejected' } as any)
+        .update({ status: 'rejected' })
         .eq('id', selectedMod.id);
         
       toast({
