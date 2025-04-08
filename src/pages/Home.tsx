@@ -19,6 +19,10 @@ import FeaturedArtisansCarousel from '@/components/home/FeaturedArtisansCarousel
  * - Product categories
  * - Featured products from Supabase (automatically rotates)
  * - Featured artisans
+ * 
+ * NOTE: All product data is dynamically fetched from Supabase.
+ * Static/hardcoded products have been removed to ensure all content
+ * is up-to-date with the database.
  */
 const Home = () => {
   useEffect(() => {
@@ -49,7 +53,7 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Featured Products Section - Savoir-Faire Exceptionnel */}
+        {/* Featured Products Section - Dynamic content from Supabase */}
         <div className="py-16 px-4 md:px-6 lg:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-10">
@@ -62,6 +66,8 @@ const Home = () => {
               </Button>
             </div>
             {/* Dynamic featured products carousel connected to Supabase */}
+            {/* This carousel fetches all products where featured=true from the database */}
+            {/* No static product data is used - all content is dynamically loaded */}
             <FeaturedProductsCarousel />
           </div>
         </div>

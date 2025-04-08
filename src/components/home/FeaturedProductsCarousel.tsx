@@ -20,6 +20,14 @@ import { Skeleton } from '@/components/ui/skeleton';
  * Fetches featured products from Supabase and displays them in an auto-rotating carousel.
  * Products are filtered where featured = true in the database.
  * The carousel automatically rotates through the products using a useRef approach for better performance.
+ * 
+ * Features:
+ * - Dynamic data fetching from Supabase
+ * - Auto-rotation every 5 seconds
+ * - Responsive grid display
+ * - Loading skeletons while fetching
+ * - Error handling
+ * - Fallback image for products without images
  */
 const FeaturedProductsCarousel = () => {
   // Use useRef instead of useState for the carousel API
