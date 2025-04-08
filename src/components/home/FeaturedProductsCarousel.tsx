@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { 
@@ -44,6 +43,7 @@ const FeaturedProductsCarousel = () => {
   const { data: featuredProducts, isLoading, error } = useQuery({
     queryKey: ['featuredProducts'],
     queryFn: async () => {
+      // Fetch all featured products with their related data
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -51,7 +51,16 @@ const FeaturedProductsCarousel = () => {
           artisan:artisans(
             id,
             name,
-            profile_photo
+            profile_photo,
+            bio,
+            location,
+            featured,
+            rating,
+            review_count,
+            first_gallery_images,
+            joined_date,
+            description,
+            website
           ),
           category:categories(
             id,
@@ -68,8 +77,8 @@ const FeaturedProductsCarousel = () => {
 
       if (error) throw error;
       
-      // Map database products to our application model
-      return data.map((product) => mapDatabaseProductToProduct(product)) as ProductWithArtisan[];
+      // Process each product through our mapper to ensure correct typing
+      return data.map(product => mapDatabaseProductToProduct(product)) as ProductWithArtisan[];
     }
   });
 

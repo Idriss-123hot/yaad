@@ -44,7 +44,8 @@ export function mapDatabaseProductToProduct(dbProduct: DatabaseProduct): Product
       }))
     : [];
   
-  return {
+  // Create the product object
+  const product: ProductWithArtisan = {
     id: dbProduct.id,
     title: dbProduct.title,
     description: dbProduct.description || '',
@@ -60,10 +61,16 @@ export function mapDatabaseProductToProduct(dbProduct: DatabaseProduct): Product
     rating: dbProduct.rating || 0,
     reviewCount: dbProduct.review_count || 0,
     featured: dbProduct.featured || false,
-    artisan: dbProduct.artisan ? mapDatabaseArtisanToArtisan(dbProduct.artisan) : undefined,
     createdAt: new Date(dbProduct.created_at),
     variations: variations.length > 0 ? variations : undefined,
     categoryId: dbProduct.category_id,
     subcategoryId: dbProduct.subcategory_id
   };
+  
+  // Add artisan information if available
+  if (dbProduct.artisan) {
+    product.artisan = mapDatabaseArtisanToArtisan(dbProduct.artisan);
+  }
+  
+  return product;
 }
