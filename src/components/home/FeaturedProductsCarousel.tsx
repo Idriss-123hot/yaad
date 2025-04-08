@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { 
@@ -19,25 +19,29 @@ import { Skeleton } from '@/components/ui/skeleton';
  * 
  * Fetches featured products from Supabase and displays them in an auto-rotating carousel.
  * Products are filtered where featured = true in the database.
- * The carousel automatically rotates through the products and updates when changes are made in the database.
+ * The carousel automatically rotates through the products using a useRef approach for better performance.
  */
 const FeaturedProductsCarousel = () => {
-  const [api, setApi] = useState<any>();
+  // Use useRef instead of useState for the carousel API
+  const carouselRef = useRef<{ scrollNext: () => void } | null>(null);
 
-  // Set up the auto-rotation for the carousel
+  // Set up the auto-rotation for the carousel using the ref
   useEffect(() => {
-    if (!api) return;
-
+    // Only proceed if we have a valid carousel reference
+    if (!carouselRef.current) return;
+    
     // Interval for auto-rotation (every 5 seconds)
     const autoRotateInterval = setInterval(() => {
-      api.scrollNext();
+      if (carouselRef.current) {
+        carouselRef.current.scrollNext();
+      }
     }, 5000);
 
     // Clean up on unmount
     return () => {
       clearInterval(autoRotateInterval);
     };
-  }, [api]);
+  }, [carouselRef.current]); // Only re-run if the ref changes
 
   // Fetch featured products from Supabase
   const { data: featuredProducts, isLoading, error } = useQuery({
@@ -106,27 +110,45 @@ const FeaturedProductsCarousel = () => {
     );
   }
 
+  // Function to handle carousel API instantiation
+  const handleCarouselCreated = (api: any) => {
+    carouselRef.current = api;
+  };
+
   return (
-    <Carousel
-      opts={{
-        align: "start",
-        loop: true,
-      }}
-      className="w-full"
-      setApi={setApi}
-    >
-      <CarouselContent>
-        {featuredProducts.map((product) => (
-          <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 p-1">
-            <div className="p-1">
-              <ProductCard product={product} />
-            </div>
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-      <CarouselPrevious className="left-2 lg:left-0" />
-      <CarouselNext className="right-2 lg:right-0" />
-    </Carousel>
+    // Add a container with minimum height and background for better debugging
+    <div className="min-h-[400px] w-full">
+      <Carousel
+        opts={{
+          align: "start",
+          loop: true,
+        }}
+        className="w-full relative"
+        setApi={handleCarouselCreated} // Use our custom handler for the API
+      >
+        <CarouselContent className="flex">
+          {featuredProducts.map((product) => (
+            <CarouselItem 
+              key={product.id} 
+              className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 p-1"
+              aria-label={`Featured product: ${product.title}`}
+            >
+              <div className="p-1 h-full">
+                <ProductCard product={product} className="h-full" />
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious 
+          className="left-2 lg:left-0" 
+          aria-label="View previous featured product"
+        />
+        <CarouselNext 
+          className="right-2 lg:right-0" 
+          aria-label="View next featured product"
+        />
+      </Carousel>
+    </div>
   );
 };
 
