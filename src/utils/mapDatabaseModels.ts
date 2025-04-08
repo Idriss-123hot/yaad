@@ -39,6 +39,7 @@ export function mapDatabaseProductToProduct(dbProduct: DatabaseProduct): Product
   const variations: ProductVariation[] = dbProduct.product_variations 
     ? dbProduct.product_variations.map(v => ({
         id: v.id,
+        name: v.name, // Make sure to include the required name property
         options: v.options || []
       }))
     : [];

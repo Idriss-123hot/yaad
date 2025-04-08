@@ -52,13 +52,10 @@ const FeaturedProductsCarousel = () => {
             *
           ),
           category:categories(
-            id,
-            name,
-            slug
+            *
           ),
           subcategory:subcategories(
-            id,
-            name
+            *
           ),
           product_variations(*)
         `)
