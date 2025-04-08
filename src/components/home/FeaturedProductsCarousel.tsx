@@ -49,18 +49,7 @@ const FeaturedProductsCarousel = () => {
         .select(`
           *,
           artisan:artisans(
-            id,
-            name,
-            profile_photo,
-            bio,
-            location,
-            featured,
-            rating,
-            review_count,
-            first_gallery_images,
-            joined_date,
-            description,
-            website
+            *
           ),
           category:categories(
             id,
@@ -70,7 +59,8 @@ const FeaturedProductsCarousel = () => {
           subcategory:subcategories(
             id,
             name
-          )
+          ),
+          product_variations(*)
         `)
         .eq('featured', true)
         .order('created_at', { ascending: false });
