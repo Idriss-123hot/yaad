@@ -23,6 +23,11 @@ import FeaturedArtisansCarousel from '@/components/home/FeaturedArtisansCarousel
  * NOTE: All product data is dynamically fetched from Supabase.
  * Static/hardcoded products have been removed to ensure all content
  * is up-to-date with the database.
+ * 
+ * IMPORTANT: This page now ONLY uses dynamic components:
+ * - FeaturedProductsCarousel - fetches featured products from Supabase
+ * - FeaturedArtisansCarousel - fetches featured artisans from Supabase
+ * All static product/artisan components have been removed.
  */
 const Home = () => {
   useEffect(() => {
@@ -72,7 +77,7 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Featured Artisans Section */}
+        {/* Featured Artisans Section - Dynamic content from Supabase */}
         <div className="py-16 px-4 md:px-6 lg:px-8 bg-cream-100">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-10">
@@ -81,6 +86,9 @@ const Home = () => {
                 Découvrez les talentueux artisans derrière nos créations uniques
               </p>
             </div>
+            {/* Dynamic featured artisans carousel connected to Supabase */}
+            {/* This carousel fetches all artisans where featured=true from the database */}
+            {/* No static artisan data is used - all content is dynamically loaded */}
             <FeaturedArtisansCarousel />
             <div className="text-center mt-8">
               <Button asChild variant="outline">

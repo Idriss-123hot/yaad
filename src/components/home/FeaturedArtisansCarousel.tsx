@@ -5,7 +5,24 @@ import { ArtisanCard } from '@/components/ui/ArtisanCard';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
+import { mapDatabaseArtisanToArtisan } from '@/utils/mapDatabaseModels';
 
+/**
+ * FeaturedArtisansCarousel Component
+ * 
+ * Fetches featured artisans from Supabase and displays them in an auto-rotating carousel.
+ * Artisans are filtered where featured = true in the database.
+ * The carousel automatically rotates with smooth scrolling.
+ * 
+ * Features:
+ * - Dynamic data fetching from Supabase
+ * - Auto-scrolling with pause on hover
+ * - Responsive design
+ * - Loading skeletons while fetching
+ * - Error handling
+ * - Navigation buttons for manual scrolling
+ */
 export function FeaturedArtisansCarousel() {
   const [artisans, setArtisans] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,6 +31,9 @@ export function FeaturedArtisansCarousel() {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [maxScroll, setMaxScroll] = useState(0);
   const scrollInterval = useRef<number | null>(null);
+  
+  // Fallback image for artisans without a profile photo
+  const fallbackImage = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Blog%20et%20home%20page/test.jpg";
 
   useEffect(() => {
     fetchFeaturedArtisans();
@@ -96,7 +116,17 @@ export function FeaturedArtisansCarousel() {
         
       if (error) throw error;
       
-      setArtisans(data || []);
+      // Process artisans to ensure each has a valid profile image
+      const processedArtisans = data.map(artisan => {
+        const mappedArtisan = mapDatabaseArtisanToArtisan(artisan);
+        // Add fallback image if profileImage is empty
+        if (!mappedArtisan.profileImage) {
+          mappedArtisan.profileImage = fallbackImage;
+        }
+        return mappedArtisan;
+      });
+      
+      setArtisans(processedArtisans || []);
     } catch (err) {
       console.error('Error fetching featured artisans:', err);
       setError(err.message);
@@ -128,6 +158,41 @@ export function FeaturedArtisansCarousel() {
     }
   };
 
+  // Loading state - display skeleton cards
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {Array(4).fill(0).map((_, i) => (
+          <div key={i} className="flex flex-col space-y-3">
+            <Skeleton className="h-[250px] w-full rounded-md" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-4 w-1/4" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="text-center py-8 text-red-500">
+        Une erreur est survenue lors du chargement des artisans.
+        <p className="text-sm text-muted-foreground mt-2">{error}</p>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (!artisans || artisans.length === 0) {
+    return (
+      <div className="text-center py-8">
+        Aucun artisan en vedette n'est disponible pour le moment.
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       {/* Navigation buttons */}
@@ -141,6 +206,7 @@ export function FeaturedArtisansCarousel() {
           )}
           onClick={scrollLeft}
           disabled={scrollPosition <= 0}
+          aria-label="Previous artisans"
         >
           <ChevronLeft className="h-6 w-6" />
         </Button>
@@ -156,6 +222,7 @@ export function FeaturedArtisansCarousel() {
           )}
           onClick={scrollRight}
           disabled={scrollPosition >= maxScroll}
+          aria-label="Next artisans"
         >
           <ChevronRight className="h-6 w-6" />
         </Button>
@@ -166,27 +233,13 @@ export function FeaturedArtisansCarousel() {
         className="overflow-x-auto pb-4 scrollbar-hide"
         onScroll={handleScroll}
       >
-        {loading ? (
-          <div className="flex justify-center p-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-terracotta-600"></div>
-          </div>
-        ) : error ? (
-          <div className="text-center p-8 text-red-500">
-            Erreur: {error}
-          </div>
-        ) : artisans.length === 0 ? (
-          <div className="text-center p-8 text-muted-foreground">
-            Aucun artisan en vedette disponible
-          </div>
-        ) : (
-          <div className="flex space-x-6 py-4 px-2">
-            {artisans.map((artisan) => (
-              <div key={artisan.id} className="min-w-[300px] max-w-[300px]">
-                <ArtisanCard artisan={artisan} />
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="flex space-x-6 py-4 px-2">
+          {artisans.map((artisan) => (
+            <div key={artisan.id} className="min-w-[300px] max-w-[300px]">
+              <ArtisanCard artisan={artisan} />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

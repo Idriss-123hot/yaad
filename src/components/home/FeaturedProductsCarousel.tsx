@@ -32,6 +32,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 const FeaturedProductsCarousel = () => {
   // Use useRef instead of useState for the carousel API
   const carouselRef = useRef<{ scrollNext: () => void } | null>(null);
+  
+  // Fallback image for products without images
+  const fallbackImage = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Blog%20et%20home%20page/test.jpg";
 
   // Set up the auto-rotation for the carousel using the ref
   useEffect(() => {
@@ -77,7 +80,17 @@ const FeaturedProductsCarousel = () => {
       if (error) throw error;
       
       // Process each product through our mapper to ensure correct typing
-      return data.map(product => mapDatabaseProductToProduct(product)) as ProductWithArtisan[];
+      // and add fallback image if no images are available
+      return data.map(product => {
+        const mappedProduct = mapDatabaseProductToProduct(product);
+        
+        // Add fallback image if the product has no images
+        if (!mappedProduct.images || mappedProduct.images.length === 0) {
+          mappedProduct.images = [fallbackImage];
+        }
+        
+        return mappedProduct;
+      }) as ProductWithArtisan[];
     }
   });
 
