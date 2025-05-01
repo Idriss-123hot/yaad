@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -22,7 +21,7 @@ import {
 import { ProductWithArtisan } from '@/models/types';
 import { toast } from '@/hooks/use-toast';
 import { ProductCard } from '@/components/ui/ProductCard';
-import { useWishlist } from '@/hooks/useWishlist';
+import { useWishlistContext } from '@/hooks/useWishlist';
 import { supabase } from '@/integrations/supabase/client';
 import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
 
@@ -35,7 +34,7 @@ const ProductPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [relatedProducts, setRelatedProducts] = useState<ProductWithArtisan[]>([]);
   const navigate = useNavigate();
-  const { addToWishlist, isInWishlist } = useWishlist();
+  const { addToWishlist, isInWishlist } = useWishlistContext();
   
   useEffect(() => {
     setCurrentImageIndex(0);

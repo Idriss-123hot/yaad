@@ -1,14 +1,57 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { ProductWithArtisan } from '@/models/types';
 
 export interface WishlistItem {
   id: string;
   userId: string;
   productId: string;
   createdAt: string;
+  product?: ProductWithArtisan;
+}
+
+interface WishlistContextType {
+  wishlistItems: WishlistItem[];
+  isLoading: boolean;
+  addToWishlist: (productId: string) => Promise<any>;
+  removeFromWishlist: (productId: string) => Promise<any>;
+  refreshWishlist: () => Promise<void>;
+  isInWishlist: (productId: string) => boolean;
+}
+
+const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
+
+export function WishlistProvider({ children }: { children: ReactNode }) {
+  const { wishlistItems, isLoading, addToWishlist, removeFromWishlist, refreshWishlist } = useWishlist();
+  
+  // Check if item is in wishlist
+  const isInWishlist = (productId: string): boolean => {
+    return wishlistItems.some(item => item.productId === productId);
+  };
+
+  return (
+    <WishlistContext.Provider value={{ 
+      wishlistItems, 
+      isLoading, 
+      addToWishlist, 
+      removeFromWishlist, 
+      refreshWishlist,
+      isInWishlist
+    }}>
+      {children}
+    </WishlistContext.Provider>
+  );
+}
+
+export function useWishlistContext(): WishlistContextType {
+  const context = useContext(WishlistContext);
+  if (context === undefined) {
+    throw new Error('useWishlistContext must be used within a WishlistProvider');
+  }
+  return context;
 }
 
 export function useWishlist() {
@@ -34,7 +77,15 @@ export function useWishlist() {
       
       const { data, error } = await supabase
         .from('wishlists')
-        .select('*')
+        .select(`
+          *,
+          product:products(
+            *,
+            artisan:artisans(*),
+            category:categories(*),
+            subcategory:subcategories(*)
+          )
+        `)
         .eq('user_id', user?.id);
         
       if (error) throw error;
@@ -44,7 +95,32 @@ export function useWishlist() {
         id: item.id,
         userId: item.user_id,
         productId: item.product_id,
-        createdAt: item.created_at
+        createdAt: item.created_at,
+        product: item.product ? {
+          id: item.product.id,
+          title: item.product.title,
+          description: item.product.description,
+          price: item.product.price,
+          discountPrice: item.product.discount_price,
+          images: item.product.images,
+          rating: item.product.rating,
+          reviewCount: item.product.review_count,
+          stock: item.product.stock,
+          featured: item.product.featured,
+          artisanId: item.product.artisan_id,
+          category: item.product.category?.name,
+          subcategory: item.product.subcategory?.name,
+          mainCategory: item.product.category_id,
+          material: item.product.material,
+          origin: item.product.origin,
+          artisan: item.product.artisan ? {
+            id: item.product.artisan.id,
+            name: item.product.artisan.name,
+            description: item.product.artisan.description,
+            profileImage: item.product.artisan.profile_photo,
+            location: item.product.artisan.location
+          } : undefined
+        } : undefined
       }));
       
       setWishlistItems(formattedItems);

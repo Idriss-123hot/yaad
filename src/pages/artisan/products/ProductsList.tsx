@@ -54,8 +54,8 @@ const ArtisanProductsList = ({ isAdmin = false }: ProductsListProps) => {
         .from('products')
         .select(`
           *,
-          category:categories(name, id),
-          subcategory:subcategories(name, id)
+          category:categories(*),
+          subcategory:subcategories(*)
         `)
         .eq('artisan_id', artisanId)
         .order('created_at', { ascending: false });
@@ -66,11 +66,7 @@ const ArtisanProductsList = ({ isAdmin = false }: ProductsListProps) => {
       if (data) {
         const mappedProducts: ProductWithArtisan[] = data.map(item => {
           // First convert database format to our expected format
-          return mapDatabaseProductToProduct({
-            ...item,
-            category: item.category,
-            subcategory: item.subcategory,
-          });
+          return mapDatabaseProductToProduct(item);
         });
         setProducts(mappedProducts);
       }

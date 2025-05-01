@@ -4,11 +4,11 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ui/ProductCard';
-import { useWishlist } from '@/hooks/useWishlist';
+import { useWishlistContext } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Favorites() {
-  const { wishlistItems, loading, removeFromWishlist } = useWishlist();
+  const { wishlistItems, isLoading, removeFromWishlist } = useWishlistContext();
   const { isAuthenticated } = useAuth();
 
   return (
@@ -26,7 +26,7 @@ export default function Favorites() {
           </p>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="h-80 animate-pulse bg-gray-200 rounded-lg"></div>
