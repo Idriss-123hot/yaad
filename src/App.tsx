@@ -37,6 +37,10 @@ import ResetPassword from './pages/ResetPassword';
 import Search from './pages/Search';
 import ArtisanLogin from './pages/artisan/Login';
 import ArtisanDashboard from './pages/artisan/Dashboard';
+import ArtisanProductsList from './pages/artisan/products/ProductsList';
+import ArtisanProductNew from './pages/artisan/products/NewProduct';
+import ArtisanProductEdit from './pages/artisan/products/EditProduct';
+import ArtisanSettings from './pages/artisan/settings/Settings';
 
 function App() {
   useEffect(() => {
@@ -70,6 +74,10 @@ function App() {
       {/* Artisan routes */}
       <Route path="/artisan/login" element={<ArtisanLogin />} />
       <Route path="/artisan/dashboard" element={<ArtisanDashboard />} />
+      <Route path="/artisan/products" element={<ArtisanProductsList />} />
+      <Route path="/artisan/products/new" element={<ArtisanProductNew />} />
+      <Route path="/artisan/products/:id/edit" element={<ArtisanProductEdit />} />
+      <Route path="/artisan/settings" element={<ArtisanSettings />} />
       
       {/* Admin routes */}
       <Route path="/admin/login" element={<AdminLogin />} />

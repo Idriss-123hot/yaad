@@ -1,108 +1,145 @@
 
-import { useEffect, useRef } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { X, Home, ShoppingBag, BarChart2, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  LayoutDashboard,
+  PackageOpen,
+  Settings,
+  Users,
+  ShoppingCart,
+  MessageSquare,
+  BarChart2,
+  HelpCircle,
+  LogOut,
+} from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
-interface ArtisanSidebarProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
+interface NavItemProps {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  active?: boolean;
 }
 
-export function ArtisanSidebar({ open, setOpen }: ArtisanSidebarProps) {
+const NavItem = ({ href, icon, label, active }: NavItemProps) => (
+  <Button
+    asChild
+    variant={active ? 'default' : 'ghost'}
+    className={cn(
+      'w-full justify-start',
+      active ? 'bg-terracotta-600 hover:bg-terracotta-700 text-white' : ''
+    )}
+  >
+    <Link to={href}>
+      <span className="mr-2">{icon}</span>
+      {label}
+    </Link>
+  </Button>
+);
+
+export function ArtisanSidebar() {
   const location = useLocation();
-  const sidebarRef = useRef<HTMLDivElement>(null);
-
-  // Close sidebar when clicking outside on mobile
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        open &&
-        sidebarRef.current &&
-        !sidebarRef.current.contains(event.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [open, setOpen]);
-
-  // Close sidebar when route changes on mobile
-  useEffect(() => {
-    setOpen(false);
-  }, [location.pathname, setOpen]);
-
-  const navigation = [
-    { name: 'Dashboard', href: '/artisan/dashboard', icon: Home },
-    { name: 'My Products', href: '/artisan/products', icon: ShoppingBag },
-    { name: 'Statistics', href: '/artisan/statistics', icon: BarChart2 },
-    { name: 'Settings', href: '/artisan/settings', icon: Settings },
-  ];
+  const { signOut } = useAuth();
+  
+  const isActive = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
 
   return (
-    <>
-      {/* Mobile backdrop */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div
-        ref={sidebarRef}
-        className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out md:relative md:translate-x-0',
-          open ? 'translate-x-0' : '-translate-x-full'
-        )}
-      >
-        <div className="flex h-16 items-center justify-between border-b px-4">
-          <h2 className="text-xl font-bold text-terracotta-800">Artisan Portal</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setOpen(false)}
-            className="md:hidden"
+    <aside className="h-screen w-64 border-r bg-white">
+      <div className="flex h-14 items-center border-b px-4">
+        <Link 
+          to="/" 
+          className="flex items-center gap-2 font-serif font-bold text-xl"
+        >
+          <span>yaad</span>
+          <span className="text-terracotta-600">.com</span>
+        </Link>
+      </div>
+      <ScrollArea className="h-[calc(100vh-3.5rem)] py-2">
+        <div className="px-4 py-2">
+          <h2 className="mb-2 px-2 text-xs font-semibold tracking-tight text-muted-foreground">
+            DASHBOARD
+          </h2>
+          <div className="space-y-1">
+            <NavItem 
+              href="/artisan/dashboard" 
+              icon={<LayoutDashboard size={18} />} 
+              label="Overview" 
+              active={isActive('/artisan/dashboard')}
+            />
+            <NavItem 
+              href="/artisan/products" 
+              icon={<PackageOpen size={18} />} 
+              label="Products" 
+              active={isActive('/artisan/products')}
+            />
+            <NavItem 
+              href="/artisan/orders" 
+              icon={<ShoppingCart size={18} />} 
+              label="Orders" 
+              active={isActive('/artisan/orders')}
+            />
+          </div>
+          
+          <h2 className="mt-6 mb-2 px-2 text-xs font-semibold tracking-tight text-muted-foreground">
+            ANALYTICS
+          </h2>
+          <div className="space-y-1">
+            <NavItem 
+              href="/artisan/stats" 
+              icon={<BarChart2 size={18} />} 
+              label="Statistics" 
+              active={isActive('/artisan/stats')}
+            />
+          </div>
+          
+          <h2 className="mt-6 mb-2 px-2 text-xs font-semibold tracking-tight text-muted-foreground">
+            ACCOUNT
+          </h2>
+          <div className="space-y-1">
+            <NavItem 
+              href="/artisan/messages" 
+              icon={<MessageSquare size={18} />} 
+              label="Messages" 
+              active={isActive('/artisan/messages')}
+            />
+            <NavItem 
+              href="/artisan/customers" 
+              icon={<Users size={18} />} 
+              label="Customers" 
+              active={isActive('/artisan/customers')}
+            />
+            <NavItem 
+              href="/artisan/settings" 
+              icon={<Settings size={18} />} 
+              label="Settings" 
+              active={isActive('/artisan/settings')}
+            />
+            <NavItem 
+              href="/artisan/help" 
+              icon={<HelpCircle size={18} />} 
+              label="Help & Support" 
+              active={isActive('/artisan/help')}
+            />
+          </div>
+        </div>
+        <div className="mt-6 px-4 py-2">
+          <Button 
+            variant="outline" 
+            className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+            onClick={() => signOut()}
           >
-            <X className="h-5 w-5" />
-            <span className="sr-only">Close menu</span>
+            <LogOut size={18} className="mr-2" /> 
+            Log Out
           </Button>
         </div>
-
-        <nav className="mt-5 px-2">
-          <div className="space-y-1">
-            {navigation.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    'group flex items-center rounded-md px-3 py-2 text-sm font-medium',
-                    isActive
-                      ? 'bg-terracotta-100 text-terracotta-800'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  )}
-                >
-                  <item.icon
-                    className={cn(
-                      'mr-3 h-5 w-5',
-                      isActive ? 'text-terracotta-700' : 'text-gray-500'
-                    )}
-                  />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      </div>
-    </>
+      </ScrollArea>
+    </aside>
   );
 }
+
+export default ArtisanSidebar;

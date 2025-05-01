@@ -1,173 +1,164 @@
-
-import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  ChevronRight,
-  Star,
-  ShoppingCart,
-  Heart,
-  Share2,
-  Truck,
-  ShieldCheck,
-  Minus,
-  Plus,
-  ArrowLeft
-} from 'lucide-react';
-import { ProductWithArtisan } from '@/models/types';
-import { getProductById, PRODUCTS } from '@/data/products';
-import { SAMPLE_ARTISANS } from '@/models/types';
-import { toast } from '@/hooks/use-toast';
-import { ProductCard } from '@/components/ui/ProductCard';
-import { useWishlist } from '@/hooks/useWishlist';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ProductWithArtisan } from '@/models/types';
 import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
+import { ProductGallery } from '@/components/product/ProductGallery';
+import { RelatedProducts } from '@/components/product/RelatedProducts';
+import { Star, Truck, ShieldCheck, Heart, Share2, ChevronRight, Minus, Plus, ShoppingCart, Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useWishlist } from '@/hooks/useWishlist';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { isAuthenticated, user } = useAuth();
+  const { wishlistItems, addToWishlist, removeFromWishlist } = useWishlist();
+  
+  const [quantity, setQuantity] = useState(1);
+  const [selectedColor, setSelectedColor] = useState('');
   const [product, setProduct] = useState<ProductWithArtisan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [quantity, setQuantity] = useState(1);
-  const [relatedProducts, setRelatedProducts] = useState<ProductWithArtisan[]>([]);
-  const navigate = useNavigate();
-  const { addToWishlist, isInWishlist } = useWishlist();
   
-  useEffect(() => {
-    setCurrentImageIndex(0);
-    
-    if (!id) {
-      setError("Product ID is missing");
-      setLoading(false);
-      return;
-    }
+  // Check if the product is in the wishlist
+  const isInWishlist = wishlistItems.some(item => item.product_id === id);
 
+  // Fetch the product from Supabase
+  useEffect(() => {
     const fetchProduct = async () => {
+      if (!id) {
+        navigate('/products');
+        return;
+      }
+
       try {
-        // Try to fetch from Supabase first
-        const { data: productData, error: productError } = await supabase
+        setLoading(true);
+        setError(null);
+        
+        // Fetch the product with its related artisan
+        const { data, error } = await supabase
           .from('products')
           .select(`
             *,
-            artisan:artisan_id(*),
-            category:category_id(*)
+            artisan:artisans(*),
+            category:categories(*),
+            subcategory:subcategories(*)
           `)
           .eq('id', id)
           .single();
+
+        if (error) throw error;
         
-        if (productError || !productData) {
-          // Fall back to local data if Supabase fails
-          const fetchedProduct = getProductById(id);
-          
-          if (!fetchedProduct) {
-            setError("Product not found");
-            setLoading(false);
-            return;
-          }
-          
-          if (fetchedProduct.title.includes("Ceramic Vase") || fetchedProduct.id === "1") {
-            fetchedProduct.images = [
-              "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg",
-              "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg",
-              "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%203.jpeg"
-            ];
-          }
-          
-          const artisanData = SAMPLE_ARTISANS.find(artisan => artisan.id === fetchedProduct.artisanId);
-          const productWithArtisan = {...fetchedProduct, artisan: artisanData};
-          
-          setProduct(productWithArtisan);
-          
-          // Get related products
-          const related = PRODUCTS
-            .filter(p => 
-              p.id !== id && 
-              p.category === productWithArtisan.category
-            )
-            .slice(0, 4);
-          
-          setRelatedProducts(related);
-        } else {
-          // We have a valid product from Supabase, but need to map it to our product model
-          const mappedProduct = mapDatabaseProductToProduct(productData);
+        if (data) {
+          // Map the database product to our ProductWithArtisan model
+          const mappedProduct = mapDatabaseProductToProduct(data);
           setProduct(mappedProduct);
-          
-          // Fetch related products
-          const { data: relatedData } = await supabase
-            .from('products')
-            .select(`
-              *,
-              artisan:artisan_id(*),
-              category:category_id(*),
-              subcategory:subcategory_id(*)
-            `)
-            .eq('category_id', productData.category_id)
-            .neq('id', id)
-            .limit(4);
-            
-          if (relatedData) {
-            const mappedRelated = relatedData.map(mapDatabaseProductToProduct);
-            setRelatedProducts(mappedRelated);
-          }
+        } else {
+          // Product not found
+          setError('Product not found');
+          navigate('/products');
         }
-      } catch (err) {
-        console.error("Error fetching product:", err);
-        setError("Failed to load product details");
+      } catch (error: any) {
+        console.error('Error fetching product:', error);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
     };
-
+    
     fetchProduct();
-  }, [id]);
-  
-  // If the product id is invalid, redirect to NotFound
-  if (!loading && (error || !product)) {
-    return <Navigate to="/not-found" replace />;
-  }
-  
-  const handleAddToCart = () => {
-    toast({
-      title: "Produit ajouté au panier",
-      description: `${quantity} × ${product?.title} a été ajouté à votre panier.`,
+  }, [id, navigate]);
+
+  // Scroll to top when route changes
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
     });
-  };
-  
-  const handleAddToWishlist = () => {
-    if (product) {
-      addToWishlist(product.id);
-    }
-  };
-  
+  }, [id]);
+
+  // Increment quantity
   const incrementQuantity = () => {
     if (quantity < 10) {
       setQuantity(quantity + 1);
     }
   };
 
+  // Decrement quantity
   const decrementQuantity = () => {
     if (quantity > 1) {
       setQuantity(quantity - 1);
     }
   };
-  
-  const handleThumbnailClick = (index: number) => {
-    setCurrentImageIndex(index);
+
+  // Add to cart
+  const handleAddToCart = () => {
+    // This would normally call a cart service/hook
+    toast({
+      title: "Product added to cart",
+      description: `You have added ${quantity} ${product?.title} to your cart.`,
+    });
   };
-  
+
+  // Add to wishlist
+  const handleToggleWishlist = async () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to add products to your wishlist",
+      });
+      navigate('/auth', { state: { from: `/products/${id}` } });
+      return;
+    }
+    
+    try {
+      if (isInWishlist) {
+        await removeFromWishlist(id!);
+        toast({
+          title: "Removed from favorites",
+          description: "Product has been removed from your favorites"
+        });
+      } else {
+        await addToWishlist(id!);
+        toast({
+          title: "Added to favorites",
+          description: "Product has been added to your favorites"
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Color options for the product
+  const colorOptions = [
+    { name: 'Natural', value: 'natural', hex: '#D2B48C' },
+    { name: 'Terracotta', value: 'terracotta', hex: '#b06a5b' },
+    { name: 'Blue', value: 'blue', hex: '#4682B4' },
+    { name: 'Green', value: 'green', hex: '#556B2F' },
+  ];
+
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-grow pt-24 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-12 h-12 border-4 border-terracotta-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Chargement du produit...</p>
+            <Loader2 className="h-12 w-12 animate-spin text-terracotta-600 mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading product...</p>
           </div>
         </main>
         <Footer />
@@ -175,19 +166,19 @@ const ProductDetail = () => {
       </div>
     );
   }
-  
+
   if (error || !product) {
     return (
       <div className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-grow pt-24 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="font-serif text-3xl font-bold mb-4">Produit non trouvé</h1>
+          <div className="text-center max-w-md mx-auto px-4">
+            <h1 className="text-2xl font-bold mb-2">Product Not Found</h1>
             <p className="text-muted-foreground mb-6">
-              Désolé, le produit que vous recherchez n'existe pas.
+              {error || "We couldn't find the product you're looking for."}
             </p>
             <Button asChild>
-              <Link to="/">Retour à l'accueil</Link>
+              <Link to="/products">Browse All Products</Link>
             </Button>
           </div>
         </main>
@@ -196,76 +187,49 @@ const ProductDetail = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow pt-24">
+        {/* Breadcrumb */}
         <section className="bg-cream-50 py-4 px-6 md:px-12">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center text-sm text-muted-foreground overflow-x-auto whitespace-nowrap">
               <Link to="/" className="hover:text-terracotta-600 transition-colors">
-                Accueil
+                Home
               </Link>
               <ChevronRight className="h-4 w-4 mx-2" />
+              <Link to="/products" className="hover:text-terracotta-600 transition-colors">
+                Products
+              </Link>
               {product.category && (
                 <>
-                  <Link to={`/categories/${product.category?.toLowerCase().replace(/\s+/g, '-')}`} className="hover:text-terracotta-600 transition-colors">
-                    {product.category}
-                  </Link>
                   <ChevronRight className="h-4 w-4 mx-2" />
+                  <Link 
+                    to={`/categories/${product.category.id}/products`} 
+                    className="hover:text-terracotta-600 transition-colors"
+                  >
+                    {product.category.name}
+                  </Link>
                 </>
               )}
-              {product.subcategory && (
-                <>
-                  <Link to={`/categories/${product.category?.toLowerCase().replace(/\s+/g, '-')}/${product.subcategory?.toLowerCase().replace(/\s+/g, '-')}`} className="hover:text-terracotta-600 transition-colors">
-                    {product.subcategory}
-                  </Link>
-                  <ChevronRight className="h-4 w-4 mx-2" />
-                </>
-              )}
+              <ChevronRight className="h-4 w-4 mx-2" />
               <span className="text-foreground truncate max-w-[200px]">{product.title}</span>
             </div>
           </div>
         </section>
 
+        {/* Product Details */}
         <section className="py-8 px-6 md:px-12">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              <div className="space-y-4">
-                <div className="aspect-square bg-cream-50 rounded-lg overflow-hidden">
-                  <img 
-                    src={product?.images[currentImageIndex]} 
-                    alt={product?.title} 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
-                    }}
-                  />
-                </div>
-                {product?.images && product.images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-4">
-                    {product.images.map((img, idx) => (
-                      <div 
-                        key={idx} 
-                        className={`aspect-square bg-cream-50 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity ${currentImageIndex === idx ? 'ring-2 ring-terracotta-600' : ''}`}
-                        onClick={() => handleThumbnailClick(idx)}
-                      >
-                        <img 
-                          src={img} 
-                          alt={`${product.title} - View ${idx + 1}`} 
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {/* Product Images */}
+              <ProductGallery images={product.images || []} title={product.title} />
 
+              {/* Product Info */}
               <div>
+                {/* Title & Rating */}
                 <h1 className="font-serif text-3xl font-bold mb-2">{product.title}</h1>
                 <div className="flex items-center mb-4">
                   <div className="flex items-center">
@@ -277,10 +241,11 @@ const ProductDetail = () => {
                     ))}
                   </div>
                   <span className="ml-2 text-sm text-muted-foreground">
-                    {product.rating.toFixed(1)} ({product.reviewCount} avis)
+                    {product.rating.toFixed(1)} ({product.reviewCount} reviews)
                   </span>
                 </div>
 
+                {/* Price */}
                 <div className="mb-6">
                   {product.discountPrice ? (
                     <div className="flex items-center">
@@ -301,12 +266,32 @@ const ProductDetail = () => {
                   )}
                 </div>
 
+                {/* Description */}
                 <p className="text-muted-foreground mb-6">
                   {product.description}
                 </p>
 
+                {/* Color Options */}
                 <div className="mb-6">
-                  <p className="font-medium mb-2">Quantité</p>
+                  <p className="font-medium mb-2">Color</p>
+                  <div className="flex space-x-3">
+                    {colorOptions.map((color) => (
+                      <button
+                        key={color.value}
+                        onClick={() => setSelectedColor(color.value)}
+                        className={`w-8 h-8 rounded-full border-2 ${selectedColor === color.value ? 'border-terracotta-600' : 'border-transparent'}`}
+                        style={{ backgroundColor: color.hex }}
+                        title={color.name}
+                      >
+                        <span className="sr-only">{color.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quantity Selector */}
+                <div className="mb-6">
+                  <p className="font-medium mb-2">Quantity</p>
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center border rounded-md">
                       <button 
@@ -320,129 +305,142 @@ const ProductDetail = () => {
                       <button 
                         onClick={incrementQuantity}
                         className="px-3 py-2 text-muted-foreground hover:text-terracotta-600 disabled:opacity-50"
-                        disabled={quantity >= 10}
+                        disabled={quantity >= 10 || quantity >= product.stock}
                       >
                         <Plus className="h-4 w-4" />
                       </button>
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      {product.stock} en stock
+                      {product.stock} in stock
                     </span>
                   </div>
                 </div>
 
+                {/* Add to Cart & Wishlist */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-8">
                   <Button 
                     onClick={handleAddToCart}
                     className="flex-1 bg-terracotta-600 hover:bg-terracotta-700 text-white"
+                    disabled={product.stock < 1}
                   >
                     <ShoppingCart className="mr-2 h-4 w-4" />
-                    Ajouter au panier
+                    {product.stock < 1 ? 'Out of Stock' : 'Add to Cart'}
                   </Button>
                   <Button 
-                    onClick={handleAddToWishlist}
+                    onClick={handleToggleWishlist}
                     variant="outline"
-                    className={`flex-1 ${isInWishlist && isInWishlist(product.id) ? 'bg-terracotta-50 border-terracotta-300' : ''}`}
+                    className={`flex-1 ${isInWishlist ? 'bg-rose-50 text-rose-600 border-rose-200' : ''}`}
                   >
-                    <Heart className={`mr-2 h-4 w-4 ${isInWishlist && isInWishlist(product.id) ? 'fill-terracotta-600 text-terracotta-600' : ''}`} />
-                    {isInWishlist && isInWishlist(product.id) ? 'Dans vos favoris' : 'Ajouter aux favoris'}
+                    <Heart className={`mr-2 h-4 w-4 ${isInWishlist ? 'fill-rose-500' : ''}`} />
+                    {isInWishlist ? 'In Favorites' : 'Add to Favorites'}
                   </Button>
                 </div>
 
+                {/* Shipping & Returns */}
                 <div className="bg-cream-50 rounded-lg p-4 mb-6">
                   <div className="flex items-start mb-3">
                     <Truck className="h-5 w-5 text-terracotta-600 mr-3 mt-0.5" />
                     <div>
-                      <p className="font-medium">Livraison</p>
+                      <p className="font-medium">Shipping</p>
                       <p className="text-sm text-muted-foreground">
-                        Livraison gratuite en France à partir de 100€. Délai estimé : 5-7 jours ouvrables.
+                        Free shipping in France from €100. Estimated time: 5-7 business days.
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start">
                     <ShieldCheck className="h-5 w-5 text-terracotta-600 mr-3 mt-0.5" />
                     <div>
-                      <p className="font-medium">Retours</p>
+                      <p className="font-medium">Returns</p>
                       <p className="text-sm text-muted-foreground">
-                        Retours acceptés sous 14 jours pour les produits non personnalisés.
+                        Returns accepted within 14 days for non-personalized products.
                       </p>
                     </div>
                   </div>
                 </div>
 
+                {/* Share & Artisan */}
                 <div className="flex items-center justify-between text-sm">
                   <button className="flex items-center text-muted-foreground hover:text-terracotta-600 transition-colors">
                     <Share2 className="h-4 w-4 mr-1" />
-                    Partager
+                    Share
                   </button>
-                  <Link 
-                    to={`/artisans/${product.artisanId}`} 
-                    className="text-terracotta-600 hover:underline"
-                  >
-                    Voir l'artisan
-                  </Link>
+                  {product.artisan && (
+                    <Link 
+                      to={`/artisans/${product.artisanId}`} 
+                      className="text-terracotta-600 hover:underline"
+                    >
+                      View Artisan
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </section>
 
+        {/* Product Details Tabs */}
         <section className="py-12 px-6 md:px-12 bg-cream-50">
           <div className="max-w-7xl mx-auto">
             <Tabs defaultValue="description">
               <TabsList className="grid grid-cols-3 mb-8">
                 <TabsTrigger value="description">Description</TabsTrigger>
-                <TabsTrigger value="details">Détails du produit</TabsTrigger>
-                <TabsTrigger value="reviews">Avis ({product.reviewCount})</TabsTrigger>
+                <TabsTrigger value="details">Product Details</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews ({product.reviewCount})</TabsTrigger>
               </TabsList>
+              
+              {/* Description Tab */}
               <TabsContent value="description" className="bg-white rounded-lg p-6">
-                <h3 className="font-medium text-lg mb-4">À propos de ce produit</h3>
+                <h3 className="font-medium text-lg mb-4">About this product</h3>
                 <p className="text-muted-foreground mb-4">
                   {product.description}
                 </p>
                 <p className="text-muted-foreground mb-4">
-                  Ce produit est fabriqué à la main par des artisans talentueux au Maroc. Chaque pièce est unique et peut présenter de légères variations dans la couleur, la taille et la forme, ce qui témoigne de son authenticité et de son caractère artisanal.
+                  This product is handmade by talented artisans in Morocco. Each piece is unique and may have slight variations in color, size, and shape, reflecting its authenticity and artisanal character.
                 </p>
                 <p className="text-muted-foreground">
-                  Les matériaux utilisés sont soigneusement sélectionnés pour leur qualité et leur durabilité. Ce produit est conçu pour durer et apporter une touche d'authenticité à votre intérieur pendant de nombreuses années.
+                  The materials used are carefully selected for their quality and durability. This product is designed to last and bring a touch of authenticity to your interior for many years.
                 </p>
               </TabsContent>
+              
+              {/* Details Tab */}
               <TabsContent value="details" className="bg-white rounded-lg p-6">
-                <h3 className="font-medium text-lg mb-4">Spécifications</h3>
+                <h3 className="font-medium text-lg mb-4">Specifications</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p className="font-medium mb-1">Matériaux</p>
+                    <p className="font-medium mb-1">Materials</p>
                     <p className="text-muted-foreground mb-4">
-                      {product.material || 'Matériaux authentiques marocains'}
+                      {product.material || 'Authentic Moroccan materials'}
                     </p>
                     <p className="font-medium mb-1">Dimensions</p>
                     <p className="text-muted-foreground mb-4">
-                      Varie selon le produit
+                      Varies depending on the product
                     </p>
-                    <p className="font-medium mb-1">Poids</p>
+                    <p className="font-medium mb-1">Weight</p>
                     <p className="text-muted-foreground">
-                      Varie selon le produit
+                      Varies depending on the product
                     </p>
                   </div>
                   <div>
-                    <p className="font-medium mb-1">Origine</p>
+                    <p className="font-medium mb-1">Origin</p>
                     <p className="text-muted-foreground mb-4">
-                      {product.origin || 'Maroc'}
+                      {product.origin || 'Morocco'}
                     </p>
-                    <p className="font-medium mb-1">Entretien</p>
+                    <p className="font-medium mb-1">Maintenance</p>
                     <p className="text-muted-foreground mb-4">
-                      Varie selon le produit
+                      Varies depending on the product
                     </p>
-                    <p className="font-medium mb-1">Fait à la main</p>
+                    <p className="font-medium mb-1">Made by hand</p>
                     <p className="text-muted-foreground">
-                      Oui
+                      Yes
                     </p>
                   </div>
                 </div>
               </TabsContent>
+              
+              {/* Reviews Tab */}
               <TabsContent value="reviews" className="bg-white rounded-lg p-6">
                 <div className="flex items-center justify-between mb-8">
-                  <h3 className="font-medium text-lg">Avis clients ({product.reviewCount})</h3>
+                  <h3 className="font-medium text-lg">Customer Reviews ({product.reviewCount})</h3>
                   <div className="flex items-center">
                     <div className="flex">
                       {[...Array(5)].map((_, i) => (
@@ -460,7 +458,7 @@ const ProductDetail = () => {
                   {[...Array(3)].map((_, idx) => (
                     <div key={idx} className="border-b pb-6 last:border-0 last:pb-0">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium">Client satisfait</h4>
+                        <h4 className="font-medium">Satisfied Customer</h4>
                         <div className="flex">
                           {[...Array(5)].map((_, i) => (
                             <Star 
@@ -475,11 +473,11 @@ const ProductDetail = () => {
                       </p>
                       <p className="text-muted-foreground">
                         {idx === 0 ? (
-                          "Superbe qualité et design magnifique. Je suis très satisfait de mon achat. Le produit est exactement comme décrit et les finitions sont impeccables."
+                          "Superb quality and beautiful design. I am very satisfied with my purchase. The product is exactly as described and the finish is impeccable."
                         ) : idx === 1 ? (
-                          "Très belle pièce artisanale qui a trouvé sa place dans mon salon. L'expédition a été rapide et l'emballage soigné. Je recommande vivement !"
+                          "Very beautiful piece of artisanal furniture that found its place in my living room. The delivery was quick and the packaging was well done. I highly recommend!"
                         ) : (
-                          "Beau produit mais un peu plus petit que ce que j'imaginais. La qualité est néanmoins au rendez-vous et le service client très réactif."
+                          "Good product but a little smaller than I expected. The quality is still excellent and the customer service very responsive."
                         )}
                       </p>
                     </div>
@@ -487,23 +485,20 @@ const ProductDetail = () => {
                 </div>
                 
                 <Button className="mt-8 bg-terracotta-600 hover:bg-terracotta-700 text-white">
-                  Voir tous les avis
+                  View all reviews
                 </Button>
               </TabsContent>
             </Tabs>
           </div>
         </section>
 
-        <section className="py-16 px-6 md:px-12">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="font-serif text-2xl font-bold mb-8">Vous aimerez aussi</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {relatedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* Related Products */}
+        <RelatedProducts 
+          currentProductId={product.id}
+          categoryId={product.category?.id}
+          artisanId={product.artisanId}
+          maxProducts={4}
+        />
       </main>
       <Footer />
       <FixedNavMenu />
