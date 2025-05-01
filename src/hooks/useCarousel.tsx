@@ -1,5 +1,5 @@
 
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import useEmblaCarousel, { type UseEmblaCarouselType } from "embla-carousel-react";
 
 /**
@@ -20,11 +20,23 @@ export function useCarousel() {
     setCanScrollNext(api.canScrollNext());
   };
 
-  // When API is available, set up event listeners
-  if (api && !api.events().hasSubscriber(onSelect)) {
-    api.on('select', onSelect);
-    api.on('reInit', onSelect);
-  }
+  // When API is available, set up event listeners using useEffect
+  useEffect(() => {
+    if (!api) return;
+
+    // Set up the initial states
+    onSelect();
+
+    // Subscribe to events
+    api.on("select", onSelect);
+    api.on("reInit", onSelect);
+
+    return () => {
+      // Cleanup event listeners when component unmounts
+      api.off("select", onSelect);
+      api.off("reInit", onSelect);
+    };
+  }, [api]);
 
   return {
     carouselRef,

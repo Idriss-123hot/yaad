@@ -22,9 +22,7 @@ export function FeaturedArtisansCarousel() {
     if (!api) return;
     
     const interval = setInterval(() => {
-      if (api) {
-        api.scrollNext();
-      }
+      api.scrollNext();
     }, 3000);
     
     return () => clearInterval(interval);
