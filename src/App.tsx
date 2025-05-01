@@ -35,6 +35,8 @@ import Favorites from './pages/Favorites';
 import BecomeArtisan from './pages/BecomeArtisan';
 import ResetPassword from './pages/ResetPassword';
 import Search from './pages/Search';
+import ArtisanLogin from './pages/artisan/Login';
+import ArtisanDashboard from './pages/artisan/Dashboard';
 
 function App() {
   useEffect(() => {
@@ -65,6 +67,11 @@ function App() {
       <Route path="/become-artisan" element={<BecomeArtisan />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       
+      {/* Artisan routes */}
+      <Route path="/artisan/login" element={<ArtisanLogin />} />
+      <Route path="/artisan/dashboard" element={<ArtisanDashboard />} />
+      
+      {/* Admin routes */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
       <Route path="/admin/products" element={<ProductsList />} />

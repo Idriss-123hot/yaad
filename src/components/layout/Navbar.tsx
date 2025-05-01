@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingBag, User, Menu, X, Heart } from 'lucide-react';
@@ -8,7 +7,7 @@ import { CategoryNavigation } from '@/components/layout/CategoryNavigation';
 import { SearchModal } from '@/components/search/SearchModal';
 import { LanguageSelector } from '@/components/layout/LanguageSelector'; 
 import { supabase } from '@/integrations/supabase/client';
-import { useCart } from '@/pages/Cart';
+import { useCart } from '@/hooks/useCart';
 import { useWishlist } from '@/hooks/useWishlist';
 
 export function Navbar() {
