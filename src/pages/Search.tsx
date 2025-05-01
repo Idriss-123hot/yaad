@@ -8,11 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search as SearchIcon, X, SlidersHorizontal, Loader2 } from 'lucide-react';
 import AdvancedFilters from '@/components/search/AdvancedFilters';
-import { supabase } from '@/integrations/supabase/client';
 import { ProductWithArtisan } from '@/models/types';
-import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
 import { SearchFilters } from '@/services/search';
-import { searchProducts, filtersToURLParams, getFiltersFromURL } from '@/services/search';
+import { searchProducts, debouncedSearch, filtersToURLParams, getFiltersFromURL } from '@/services/search';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Search = () => {
@@ -23,10 +21,10 @@ const Search = () => {
   const [products, setProducts] = useState<ProductWithArtisan[]>([]);
   const [filters, setFilters] = useState<Partial<SearchFilters>>({
     q: '',
-    category: [], // Initialize as empty array
-    subcategory: [], // Initialize as empty array
-    artisans: [], // Initialize as empty array
-    priceRange: [0, 1000],
+    category: [], 
+    subcategory: [], 
+    artisans: [], 
+    priceRange: [0, 1000] as [number, number],
     sort: 'featured',
   });
   
@@ -59,7 +57,7 @@ const Search = () => {
       try {
         console.log("Searching products with filters:", filters); // Debug log
         // Use the searchProducts function from our search service
-        const results = await searchProducts(filters);
+        const results = await searchProducts(filters as SearchFilters);
         setProducts(results.products);
       } catch (error) {
         console.error('Error searching products:', error);
@@ -211,7 +209,7 @@ const Search = () => {
                         category: [],
                         subcategory: [],
                         artisans: [],
-                        priceRange: [0, 1000],
+                        priceRange: [0, 1000] as [number, number],
                         sort: 'featured',
                       });
                     }}

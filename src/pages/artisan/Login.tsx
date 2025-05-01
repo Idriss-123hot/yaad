@@ -56,10 +56,20 @@ export default function ArtisanLogin() {
       
       if (error) throw error;
       
-      // Check if the user has artisan role
-      const isArtisan = await checkArtisanRole();
+      console.log("Login successful, checking artisan role...");
       
-      if (!isArtisan) {
+      // Check if the user has artisan role
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+      
+      if (profileError) {
+        throw new Error('Failed to fetch user profile');
+      }
+      
+      if (profileData.role !== 'artisan') {
         await supabase.auth.signOut();
         
         toast({

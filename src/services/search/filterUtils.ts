@@ -103,8 +103,21 @@ export const sortProducts = (products: any[], sort?: string) => {
     case 'rating':
       return sortedProducts.sort((a, b) => b.rating - a.rating);
       
+    case 'featured':
+      return sortedProducts.sort((a, b) => {
+        // Sort by featured flag first (true comes first)
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        // Then by rating as secondary sort
+        return b.rating - a.rating;
+      });
+      
     default:
       // Default sorting (featured)
-      return sortedProducts;
+      return sortedProducts.sort((a, b) => {
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return b.rating - a.rating;
+      });
   }
 };

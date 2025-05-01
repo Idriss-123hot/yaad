@@ -154,12 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log('Sign in successful:', data);
 
-      toast({
-        title: 'Connexion réussie',
-        description: 'Bienvenue sur SaharaMart!',
-      });
-      
-      // Navigate to appropriate dashboard based on role
+      // Get user profile to check role
       if (data.user) {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -167,7 +162,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .eq('id', data.user.id)
           .single();
           
-        if (!profileError && profileData) {
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+        }
+
+        toast({
+          title: 'Connexion réussie',
+          description: 'Bienvenue sur SaharaMart!',
+        });
+        
+        // Navigate to appropriate dashboard based on role
+        if (profileData) {
           if (profileData.role === 'admin') {
             navigate('/admin/dashboard');
             return;
@@ -176,9 +181,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
         }
+        
+        // Default navigation
+        navigate('/');
       }
-      
-      navigate('/');
     } catch (error: any) {
       console.error('Sign in error:', error);
       

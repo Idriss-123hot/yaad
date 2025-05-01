@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, Navigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
@@ -23,9 +23,10 @@ import { SAMPLE_ARTISANS } from '@/models/types';
 import { toast } from '@/hooks/use-toast';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { useWishlist } from '@/hooks/useWishlist';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProductDetail = () => {
-  const { productId } = useParams<{ productId: string }>();
+  const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<ProductWithArtisan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,49 +39,89 @@ const ProductDetail = () => {
   useEffect(() => {
     setCurrentImageIndex(0);
     
-    if (!productId) {
+    if (!id) {
       setError("Product ID is missing");
       setLoading(false);
       return;
     }
-    
-    try {
-      const fetchedProduct = getProductById(productId);
-      
-      if (!fetchedProduct) {
-        setError("Product not found");
+
+    const fetchProduct = async () => {
+      try {
+        // Try to fetch from Supabase first
+        const { data: productData, error: productError } = await supabase
+          .from('products')
+          .select(`
+            *,
+            artisan:artisan_id(*),
+            category:category_id(*)
+          `)
+          .eq('id', id)
+          .single();
+        
+        if (productError || !productData) {
+          // Fall back to local data if Supabase fails
+          const fetchedProduct = getProductById(id);
+          
+          if (!fetchedProduct) {
+            setError("Product not found");
+            setLoading(false);
+            return;
+          }
+          
+          if (fetchedProduct.title.includes("Ceramic Vase") || fetchedProduct.id === "1") {
+            fetchedProduct.images = [
+              "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg",
+              "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%202.jpeg",
+              "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%203.jpeg"
+            ];
+          }
+          
+          const artisanData = SAMPLE_ARTISANS.find(artisan => artisan.id === fetchedProduct.artisanId);
+          const productWithArtisan = {...fetchedProduct, artisan: artisanData};
+          
+          setProduct(productWithArtisan);
+          
+          // Get related products
+          const related = PRODUCTS
+            .filter(p => 
+              p.id !== id && 
+              p.category === productWithArtisan.category
+            )
+            .slice(0, 4);
+          
+          setRelatedProducts(related);
+        } else {
+          // We have a valid product from Supabase
+          setProduct(productData);
+          
+          // Fetch related products
+          const { data: relatedData } = await supabase
+            .from('products')
+            .select(`
+              *,
+              artisan:artisan_id(*)
+            `)
+            .eq('category_id', productData.category_id)
+            .neq('id', id)
+            .limit(4);
+            
+          setRelatedProducts(relatedData || []);
+        }
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setError("Failed to load product details");
+      } finally {
         setLoading(false);
-        return;
       }
-      
-      if (fetchedProduct.title.includes("Ceramic Vase") || fetchedProduct.id === "1") {
-        fetchedProduct.images = [
-          "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg",
-          "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%202.jpeg",
-          "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%203.jpeg"
-        ];
-      }
-      
-      const artisanData = SAMPLE_ARTISANS.find(artisan => artisan.id === fetchedProduct.artisanId);
-      const productWithArtisan = {...fetchedProduct, artisan: artisanData};
-      
-      setProduct(productWithArtisan);
-      
-      const related = PRODUCTS
-        .filter(p => 
-          p.id !== productId && 
-          p.category === productWithArtisan.category
-        )
-        .slice(0, 4);
-      
-      setRelatedProducts(related);
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching product:", err);
-      setError("Failed to load product details");
-      setLoading(false);
-    }
-  }, [productId]);
+    };
+
+    fetchProduct();
+  }, [id]);
+  
+  // If the product id is invalid, redirect to NotFound
+  if (!loading && (error || !product)) {
+    return <Navigate to="/not-found" replace />;
+  }
   
   const handleAddToCart = () => {
     toast({

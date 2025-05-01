@@ -5,12 +5,15 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Hero } from '@/components/home/Hero';
 import { Categories } from '@/components/home/Categories';
-import FeaturedProductsCarousel from '@/components/home/FeaturedProductsCarousel';
-import FeaturedArtisansCarousel from '@/components/home/FeaturedArtisansCarousel';
+import { FeaturedProductsCarousel } from '@/components/home/FeaturedProductsCarousel';
+import { FeaturedArtisansCarousel } from '@/components/home/FeaturedArtisansCarousel';
 import SearchBar from '@/components/search/SearchBar';
 import { ensureBucketsExist } from '@/utils/storageUtils';
 import { useTranslations } from '@/lib/i18n';
-import { SearchFilters } from '@/services/search';
+
+// Add CSS for carousels
+const productCarouselStyle = "px-4 md:px-8";
+const artisanCarouselStyle = "animate-fade-in";
 
 const Index = () => {
   // Get translations from our translations table
@@ -23,9 +26,9 @@ const Index = () => {
       top: 0,
       behavior: 'smooth',
     });
-    
+
     // Ensure storage buckets exist
-    ensureBucketsExist().then(result => {
+    ensureBucketsExist().then((result) => {
       if (result.success) {
         console.log('Buckets de stockage vérifiés avec succès');
       } else {
@@ -35,9 +38,8 @@ const Index = () => {
   }, []);
 
   // Handle search from the homepage
-  const handleSearch = (filters: Partial<SearchFilters>) => {
+  const handleSearch = (filters) => {
     const queryParams = new URLSearchParams();
-    
     if (filters.q) {
       queryParams.set('q', filters.q);
     }
@@ -61,31 +63,35 @@ const Index = () => {
       <main className="flex-grow">
         <Hero />
         
-        {/* Barre de recherche avancée */}
         <section className="py-12 px-6 md:px-12 bg-cream-50">
           <SearchBar 
             onSearch={handleSearch}
             className="max-w-5xl mx-auto"
-            initialFilters={{ q: '', category: [], subcategory: [] }}
+            initialFilters={{
+              q: '',
+              category: [],
+              subcategory: []
+            }}
           />
         </section>
         
-        {/* Use translations from translations table */}
         <section className="py-12 text-center">
           <h2 className="text-3xl font-serif font-bold mb-4">
             {t('featured_collection', 'Collection à la une')}
           </h2>
         </section>
         
-        {/* Dynamic featured products from Supabase */}
-        <FeaturedProductsCarousel />
+        <div className={productCarouselStyle}>
+          <FeaturedProductsCarousel />
+        </div>
         
         <div className="savoir-faire-exceptionnel">
           <Categories />
         </div>
         
-        {/* Dynamic featured artisans from Supabase */}
-        <FeaturedArtisansCarousel />
+        <div className={artisanCarouselStyle}>
+          <FeaturedArtisansCarousel />
+        </div>
       </main>
       <Footer />
     </div>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { 
   Sheet, 
@@ -138,7 +139,9 @@ const AdvancedFilters = ({
       const prevCategories = prev.category || [];
       
       if (checked) {
-        return { ...prev, category: [...prevCategories, id] };
+        const newFilters = { ...prev, category: [...prevCategories, id] };
+        onApplyFilters(newFilters); // Apply filters immediately
+        return newFilters;
       } else {
         // Remove category and any subcategories belonging to it
         const newCategories = prevCategories.filter(c => c !== id);
@@ -148,11 +151,14 @@ const AdvancedFilters = ({
           return subcategory?.parent_id !== id;
         });
         
-        return { 
+        const newFilters = { 
           ...prev, 
           category: newCategories,
           subcategory: newSubcategories
         };
+        
+        onApplyFilters(newFilters); // Apply filters immediately
+        return newFilters;
       }
     });
   };
@@ -162,14 +168,18 @@ const AdvancedFilters = ({
     setFilters(prev => {
       const prevSubcategories = prev.subcategory || [];
       
+      let newFilters;
       if (checked) {
-        return { ...prev, subcategory: [...prevSubcategories, id] };
+        newFilters = { ...prev, subcategory: [...prevSubcategories, id] };
       } else {
-        return { 
+        newFilters = { 
           ...prev, 
           subcategory: prevSubcategories.filter(sc => sc !== id)
         };
       }
+      
+      onApplyFilters(newFilters); // Apply filters immediately
+      return newFilters;
     });
   };
   
@@ -178,14 +188,18 @@ const AdvancedFilters = ({
     setFilters(prev => {
       const prevArtisans = prev.artisans || [];
       
+      let newFilters;
       if (checked) {
-        return { ...prev, artisans: [...prevArtisans, id] };
+        newFilters = { ...prev, artisans: [...prevArtisans, id] };
       } else {
-        return { 
+        newFilters = { 
           ...prev, 
           artisans: prevArtisans.filter(a => a !== id)
         };
       }
+      
+      onApplyFilters(newFilters); // Apply filters immediately
+      return newFilters;
     });
   };
   
@@ -195,10 +209,14 @@ const AdvancedFilters = ({
       // Explicitly cast to tuple type to ensure TypeScript understands it has exactly 2 elements
       const range: [number, number] = [values[0], values[1]];
       setPriceRange(range);
-      setFilters(prev => ({
-        ...prev,
+      
+      const newFilters = {
+        ...filters,
         priceRange: range
-      }));
+      };
+      
+      setFilters(newFilters);
+      onApplyFilters(newFilters); // Apply filters immediately
     }
   };
   
