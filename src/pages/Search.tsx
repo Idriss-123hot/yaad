@@ -12,9 +12,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { ProductWithArtisan } from '@/models/types';
 import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
 import { SearchFilters } from '@/services/search';
-import { searchProducts } from '@/services/search';
+import { searchProducts, filtersToURLParams, getFiltersFromURL } from '@/services/search';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Search = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [products, setProducts] = useState<ProductWithArtisan[]>([]);
@@ -22,15 +25,39 @@ const Search = () => {
     q: '',
     category: [], // Initialize as empty array
     subcategory: [], // Initialize as empty array
+    artisans: [], // Initialize as empty array
     priceRange: [0, 1000],
     sort: 'featured',
   });
   
+  // Initialize filters from URL parameters on component mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const urlFilters = getFiltersFromURL(searchParams);
+    setFilters(prev => ({
+      ...prev,
+      ...urlFilters
+    }));
+  }, [location.search]);
+  
+  // Update URL when filters change
+  useEffect(() => {
+    const queryParams = filtersToURLParams(filters);
+    const newUrl = `${location.pathname}?${queryParams.toString()}`;
+    
+    // Only update if URL would actually change
+    if (location.search !== `?${queryParams.toString()}`) {
+      navigate(newUrl, { replace: true });
+    }
+  }, [filters, navigate, location.pathname]);
+  
+  // Fetch products based on filters
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
       
       try {
+        console.log("Searching products with filters:", filters); // Debug log
         // Use the searchProducts function from our search service
         const results = await searchProducts(filters);
         setProducts(results.products);
@@ -72,6 +99,13 @@ const Search = () => {
     setFilters(prev => ({
       ...prev,
       ...newFilters
+    }));
+  };
+
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilters(prev => ({
+      ...prev,
+      sort: e.target.value
     }));
   };
 
@@ -133,7 +167,7 @@ const Search = () => {
                   <select
                     className="text-sm border rounded px-2 py-1 bg-white"
                     value={filters.sort}
-                    onChange={(e) => handleFilterChange({ sort: e.target.value })}
+                    onChange={handleSortChange}
                   >
                     <option value="featured">En vedette</option>
                     <option value="price-asc">Prix: Croissant</option>
@@ -176,6 +210,7 @@ const Search = () => {
                         q: '',
                         category: [],
                         subcategory: [],
+                        artisans: [],
                         priceRange: [0, 1000],
                         sort: 'featured',
                       });

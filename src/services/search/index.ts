@@ -3,6 +3,7 @@ import { debounce } from '@/lib/utils';
 import { SearchFilters, SearchResults } from './types';
 import { searchProductsWithEdgeFunction } from './edgeSearch';
 import { searchProductsWithDatabase } from './databaseSearch';
+import { filterProducts, sortProducts } from './filterUtils';
 export { getFiltersFromURL, filtersToURLParams } from './urlParams';
 export type { SearchFilters, SearchResults };
 
@@ -19,11 +20,24 @@ export const debouncedSearch = debounce(async (filters: SearchFilters) => {
  */
 export const searchProducts = async (filters: SearchFilters): Promise<SearchResults> => {
   try {
+    console.log('Search filters received:', filters);
+    
+    // Select search method based on query presence and length
+    let results;
     if (filters.q && filters.q.length >= 2) {
-      return await searchProductsWithEdgeFunction(filters);
+      results = await searchProductsWithEdgeFunction(filters);
     } else {
-      return await searchProductsWithDatabase(filters);
+      results = await searchProductsWithDatabase(filters);
     }
+    
+    // Apply additional client-side filtering and sorting
+    let filteredProducts = filterProducts(results.products, filters);
+    let sortedProducts = sortProducts(filteredProducts, filters.sort);
+    
+    return {
+      products: sortedProducts,
+      total: sortedProducts.length
+    };
   } catch (error) {
     console.error("Error in search:", error);
     throw error;

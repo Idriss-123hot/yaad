@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { 
   Sheet, 
@@ -10,9 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { Subcategory } from '@/models/types';
 import { SearchFilters } from '@/services/search';
+import { Loader2 } from 'lucide-react';
 
 export interface AdvancedFiltersProps {
   isOpen: boolean;
@@ -32,27 +35,40 @@ const AdvancedFilters = ({
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [artisans, setArtisans] = useState<{ id: string; name: string }[]>([]);
+  const [loading, setLoading] = useState({
+    categories: true,
+    subcategories: false,
+    artisans: true
+  });
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   
   // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('id, name')
-        .order('name');
-      
-      if (error) {
-        console.error('Error fetching categories:', error);
-        return;
+      setLoading(prev => ({ ...prev, categories: true }));
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('id, name')
+          .order('name');
+        
+        if (error) {
+          console.error('Error fetching categories:', error);
+          return;
+        }
+        
+        setCategories(data || []);
+      } catch (err) {
+        console.error('Exception fetching categories:', err);
+      } finally {
+        setLoading(prev => ({ ...prev, categories: false }));
       }
-      
-      setCategories(data || []);
     };
     
     fetchCategories();
   }, []);
   
-  // Fetch subcategories
+  // Fetch subcategories based on selected categories
   useEffect(() => {
     const fetchSubcategories = async () => {
       if (!filters.category || filters.category.length === 0) {
@@ -60,17 +76,24 @@ const AdvancedFilters = ({
         return;
       }
       
-      const { data, error } = await supabase
-        .from('subcategories')
-        .select('id, name, parent_id')
-        .in('parent_id', filters.category);
-      
-      if (error) {
-        console.error('Error fetching subcategories:', error);
-        return;
+      setLoading(prev => ({ ...prev, subcategories: true }));
+      try {
+        const { data, error } = await supabase
+          .from('subcategories')
+          .select('id, name, parent_id')
+          .in('parent_id', filters.category);
+        
+        if (error) {
+          console.error('Error fetching subcategories:', error);
+          return;
+        }
+        
+        setSubcategories(data || []);
+      } catch (err) {
+        console.error('Exception fetching subcategories:', err);
+      } finally {
+        setLoading(prev => ({ ...prev, subcategories: false }));
       }
-      
-      setSubcategories(data || []);
     };
     
     fetchSubcategories();
@@ -79,17 +102,24 @@ const AdvancedFilters = ({
   // Fetch artisans
   useEffect(() => {
     const fetchArtisans = async () => {
-      const { data, error } = await supabase
-        .from('artisans')
-        .select('id, name')
-        .order('name');
-      
-      if (error) {
-        console.error('Error fetching artisans:', error);
-        return;
+      setLoading(prev => ({ ...prev, artisans: true }));
+      try {
+        const { data, error } = await supabase
+          .from('artisans')
+          .select('id, name')
+          .order('name');
+        
+        if (error) {
+          console.error('Error fetching artisans:', error);
+          return;
+        }
+        
+        setArtisans(data || []);
+      } catch (err) {
+        console.error('Exception fetching artisans:', err);
+      } finally {
+        setLoading(prev => ({ ...prev, artisans: false }));
       }
-      
-      setArtisans(data || []);
     };
     
     fetchArtisans();
@@ -98,6 +128,9 @@ const AdvancedFilters = ({
   // Initialize filters from props
   useEffect(() => {
     setFilters(initialFilters);
+    if (initialFilters.priceRange) {
+      setPriceRange(initialFilters.priceRange);
+    }
   }, [initialFilters]);
   
   // Handle category change
@@ -157,6 +190,18 @@ const AdvancedFilters = ({
     });
   };
   
+  // Handle price range change
+  const handlePriceRangeChange = (values: number[]) => {
+    if (values.length === 2) {
+      const range = values as [number, number];
+      setPriceRange(range);
+      setFilters(prev => ({
+        ...prev,
+        priceRange: range
+      }));
+    }
+  };
+  
   // Apply filters
   const handleApply = () => {
     onApplyFilters(filters);
@@ -165,60 +210,104 @@ const AdvancedFilters = ({
   
   // Reset filters
   const handleReset = () => {
-    const resetFilters = { q: filters.q };
+    const resetFilters = { 
+      q: initialFilters.q,
+      category: [],
+      subcategory: [],
+      artisans: [],
+      priceRange: [0, 1000] 
+    };
     setFilters(resetFilters);
+    setPriceRange([0, 1000]);
     onApplyFilters(resetFilters);
     onClose();
   };
   
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-[400px] sm:max-w-none overflow-y-auto">
+      <SheetContent className="w-[320px] sm:w-[400px] sm:max-w-none overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Advanced Filters</SheetTitle>
+          <SheetTitle>Filtres avancés</SheetTitle>
         </SheetHeader>
         
         <div className="py-6 space-y-6">
-          {/* Categories */}
+          {/* Price Range Filter */}
           <div>
-            <h3 className="font-medium mb-3">Categories</h3>
-            <div className="space-y-2">
-              {categories.map(category => (
-                <div key={category.id} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`category-${category.id}`}
-                    checked={(filters.category || []).includes(category.id)}
-                    onCheckedChange={(checked) => 
-                      handleCategoryChange(category.id, checked === true)
-                    }
-                  />
-                  <Label htmlFor={`category-${category.id}`}>{category.name}</Label>
-                </div>
-              ))}
+            <h3 className="font-medium mb-3">Fourchette de prix</h3>
+            <div className="px-2">
+              <Slider
+                value={priceRange}
+                min={0}
+                max={1000}
+                step={10}
+                onValueChange={handlePriceRangeChange}
+                className="mb-2"
+              />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>{priceRange[0]} €</span>
+                <span>{priceRange[1]} €</span>
+              </div>
             </div>
           </div>
           
           <Separator />
           
+          {/* Categories */}
+          <div>
+            <h3 className="font-medium mb-3">Catégories</h3>
+            {loading.categories ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {categories.map(category => (
+                  <div key={category.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`category-${category.id}`}
+                      checked={(filters.category || []).includes(category.id)}
+                      onCheckedChange={(checked) => 
+                        handleCategoryChange(category.id, checked === true)
+                      }
+                    />
+                    <Label htmlFor={`category-${category.id}`}>{category.name}</Label>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <Separator />
+          
           {/* Subcategories */}
-          {subcategories.length > 0 && (
+          {(filters.category && filters.category.length > 0) && (
             <>
               <div>
-                <h3 className="font-medium mb-3">Subcategories</h3>
-                <div className="space-y-2">
-                  {subcategories.map(subcategory => (
-                    <div key={subcategory.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`subcategory-${subcategory.id}`}
-                        checked={(filters.subcategory || []).includes(subcategory.id)}
-                        onCheckedChange={(checked) => 
-                          handleSubcategoryChange(subcategory.id, checked === true)
-                        }
-                      />
-                      <Label htmlFor={`subcategory-${subcategory.id}`}>{subcategory.name}</Label>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="font-medium mb-3">Sous-catégories</h3>
+                {loading.subcategories ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : subcategories.length > 0 ? (
+                  <div className="space-y-2">
+                    {subcategories.map(subcategory => (
+                      <div key={subcategory.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`subcategory-${subcategory.id}`}
+                          checked={(filters.subcategory || []).includes(subcategory.id)}
+                          onCheckedChange={(checked) => 
+                            handleSubcategoryChange(subcategory.id, checked === true)
+                          }
+                        />
+                        <Label htmlFor={`subcategory-${subcategory.id}`}>{subcategory.name}</Label>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Aucune sous-catégorie disponible pour cette catégorie.
+                  </p>
+                )}
               </div>
               
               <Separator />
@@ -228,31 +317,35 @@ const AdvancedFilters = ({
           {/* Artisans */}
           <div>
             <h3 className="font-medium mb-3">Artisans</h3>
-            <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-              {artisans.map(artisan => (
-                <div key={artisan.id} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`artisan-${artisan.id}`}
-                    checked={(filters.artisans || []).includes(artisan.id)}
-                    onCheckedChange={(checked) => 
-                      handleArtisanChange(artisan.id, checked === true)
-                    }
-                  />
-                  <Label htmlFor={`artisan-${artisan.id}`}>{artisan.name}</Label>
-                </div>
-              ))}
-            </div>
+            {loading.artisans ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                {artisans.map(artisan => (
+                  <div key={artisan.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`artisan-${artisan.id}`}
+                      checked={(filters.artisans || []).includes(artisan.id)}
+                      onCheckedChange={(checked) => 
+                        handleArtisanChange(artisan.id, checked === true)
+                      }
+                    />
+                    <Label htmlFor={`artisan-${artisan.id}`}>{artisan.name}</Label>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          
-          {/* Add more filter sections as needed */}
         </div>
         
         <SheetFooter className="flex flex-row space-x-2 sm:space-x-0">
           <Button variant="outline" onClick={handleReset}>
-            Reset
+            Réinitialiser
           </Button>
           <Button onClick={handleApply}>
-            Apply Filters
+            Appliquer les filtres
           </Button>
         </SheetFooter>
       </SheetContent>

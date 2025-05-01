@@ -2,32 +2,83 @@
 import { SearchFilters } from './types';
 
 export const getFiltersFromURL = (searchParams: URLSearchParams): SearchFilters => {
+  // Get query parameter
+  const q = searchParams.get('q') || undefined;
+  
+  // Get category parameters (can be multiple)
+  const category = searchParams.getAll('category');
+  
+  // Get subcategory parameters (can be multiple)
+  const subcategory = searchParams.getAll('subcategory');
+  
+  // Get artisan parameters (can be multiple)
+  const artisans = searchParams.getAll('artisan');
+  
+  // Get price range
+  const minPrice = searchParams.get('minPrice') ? parseInt(searchParams.get('minPrice') as string) : undefined;
+  const maxPrice = searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice') as string) : undefined;
+  
+  // Get rating filter
+  const rating = searchParams.get('rating') ? parseInt(searchParams.get('rating') as string) : undefined;
+  
+  // Get delivery option
+  const delivery = searchParams.get('delivery') || undefined;
+  
+  // Get sorting option
+  const sort = searchParams.get('sort') || undefined;
+  
+  // Get page number
+  const page = searchParams.get('page') ? parseInt(searchParams.get('page') as string) : 1;
+  
   return {
-    q: searchParams.get('q') || undefined,
-    category: searchParams.get('category') ? [searchParams.get('category') as string] : undefined,
-    subcategory: searchParams.get('subcategory') ? [searchParams.get('subcategory') as string] : undefined,
-    artisans: searchParams.get('artisan') ? [searchParams.get('artisan') as string] : undefined,
-    minPrice: searchParams.get('minPrice') ? parseInt(searchParams.get('minPrice') as string) : undefined,
-    maxPrice: searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice') as string) : undefined,
-    rating: searchParams.get('rating') ? parseInt(searchParams.get('rating') as string) : undefined,
-    delivery: searchParams.get('delivery') || undefined,
-    sort: searchParams.get('sort') || undefined,
-    page: searchParams.get('page') ? parseInt(searchParams.get('page') as string) : 1,
+    q,
+    category: category.length > 0 ? category : undefined,
+    subcategory: subcategory.length > 0 ? subcategory : undefined,
+    artisans: artisans.length > 0 ? artisans : undefined,
+    minPrice,
+    maxPrice,
+    rating,
+    delivery,
+    sort,
+    page,
   };
 };
 
 export const filtersToURLParams = (filters: SearchFilters): URLSearchParams => {
   const params = new URLSearchParams();
   
+  // Add query parameter
   if (filters.q) params.set('q', filters.q);
-  if (filters.category && filters.category.length > 0) params.set('category', filters.category[0]);
-  if (filters.subcategory && filters.subcategory.length > 0) params.set('subcategory', filters.subcategory[0]);
-  if (filters.artisans && filters.artisans.length > 0) params.set('artisan', filters.artisans[0]);
+  
+  // Add category parameters (multiple values)
+  if (filters.category && filters.category.length > 0) {
+    filters.category.forEach(cat => params.append('category', cat));
+  }
+  
+  // Add subcategory parameters (multiple values)
+  if (filters.subcategory && filters.subcategory.length > 0) {
+    filters.subcategory.forEach(subcat => params.append('subcategory', subcat));
+  }
+  
+  // Add artisan parameters (multiple values)
+  if (filters.artisans && filters.artisans.length > 0) {
+    filters.artisans.forEach(artisan => params.append('artisan', artisan));
+  }
+  
+  // Add price range parameters
   if (filters.minPrice !== undefined) params.set('minPrice', filters.minPrice.toString());
   if (filters.maxPrice !== undefined) params.set('maxPrice', filters.maxPrice.toString());
+  
+  // Add rating filter
   if (filters.rating !== undefined) params.set('rating', filters.rating.toString());
+  
+  // Add delivery option
   if (filters.delivery) params.set('delivery', filters.delivery);
+  
+  // Add sorting option
   if (filters.sort) params.set('sort', filters.sort);
+  
+  // Add page number
   if (filters.page && filters.page > 1) params.set('page', filters.page.toString());
   
   return params;
