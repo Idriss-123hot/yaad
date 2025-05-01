@@ -91,7 +91,7 @@ export function useWishlist() {
       if (error) throw error;
       
       // Map database column names to our camelCase format
-      const formattedItems: WishlistItem[] = data.map(item => ({
+      const formattedItems = data.map(item => ({
         id: item.id,
         userId: item.user_id,
         productId: item.product_id,
@@ -99,29 +99,41 @@ export function useWishlist() {
         product: item.product ? {
           id: item.product.id,
           title: item.product.title,
-          description: item.product.description,
+          description: item.product.description || '',
           price: item.product.price,
           discountPrice: item.product.discount_price,
-          images: item.product.images,
-          rating: item.product.rating,
-          reviewCount: item.product.review_count,
+          images: item.product.images || [],
+          rating: item.product.rating || 0,
+          reviewCount: item.product.review_count || 0,
           stock: item.product.stock,
-          featured: item.product.featured,
+          featured: item.product.featured || false,
           artisanId: item.product.artisan_id,
           category: item.product.category?.name,
           subcategory: item.product.subcategory?.name,
           mainCategory: item.product.category_id,
           material: item.product.material,
           origin: item.product.origin,
+          tags: item.product.tags || [],
+          createdAt: new Date(item.product.created_at),
+          categoryId: item.product.category_id,
+          subcategoryId: item.product.subcategory_id,
           artisan: item.product.artisan ? {
             id: item.product.artisan.id,
             name: item.product.artisan.name,
-            description: item.product.artisan.description,
+            description: item.product.artisan.description || '',
             profileImage: item.product.artisan.profile_photo,
-            location: item.product.artisan.location
+            location: item.product.artisan.location || '',
+            bio: item.product.artisan.bio || '',
+            rating: item.product.artisan.rating || 0,
+            reviewCount: item.product.artisan.review_count || 0,
+            website: item.product.artisan.website || '',
+            featured: item.product.artisan.featured || false,
+            joinedDate: new Date(item.product.artisan.joined_date),
+            galleryImages: item.product.artisan.first_gallery_images || [],
+            productCount: 0
           } : undefined
         } : undefined
-      }));
+      })) as WishlistItem[];
       
       setWishlistItems(formattedItems);
     } catch (err: any) {
