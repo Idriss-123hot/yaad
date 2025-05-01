@@ -19,6 +19,8 @@ export function FeaturedArtisansCarousel() {
   
   // Auto-rotate carousel
   useEffect(() => {
+    if (!api) return;
+    
     const interval = setInterval(() => {
       if (api) {
         api.scrollNext();
