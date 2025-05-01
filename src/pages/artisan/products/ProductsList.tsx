@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArtisanLayout } from '@/components/artisan/ArtisanLayout';
@@ -9,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentArtisanId } from '@/utils/authUtils';
 import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
+import { ProductWithArtisan } from '@/models/types';
 import { 
   Dialog,
   DialogContent,
@@ -23,7 +23,7 @@ interface ProductsListProps {
 }
 
 const ArtisanProductsList = ({ isAdmin = false }: ProductsListProps) => {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<ProductWithArtisan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -63,8 +63,17 @@ const ArtisanProductsList = ({ isAdmin = false }: ProductsListProps) => {
       if (error) throw error;
       
       // Map database products to our product model
-      const mappedProducts = data?.map(mapDatabaseProductToProduct) || [];
-      setProducts(mappedProducts);
+      if (data) {
+        const mappedProducts: ProductWithArtisan[] = data.map(item => {
+          // First convert database format to our expected format
+          return mapDatabaseProductToProduct({
+            ...item,
+            category: item.category,
+            subcategory: item.subcategory,
+          });
+        });
+        setProducts(mappedProducts);
+      }
     } catch (err: any) {
       console.error('Error fetching products:', err);
       setError(err.message);

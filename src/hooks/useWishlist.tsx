@@ -1,357 +1,135 @@
 
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { ProductWithArtisan } from '@/models/types';
-import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
+import { useAuth } from './useAuth';
+import { useToast } from './use-toast';
 
-// Types
 export interface WishlistItem {
+  id: string;
+  userId: string;
   productId: string;
-  addedAt: string;
-  product?: ProductWithArtisan;
+  createdAt: string;
 }
 
-interface WishlistContextType {
-  wishlistItems: WishlistItem[];
-  loading: boolean;
-  addToWishlist: (productId: string) => Promise<void>;
-  removeFromWishlist: (productId: string) => void;
-  clearWishlist: () => void;
-  isInWishlist: (productId: string) => boolean;
-}
-
-// Create wishlist context
-const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
-
-// Wishlist provider component
-export function WishlistProvider({ children }: { children: ReactNode }) {
+export function useWishlist() {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
 
-  // Load wishlist on mount and when user changes
+  // Fetch wishlist items on mount and when auth state changes
   useEffect(() => {
-    const loadWishlist = async () => {
-      setLoading(true);
-      try {
-        if (isAuthenticated && user) {
-          // Fetch wishlist items from Supabase for authenticated users
-          const { data: wishlistData, error: wishlistError } = await supabase
-            .from('wishlists')
-            .select('product_id, created_at')
-            .eq('user_id', user.id);
-
-          if (wishlistError) {
-            console.error('Error fetching wishlist:', wishlistError);
-            loadFromLocalStorage();
-            return;
-          }
-
-          if (wishlistData) {
-            const formattedItems = wishlistData.map(item => ({
-              productId: item.product_id,
-              addedAt: item.created_at
-            }));
-            
-            // Fetch product details for each item
-            await fetchProductDetails(formattedItems);
-          }
-        } else {
-          // Use localStorage for non-authenticated users
-          loadFromLocalStorage();
-        }
-      } catch (error) {
-        console.error('Error loading wishlist:', error);
-        loadFromLocalStorage();
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    const loadFromLocalStorage = () => {
-      const savedWishlist = localStorage.getItem('wishlist');
-      if (savedWishlist) {
-        try {
-          const parsedWishlist = JSON.parse(savedWishlist);
-          
-          // Fetch product details for each item
-          fetchProductDetails(parsedWishlist);
-        } catch (e) {
-          console.error('Error parsing wishlist from localStorage:', e);
-          setWishlistItems([]);
-        }
-      } else {
-        setWishlistItems([]);
-      }
-    };
-    
-    // Helper function to fetch product details for wishlist items
-    const fetchProductDetails = async (items: WishlistItem[]) => {
-      if (items.length === 0) {
-        setWishlistItems([]);
-        return;
-      }
-      
-      try {
-        const itemsWithProducts = await Promise.all(
-          items.map(async (item) => {
-            try {
-              const { data: productData, error: productError } = await supabase
-                .from('products')
-                .select(`
-                  *,
-                  product_variations(*),
-                  artisan:artisans(*),
-                  category:categories(*)
-                `)
-                .eq('id', item.productId)
-                .maybeSingle();
-              
-              if (productError) {
-                console.error('Error fetching product:', productError);
-                return item;
-              }
-              
-              return {
-                ...item,
-                product: productData ? mapDatabaseProductToProduct(productData) : undefined,
-              };
-            } catch (error) {
-              console.error(`Error fetching product ${item.productId}:`, error);
-              return item;
-            }
-          })
-        );
-        
-        setWishlistItems(itemsWithProducts);
-      } catch (error) {
-        console.error('Error fetching product details:', error);
-        setWishlistItems(items);
-      }
-    };
-    
-    loadWishlist();
-  }, [user, isAuthenticated]);
-  
-  // Save wishlist whenever it changes
-  useEffect(() => {
-    if (loading) return;
-    
-    // For non-authenticated users, save to localStorage
-    if (!isAuthenticated) {
-      localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+    if (isAuthenticated && user) {
+      fetchWishlistItems();
+    } else {
+      setWishlistItems([]);
+      setIsLoading(false);
     }
-  }, [wishlistItems, loading, isAuthenticated]);
-  
-  // Add item to wishlist
-  const addToWishlist = async (productId: string) => {
-    // If user is not authenticated, redirect to login
-    if (!isAuthenticated) {
-      toast({
-        title: 'Connexion requise',
-        description: 'Veuillez vous connecter pour ajouter des produits à votre liste de souhaits',
-      });
+  }, [isAuthenticated, user]);
+
+  // Fetch all wishlist items for the current user
+  const fetchWishlistItems = async () => {
+    try {
+      setIsLoading(true);
       
-      // Save intended action to localStorage
-      localStorage.setItem('intended_action', JSON.stringify({
-        type: 'add_to_wishlist',
-        data: { productId }
+      const { data, error } = await supabase
+        .from('wishlists')
+        .select('*')
+        .eq('user_id', user?.id);
+        
+      if (error) throw error;
+      
+      // Map database column names to our camelCase format
+      const formattedItems: WishlistItem[] = data.map(item => ({
+        id: item.id,
+        userId: item.user_id,
+        productId: item.product_id,
+        createdAt: item.created_at
       }));
       
-      // Save item in localStorage wishlist for later
-      const newItem: WishlistItem = {
-        productId, 
-        addedAt: new Date().toISOString(),
-      };
-      
-      setWishlistItems(prevItems => {
-        const updatedItems = [...prevItems, newItem];
-        localStorage.setItem('wishlist', JSON.stringify(updatedItems));
-        return updatedItems;
-      });
-      
-      navigate('/auth');
-      return;
+      setWishlistItems(formattedItems);
+    } catch (err: any) {
+      console.error('Error fetching wishlist:', err);
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Check if item already exists in wishlist
-    if (isInWishlist(productId)) {
+  };
+
+  // Add a product to the wishlist
+  const addToWishlist = async (productId: string) => {
+    if (!isAuthenticated) {
       toast({
-        title: 'Déjà dans votre liste',
-        description: 'Ce produit est déjà dans votre liste de souhaits',
+        title: "Authentication required",
+        description: "Please login to add products to your wishlist"
       });
-      return;
+      return Promise.reject(new Error('Authentication required'));
     }
     
-    // Add to database for authenticated users
-    if (isAuthenticated && user) {
-      try {
-        const { error } = await supabase
-          .from('wishlists')
-          .insert({
-            user_id: user.id,
-            product_id: productId
-          });
-          
-        if (error) {
-          if (error.code === '23505') { // Unique constraint violation
-            toast({
-              title: 'Déjà dans votre liste',
-              description: 'Ce produit est déjà dans votre liste de souhaits',
-            });
-            return;
-          } else {
-            throw error;
-          }
-        }
-      } catch (error) {
-        console.error('Error adding to wishlist in database:', error);
-        toast({
-          title: 'Erreur',
-          description: 'Impossible d\'ajouter le produit à votre liste de souhaits',
-          variant: 'destructive',
-        });
-        return;
-      }
-    }
-    
-    // Fetch product details
     try {
-      const { data: productData, error: productError } = await supabase
-        .from('products')
-        .select(`
-          *,
-          product_variations(*),
-          artisan:artisans(*),
-          category:categories(*)
-        `)
-        .eq('id', productId)
-        .maybeSingle();
+      const { data, error } = await supabase
+        .from('wishlists')
+        .insert([
+          { user_id: user!.id, product_id: productId }
+        ])
+        .select();
+        
+      if (error) throw error;
       
-      if (productError) {
-        console.error('Error fetching product:', productError);
-        toast({
-          title: 'Erreur',
-          description: 'Impossible d\'ajouter le produit à votre liste de souhaits',
-          variant: 'destructive',
-        });
-        return;
+      if (data && data[0]) {
+        const newItem: WishlistItem = {
+          id: data[0].id,
+          userId: data[0].user_id,
+          productId: data[0].product_id,
+          createdAt: data[0].created_at
+        };
+        
+        setWishlistItems([...wishlistItems, newItem]);
       }
       
-      // Add new item with product details
-      const newItem: WishlistItem = {
-        productId, 
-        addedAt: new Date().toISOString(),
-        product: productData ? mapDatabaseProductToProduct(productData) : undefined,
-      };
-      
-      setWishlistItems([...wishlistItems, newItem]);
-      
+      return data;
+    } catch (err: any) {
+      console.error('Error adding to wishlist:', err);
       toast({
-        title: 'Produit ajouté',
-        description: 'Le produit a été ajouté à votre liste de souhaits',
+        title: "Error adding to wishlist",
+        description: err.message,
+        variant: "destructive"
       });
-    } catch (error) {
-      console.error('Error adding to wishlist:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Impossible d\'ajouter le produit à votre liste de souhaits',
-        variant: 'destructive',
-      });
+      return Promise.reject(err);
     }
   };
-  
-  // Remove item from wishlist
+
+  // Remove a product from the wishlist
   const removeFromWishlist = async (productId: string) => {
-    // Remove from database for authenticated users
-    if (isAuthenticated && user) {
-      try {
-        const { error } = await supabase
-          .from('wishlists')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('product_id', productId);
-          
-        if (error) {
-          throw error;
-        }
-      } catch (error) {
-        console.error('Error removing from wishlist in database:', error);
-      }
+    if (!isAuthenticated) return Promise.reject(new Error('Authentication required'));
+    
+    try {
+      const { error } = await supabase
+        .from('wishlists')
+        .delete()
+        .match({ user_id: user!.id, product_id: productId });
+        
+      if (error) throw error;
+      
+      // Update local state
+      setWishlistItems(wishlistItems.filter(item => item.productId !== productId));
+      
+      return true;
+    } catch (err: any) {
+      console.error('Error removing from wishlist:', err);
+      toast({
+        title: "Error removing from wishlist",
+        description: err.message,
+        variant: "destructive"
+      });
+      return Promise.reject(err);
     }
-    
-    // Update local state
-    setWishlistItems(
-      wishlistItems.filter((item) => item.productId !== productId)
-    );
-    
-    toast({
-      title: 'Produit supprimé',
-      description: 'Le produit a été retiré de votre liste de souhaits',
-    });
   };
-  
-  // Clear wishlist
-  const clearWishlist = async () => {
-    // Clear from database for authenticated users
-    if (isAuthenticated && user) {
-      try {
-        const { error } = await supabase
-          .from('wishlists')
-          .delete()
-          .eq('user_id', user.id);
-          
-        if (error) {
-          throw error;
-        }
-      } catch (error) {
-        console.error('Error clearing wishlist in database:', error);
-      }
-    }
-    
-    // Update local state
-    setWishlistItems([]);
-    localStorage.removeItem('wishlist');
-    
-    toast({
-      title: 'Liste vidée',
-      description: 'Votre liste de souhaits a été vidée',
-    });
-  };
-  
-  // Check if item is in wishlist
-  const isInWishlist = (productId: string) => {
-    return wishlistItems.some((item) => item.productId === productId);
-  };
-  
-  const value: WishlistContextType = {
+
+  return {
     wishlistItems,
-    loading,
+    isLoading,
     addToWishlist,
     removeFromWishlist,
-    clearWishlist,
-    isInWishlist
+    refreshWishlist: fetchWishlistItems
   };
-
-  return (
-    <WishlistContext.Provider value={value}>
-      {children}
-    </WishlistContext.Provider>
-  );
-}
-
-// Wishlist context hook
-export function useWishlist() {
-  const context = useContext(WishlistContext);
-  
-  if (context === undefined) {
-    throw new Error('useWishlist must be used within a WishlistProvider');
-  }
-  
-  return context;
 }

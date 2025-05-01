@@ -30,7 +30,7 @@ const ProductDetail = () => {
   const [error, setError] = useState<string | null>(null);
   
   // Check if the product is in the wishlist
-  const isInWishlist = wishlistItems.some(item => item.product_id === id);
+  const isInWishlist = wishlistItems.some(item => item.productId === id);
 
   // Fetch the product from Supabase
   useEffect(() => {
@@ -207,10 +207,10 @@ const ProductDetail = () => {
                 <>
                   <ChevronRight className="h-4 w-4 mx-2" />
                   <Link 
-                    to={`/categories/${product.category.id}/products`} 
+                    to={`/categories/${product.categoryId}/products`} 
                     className="hover:text-terracotta-600 transition-colors"
                   >
-                    {product.category.name}
+                    {product.category}
                   </Link>
                 </>
               )}
@@ -495,7 +495,7 @@ const ProductDetail = () => {
         {/* Related Products */}
         <RelatedProducts 
           currentProductId={product.id}
-          categoryId={product.category?.id}
+          categoryId={product.categoryId}
           artisanId={product.artisanId}
           maxProducts={4}
         />

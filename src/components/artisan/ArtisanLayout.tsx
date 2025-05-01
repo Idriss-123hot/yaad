@@ -1,7 +1,7 @@
 
 import React, { ReactNode } from 'react';
 import ArtisanSidebar from './ArtisanSidebar';
-import ArtisanHeader from './ArtisanHeader';
+import { ArtisanHeader } from './ArtisanHeader';
 import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 import { Loader2 } from 'lucide-react';
 
@@ -33,7 +33,7 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
     <div className="flex min-h-screen">
       <ArtisanSidebar />
       <div className="flex flex-col flex-1">
-        <ArtisanHeader />
+        <ArtisanHeader onMenuButtonClick={() => {}} />
         <main className="flex-1 bg-gray-50">
           {children}
         </main>
