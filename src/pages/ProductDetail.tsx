@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, Navigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -24,6 +25,7 @@ import { toast } from '@/hooks/use-toast';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { useWishlist } from '@/hooks/useWishlist';
 import { supabase } from '@/integrations/supabase/client';
+import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -71,7 +73,7 @@ const ProductDetail = () => {
           if (fetchedProduct.title.includes("Ceramic Vase") || fetchedProduct.id === "1") {
             fetchedProduct.images = [
               "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg",
-              "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%202.jpeg",
+              "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip.jpeg",
               "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Home%20Decor/grand-vase-girafe-du-maroc-artisanal-fait-main-elegant-design-trip%203.jpeg"
             ];
           }
@@ -91,21 +93,27 @@ const ProductDetail = () => {
           
           setRelatedProducts(related);
         } else {
-          // We have a valid product from Supabase
-          setProduct(productData);
+          // We have a valid product from Supabase, but need to map it to our product model
+          const mappedProduct = mapDatabaseProductToProduct(productData);
+          setProduct(mappedProduct);
           
           // Fetch related products
           const { data: relatedData } = await supabase
             .from('products')
             .select(`
               *,
-              artisan:artisan_id(*)
+              artisan:artisan_id(*),
+              category:category_id(*),
+              subcategory:subcategory_id(*)
             `)
             .eq('category_id', productData.category_id)
             .neq('id', id)
             .limit(4);
             
-          setRelatedProducts(relatedData || []);
+          if (relatedData) {
+            const mappedRelated = relatedData.map(mapDatabaseProductToProduct);
+            setRelatedProducts(mappedRelated);
+          }
         }
       } catch (err) {
         console.error("Error fetching product:", err);
