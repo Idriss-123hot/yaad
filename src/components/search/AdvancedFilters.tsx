@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   Sheet, 
@@ -193,7 +192,8 @@ const AdvancedFilters = ({
   // Handle price range change
   const handlePriceRangeChange = (values: number[]) => {
     if (values.length === 2) {
-      const range = values as [number, number];
+      // Explicitly cast to tuple type to ensure TypeScript understands it has exactly 2 elements
+      const range: [number, number] = [values[0], values[1]];
       setPriceRange(range);
       setFilters(prev => ({
         ...prev,
@@ -210,15 +210,19 @@ const AdvancedFilters = ({
   
   // Reset filters
   const handleReset = () => {
-    const resetFilters = { 
+    // Define default price range as a proper tuple
+    const defaultPriceRange: [number, number] = [0, 1000];
+    
+    const resetFilters: Partial<SearchFilters> = { 
       q: initialFilters.q,
       category: [],
       subcategory: [],
       artisans: [],
-      priceRange: [0, 1000] 
+      priceRange: defaultPriceRange
     };
+    
     setFilters(resetFilters);
-    setPriceRange([0, 1000]);
+    setPriceRange(defaultPriceRange);
     onApplyFilters(resetFilters);
     onClose();
   };
