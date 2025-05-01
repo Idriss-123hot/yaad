@@ -1,11 +1,12 @@
+
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Hero } from '@/components/home/Hero';
 import { Categories } from '@/components/home/Categories';
-import { FeaturedProducts } from '@/components/home/FeaturedProducts';
-import { ArtisanSpotlight } from '@/components/home/ArtisanSpotlight';
+import FeaturedProductsCarousel from '@/components/home/FeaturedProductsCarousel';
+import FeaturedArtisansCarousel from '@/components/home/FeaturedArtisansCarousel';
 import SearchBar from '@/components/search/SearchBar';
 import { ensureBucketsExist } from '@/utils/storageUtils';
 import { useTranslations } from '@/lib/i18n';
@@ -76,11 +77,15 @@ const Index = () => {
           </h2>
         </section>
         
-        <FeaturedProducts />
+        {/* Dynamic featured products from Supabase */}
+        <FeaturedProductsCarousel />
+        
         <div className="savoir-faire-exceptionnel">
           <Categories />
         </div>
-        <ArtisanSpotlight />
+        
+        {/* Dynamic featured artisans from Supabase */}
+        <FeaturedArtisansCarousel />
       </main>
       <Footer />
     </div>

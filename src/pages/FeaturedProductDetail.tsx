@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -9,7 +8,9 @@ import { Separator } from '@/components/ui/separator';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { Star, Truck, ShieldCheck, Heart, Share2, ChevronRight, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { FEATURED_PRODUCTS } from '@/components/home/FeaturedProducts';
+import { supabase } from '@/integrations/supabase/client';
+import { ProductWithArtisan } from '@/models/types';
+import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
 
 const FeaturedProductDetail = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -20,20 +21,61 @@ const FeaturedProductDetail = () => {
   const [product, setProduct] = useState<any>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
 
-  // Trouver le produit en fonction de l'id dans l'URL
+  // Fetch the product from Supabase
   useEffect(() => {
-    const foundProduct = FEATURED_PRODUCTS.find(p => p.id === productId);
+    const fetchProduct = async () => {
+      if (!productId) {
+        navigate('/');
+        return;
+      }
+
+      try {
+        // Fetch the product with its related artisan
+        const { data, error } = await supabase
+          .from('products')
+          .select(`
+            *,
+            artisan:artisans(*),
+            category:categories(*),
+            subcategory:subcategories(*)
+          `)
+          .eq('id', productId)
+          .single();
+
+        if (error) throw error;
+        
+        if (data) {
+          const mappedProduct = mapDatabaseProductToProduct(data);
+          setProduct(mappedProduct);
+          
+          // Fetch related products (other featured products)
+          const { data: relatedData, error: relatedError } = await supabase
+            .from('products')
+            .select(`
+              *,
+              artisan:artisans(*),
+              category:categories(*),
+              subcategory:subcategories(*)
+            `)
+            .eq('featured', true)
+            .neq('id', productId)
+            .limit(4);
+            
+          if (!relatedError && relatedData) {
+            const mappedRelated = relatedData.map(mapDatabaseProductToProduct);
+            setRelatedProducts(mappedRelated);
+          }
+        } else {
+          // Product not found, redirect to home
+          navigate('/');
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        navigate('/');
+      }
+    };
     
-    if (foundProduct) {
-      setProduct(foundProduct);
-      
-      // Définir les produits liés (tous les autres produits en vedette)
-      const related = FEATURED_PRODUCTS.filter(p => p.id !== productId);
-      setRelatedProducts(related);
-    } else {
-      // Rediriger vers la page d'accueil si le produit n'existe pas
-      navigate('/');
-    }
+    fetchProduct();
   }, [productId, navigate]);
 
   // Scroll to top when route changes
