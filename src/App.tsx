@@ -23,7 +23,6 @@ import AdminArtisanNew from './pages/admin/artisans/NewArtisan';
 import EditArtisan from './pages/admin/artisans/EditArtisan';
 import ArtisanModifications from './pages/admin/artisans/ArtisanModifications';
 import CategoriesList from './pages/admin/categories/CategoriesList';
-import Index from './pages/Index';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import BlogsList from './pages/admin/blog/BlogsList';
@@ -50,8 +49,8 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/home" element={<Home />} />
+      {/* Main routes - Making Home the primary index page */}
+      <Route path="/" element={<Home />} />
       <Route path="/products" element={<Products />} />
       <Route path="/products/:id" element={<ProductDetail />} />
       <Route path="/artisans" element={<Artisans />} />

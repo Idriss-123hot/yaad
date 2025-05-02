@@ -10,26 +10,22 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import FeaturedProductsCarousel from '@/components/home/FeaturedProductsCarousel';
 import FeaturedArtisansCarousel from '@/components/home/FeaturedArtisansCarousel';
+import SearchBar from '@/components/search/SearchBar';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Home page component
  * 
  * Displays the main landing page with featured sections including:
- * - Hero banner
+ * - Hero banner with dynamic content
+ * - Search bar with advanced filtering
  * - Product categories
- * - Featured products from Supabase (automatically rotates)
- * - Featured artisans
- * 
- * NOTE: All product data is dynamically fetched from Supabase.
- * Static/hardcoded products have been removed to ensure all content
- * is up-to-date with the database.
- * 
- * IMPORTANT: This page now ONLY uses dynamic components:
- * - FeaturedProductsCarousel - fetches featured products from Supabase
- * - FeaturedArtisansCarousel - fetches featured artisans from Supabase
- * All static product/artisan components have been removed.
+ * - Dynamic featured products carousel (auto-rotates)
+ * - Dynamic featured artisans carousel (auto-rotates)
  */
 const Home = () => {
+  const navigate = useNavigate();
+  
   useEffect(() => {
     // Smooth scroll to top when component mounts
     window.scrollTo({
@@ -37,6 +33,26 @@ const Home = () => {
       behavior: 'smooth',
     });
   }, []);
+  
+  // Handle search from the homepage
+  const handleSearch = (filters) => {
+    const queryParams = new URLSearchParams();
+    if (filters.q) {
+      queryParams.set('q', filters.q);
+    }
+    
+    // Handle category if it's an array
+    if (filters.category && filters.category.length > 0) {
+      queryParams.set('category', filters.category[0]);
+    }
+    
+    // Handle subcategory if it's an array
+    if (filters.subcategory && filters.subcategory.length > 0) {
+      queryParams.set('subcategory', filters.subcategory[0]);
+    }
+    
+    navigate(`/search?${queryParams.toString()}`);
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -45,18 +61,20 @@ const Home = () => {
         {/* Hero Section */}
         <Hero />
 
-        {/* Categories Section */}
-        <div className="py-16 px-4 md:px-6 lg:px-8 bg-cream-50">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-10">
-              <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Catégories</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Découvrez notre sélection de produits artisanaux marocains, chaque pièce raconte une histoire unique de savoir-faire traditionnel
-              </p>
-            </div>
-            <Categories />
-          </div>
-        </div>
+        {/* Search Section */}
+        <section className="py-12 px-4 md:px-6 lg:px-8 bg-cream-50">
+          <SearchBar 
+            onSearch={handleSearch}
+            className="max-w-5xl mx-auto"
+            initialFilters={{
+              q: '',
+              category: [],
+              subcategory: []
+            }}
+            variant="expanded"
+            autoFocus={false}
+          />
+        </section>
 
         {/* Featured Products Section - Dynamic content from Supabase */}
         <div className="py-16 px-4 md:px-6 lg:px-8 bg-white">
@@ -71,9 +89,20 @@ const Home = () => {
               </Button>
             </div>
             {/* Dynamic featured products carousel connected to Supabase */}
-            {/* This carousel fetches all products where featured=true from the database */}
-            {/* No static product data is used - all content is dynamically loaded */}
             <FeaturedProductsCarousel />
+          </div>
+        </div>
+        
+        {/* Categories Section */}
+        <div className="py-16 px-4 md:px-6 lg:px-8 bg-cream-50">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Catégories</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Découvrez notre sélection de produits artisanaux marocains, chaque pièce raconte une histoire unique de savoir-faire traditionnel
+              </p>
+            </div>
+            <Categories />
           </div>
         </div>
 
@@ -87,8 +116,6 @@ const Home = () => {
               </p>
             </div>
             {/* Dynamic featured artisans carousel connected to Supabase */}
-            {/* This carousel fetches all artisans where featured=true from the database */}
-            {/* No static artisan data is used - all content is dynamically loaded */}
             <FeaturedArtisansCarousel />
             <div className="text-center mt-8">
               <Button asChild variant="outline">

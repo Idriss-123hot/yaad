@@ -4,6 +4,7 @@ import { cn, getImageWithFallback } from '@/lib/utils';
 import { ProductWithArtisan } from '@/models/types';
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
 
 interface ProductCardProps {
   product: ProductWithArtisan;
@@ -14,40 +15,61 @@ interface ProductCardProps {
  * ProductCard Component
  * 
  * Displays a product card with image, title, artisan info, rating, and price.
- * Used in various product listing pages and carousels.
+ * Includes proper loading states, error handling for images, and fallback image.
  * 
  * @param product - The product data to display
  * @param className - Optional additional CSS classes
  */
 export function ProductCard({ product, className }: ProductCardProps) {
   const { id, title, price, discountPrice, rating, reviewCount, images, artisan } = product;
+  const [imageError, setImageError] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   
-  const firstImage = images && images.length > 0 ? images[0] : undefined;
-  const imageUrl = getImageWithFallback(firstImage);
+  // Default fallback image if no images are available
+  const fallbackImage = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
   
-  // Get artisan information
-  const artisanName = artisan?.name || 'Artisan Marocain';
-  const artisanId = artisan?.id || product.artisanId;
+  // Get the first image or use fallback
+  const firstImage = images && images.length > 0 && !imageError ? images[0] : fallbackImage;
   
   // Calculate discount percentage if both prices are available
   const discountPercentage = price && discountPrice 
     ? Math.round(((price - discountPrice) / price) * 100) 
     : 0;
   
+  // Get artisan information
+  const artisanName = artisan?.name || 'Artisan Marocain';
+  const artisanId = artisan?.id || product.artisanId;
+  
+  const handleImageLoad = () => {
+    setIsImageLoading(false);
+  };
+  
+  const handleImageError = () => {
+    setIsImageLoading(false);
+    setImageError(true);
+  };
+  
   return (
     <div className={cn(
       "group flex flex-col overflow-hidden rounded-lg transition-all duration-300 hover-lift",
       className
     )}>
-      {/* Product Image */}
+      {/* Product Image with loading state */}
       <Link to={`/products/${id}`} className="block aspect-square overflow-hidden rounded-lg bg-muted mb-3 relative">
+        {isImageLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="w-8 h-8 border-4 border-terracotta-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
         <img
-          src={imageUrl}
+          src={firstImage}
           alt={title}
-          className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-          onError={(e) => {
-            e.currentTarget.src = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
-          }}
+          className={cn(
+            "h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105",
+            isImageLoading ? "opacity-0" : "opacity-100"
+          )}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
         />
         
         {discountPrice && discountPercentage > 0 && (

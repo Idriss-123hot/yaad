@@ -6,12 +6,14 @@ import { FixedNavMenu } from '@/components/layout/FixedNavMenu';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search as SearchIcon, X, SlidersHorizontal, Loader2 } from 'lucide-react';
-import AdvancedFilters from '@/components/search/AdvancedFilters';
+import { Search as SearchIcon, X, SlidersHorizontal, Loader2, ChevronUp, ChevronDown } from 'lucide-react';
 import { ProductWithArtisan } from '@/models/types';
 import { SearchFilters } from '@/services/search';
-import { searchProducts, debouncedSearch, filtersToURLParams, getFiltersFromURL } from '@/services/search';
+import { searchProducts, filtersToURLParams, getFiltersFromURL } from '@/services/search';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useDebounce } from '@/hooks/useDebounce';
+import { Skeleton } from '@/components/ui/skeleton';
+import { FilterSidebar } from '@/components/search/FilterSidebar';
 
 const Search = () => {
   const location = useLocation();
@@ -28,6 +30,9 @@ const Search = () => {
     sort: 'featured',
   });
   
+  // Use debounced search term to prevent excessive API calls
+  const debouncedFilters = useDebounce(filters, 500);
+  
   // Initialize filters from URL parameters on component mount
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -40,14 +45,14 @@ const Search = () => {
   
   // Update URL when filters change
   useEffect(() => {
-    const queryParams = filtersToURLParams(filters);
+    const queryParams = filtersToURLParams(debouncedFilters);
     const newUrl = `${location.pathname}?${queryParams.toString()}`;
     
     // Only update if URL would actually change
     if (location.search !== `?${queryParams.toString()}`) {
       navigate(newUrl, { replace: true });
     }
-  }, [filters, navigate, location.pathname]);
+  }, [debouncedFilters, navigate, location.pathname]);
   
   // Fetch products based on filters
   useEffect(() => {
@@ -55,9 +60,9 @@ const Search = () => {
       setIsLoading(true);
       
       try {
-        console.log("Searching products with filters:", filters); // Debug log
+        console.log("Searching products with filters:", debouncedFilters);
         // Use the searchProducts function from our search service
-        const results = await searchProducts(filters as SearchFilters);
+        const results = await searchProducts(debouncedFilters as SearchFilters);
         setProducts(results.products);
       } catch (error) {
         console.error('Error searching products:', error);
@@ -67,13 +72,8 @@ const Search = () => {
       setIsLoading(false);
     };
     
-    // Debounce search to avoid too many requests
-    const timerId = setTimeout(() => {
-      fetchProducts();
-    }, 300);
-    
-    return () => clearTimeout(timerId);
-  }, [filters]);
+    fetchProducts();
+  }, [debouncedFilters]);
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters(prev => ({
@@ -127,6 +127,7 @@ const Search = () => {
               <button
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 onClick={handleClearSearch}
+                aria-label="Effacer la recherche"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -134,25 +135,38 @@ const Search = () => {
           </div>
           
           <div className="flex flex-col md:flex-row md:space-x-6 mb-10">
-            <div className="w-full md:w-1/4 lg:w-1/5 mb-6 md:mb-0">
+            {/* Mobile filter toggle */}
+            <div className="w-full md:hidden mb-4">
               <Button
                 variant="outline"
                 size="sm"
-                className="flex md:hidden items-center mb-4 w-full"
+                className="flex justify-between w-full items-center"
                 onClick={handleToggleFilters}
+                aria-expanded={showFilters}
+                aria-controls="filter-panel"
               >
-                <SlidersHorizontal className="h-4 w-4 mr-2" />
-                {showFilters ? 'Masquer filtres' : 'Afficher filtres'}
+                <span className="flex items-center">
+                  <SlidersHorizontal className="h-4 w-4 mr-2" />
+                  Filtres
+                </span>
+                {showFilters ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
               </Button>
-              
-              <div className={`${showFilters ? 'block' : 'hidden md:block'}`}>
-                <AdvancedFilters 
-                  isOpen={showFilters}
-                  onClose={() => setShowFilters(false)}
-                  initialFilters={filters}
-                  onApplyFilters={handleFilterChange}
-                />
-              </div>
+            </div>
+            
+            {/* Filter sidebar - responsive version */}
+            <div 
+              id="filter-panel"
+              className={`w-full md:w-1/4 lg:w-1/5 ${showFilters ? 'block' : 'hidden md:block'}`}
+            >
+              <FilterSidebar 
+                initialFilters={filters}
+                onApplyFilters={handleFilterChange}
+                onClose={() => setShowFilters(false)}
+              />
             </div>
             
             <div className="w-full md:w-3/4 lg:w-4/5">
@@ -166,6 +180,7 @@ const Search = () => {
                     className="text-sm border rounded px-2 py-1 bg-white"
                     value={filters.sort}
                     onChange={handleSortChange}
+                    aria-label="Trier par"
                   >
                     <option value="featured">En vedette</option>
                     <option value="price-asc">Prix: Croissant</option>
@@ -177,9 +192,14 @@ const Search = () => {
               </div>
               
               {isLoading ? (
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="h-8 w-8 animate-spin text-terracotta-600" />
-                  <span className="ml-2 text-lg text-terracotta-600">Chargement...</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="flex flex-col space-y-3">
+                      <Skeleton className="h-[250px] w-full rounded-md" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                  ))}
                 </div>
               ) : products.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

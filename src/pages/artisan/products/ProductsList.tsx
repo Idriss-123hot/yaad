@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArtisanLayout } from '@/components/artisan/ArtisanLayout';
@@ -25,14 +26,39 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductWithArtisan } from '@/models/types';
 import { mapDatabaseProductToProduct } from '@/utils/mapDatabaseModels';
-import { debounce } from '@/lib/utils';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useAuth } from '@/hooks/useAuth';
+
+// Component for the product image with loading and error states
+const ProductImage = ({ images, title }: { images?: string[], title: string }) => {
+  const [imageError, setImageError] = useState(false);
+  
+  if (!images || images.length === 0 || imageError) {
+    return (
+      <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center border">
+        <Image className="h-6 w-6 text-gray-400" />
+      </div>
+    );
+  }
+  
+  return (
+    <div className="w-16 h-16 rounded overflow-hidden border">
+      <img 
+        src={images[0]} 
+        alt={title} 
+        className="w-full h-full object-cover"
+        onError={() => setImageError(true)}
+      />
+    </div>
+  );
+};
 
 const ArtisanProductsList: React.FC = () => {
   const [products, setProducts] = useState<ProductWithArtisan[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 500);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -89,21 +115,17 @@ const ArtisanProductsList: React.FC = () => {
     }
   };
 
+  // Fetch products when search term changes
   useEffect(() => {
     if (user) {
-      fetchArtisanProducts();
+      fetchArtisanProducts(debouncedSearch);
     }
-  }, [user]);
+  }, [user, debouncedSearch]);
 
   // Handle search
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    debouncedSearch(e.target.value);
   };
-
-  const debouncedSearch = debounce((value: string) => {
-    fetchArtisanProducts(value);
-  }, 300);
 
   // Delete product
   const handleDelete = async (productId: string) => {
@@ -216,19 +238,7 @@ const ArtisanProductsList: React.FC = () => {
                     {products.map((product) => (
                       <TableRow key={product.id}>
                         <TableCell>
-                          {product.images && product.images.length > 0 ? (
-                            <div className="w-16 h-16 rounded overflow-hidden border">
-                              <img 
-                                src={product.images[0]} 
-                                alt={product.title} 
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center border">
-                              <Image className="h-6 w-6 text-gray-400" />
-                            </div>
-                          )}
+                          <ProductImage images={product.images} title={product.title} />
                         </TableCell>
                         <TableCell className="font-medium">
                           {product.title}
@@ -236,7 +246,7 @@ const ArtisanProductsList: React.FC = () => {
                             <Badge className="ml-2 bg-amber-500">Featured</Badge>
                           )}
                         </TableCell>
-                        <TableCell>{product.category}</TableCell>
+                        <TableCell>{product.category || '—'}</TableCell>
                         <TableCell className="text-right">
                           {product.discountPrice ? (
                             <div>
