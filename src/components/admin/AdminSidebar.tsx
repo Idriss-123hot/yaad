@@ -7,7 +7,6 @@ import {
   Users, 
   Tag, 
   FileText, 
-  Bell,
   LogOut,
   Menu,
   X,
@@ -129,7 +128,7 @@ export function AdminSidebar({ open, setOpen }: AdminSidebarProps) {
                 to="/admin/artisans"
                 className={cn(
                   "flex items-center px-4 py-2 text-sm font-medium rounded-md",
-                  isActive('/admin/artisans') && !isActive('/admin/artisans/modifications')
+                  isActive('/admin/artisans') 
                     ? "bg-terracotta-500 text-white" 
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
@@ -137,20 +136,6 @@ export function AdminSidebar({ open, setOpen }: AdminSidebarProps) {
               >
                 <Users className="mr-3 h-5 w-5" />
                 Artisans
-              </Link>
-              
-              <Link 
-                to="/admin/artisans/modifications"
-                className={cn(
-                  "flex items-center px-4 py-2 text-sm font-medium rounded-md",
-                  isActive('/admin/artisans/modifications') 
-                    ? "bg-terracotta-500 text-white" 
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-                onClick={() => setOpen(false)}
-              >
-                <Bell className="mr-3 h-5 w-5" />
-                Modifications Artisans
               </Link>
               
               <Link 

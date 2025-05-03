@@ -114,16 +114,16 @@ export function ArtisanSidebar() {
               active={isActive('/artisan/customers')}
             />
             <NavItem 
+              href="/artisan/support" 
+              icon={<HelpCircle size={18} />} 
+              label="Help & Support" 
+              active={isActive('/artisan/support') || isActive('/artisan/help')}
+            />
+            <NavItem 
               href="/artisan/settings" 
               icon={<Settings size={18} />} 
               label="Settings" 
               active={isActive('/artisan/settings')}
-            />
-            <NavItem 
-              href="/artisan/help" 
-              icon={<HelpCircle size={18} />} 
-              label="Help & Support" 
-              active={isActive('/artisan/help')}
             />
           </div>
         </div>

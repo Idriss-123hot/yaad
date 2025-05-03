@@ -21,7 +21,6 @@ import EditProduct from './pages/admin/products/EditProduct';
 import ArtisansList from './pages/admin/artisans/ArtisansList';
 import AdminArtisanNew from './pages/admin/artisans/NewArtisan';
 import EditArtisan from './pages/admin/artisans/EditArtisan';
-import ArtisanModifications from './pages/admin/artisans/ArtisanModifications';
 import SalesList from './pages/admin/sales/SalesList';
 import SupportList from './pages/admin/support/SupportList';
 import CategoriesList from './pages/admin/categories/CategoriesList';
@@ -44,6 +43,7 @@ import ArtisanProductEdit from './pages/artisan/products/EditProduct';
 import ArtisanOrders from './pages/artisan/orders/OrdersList';
 import ArtisanStatistics from './pages/artisan/stats/Statistics';
 import ArtisanSupport from './pages/artisan/support/ArtisanSupport';
+import ArtisanMessages from './pages/artisan/messages/ArtisanMessages';
 import ArtisanSettings from './pages/artisan/settings/Settings';
 
 function App() {
@@ -84,6 +84,8 @@ function App() {
       <Route path="/artisan/orders" element={<ArtisanOrders />} />
       <Route path="/artisan/stats" element={<ArtisanStatistics />} />
       <Route path="/artisan/support" element={<ArtisanSupport />} />
+      <Route path="/artisan/messages" element={<ArtisanMessages />} />
+      <Route path="/artisan/help" element={<ArtisanSupport />} />
       <Route path="/artisan/settings" element={<ArtisanSettings />} />
       
       {/* Admin routes */}
@@ -91,11 +93,10 @@ function App() {
       <Route path="/admin/dashboard" element={<AdminDashboard />} />
       <Route path="/admin/products" element={<ProductsList />} />
       <Route path="/admin/products/new" element={<NewProduct />} />
-      <Route path="/admin/products/:id" element={<EditProduct />} />
+      <Route path="/admin/products/:id/edit" element={<EditProduct />} />
       <Route path="/admin/artisans" element={<ArtisansList />} />
       <Route path="/admin/artisans/new" element={<AdminArtisanNew />} />
-      <Route path="/admin/artisans/:id" element={<EditArtisan />} />
-      <Route path="/admin/artisans/modifications" element={<ArtisanModifications />} />
+      <Route path="/admin/artisans/:id/edit" element={<EditArtisan />} />
       <Route path="/admin/sales" element={<SalesList />} />
       <Route path="/admin/support" element={<SupportList />} />
       <Route path="/admin/categories" element={<CategoriesList />} />
