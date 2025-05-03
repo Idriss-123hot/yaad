@@ -1,4 +1,3 @@
-
 // If this file doesn't exist, I'll create it with the necessary types
 
 // Product Interfaces
@@ -36,6 +35,20 @@ export interface ProductWithArtisan extends Product {
   artisan?: Artisan;
 }
 
+// Support message types
+export interface SupportMessage {
+  id: string;
+  artisanId: string;
+  subject: string;
+  message: string;
+  status: 'pending' | 'in_progress' | 'resolved';
+  adminResponse?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  respondedAt?: Date;
+  respondedBy?: string;
+}
+
 // Artisan Interface
 export interface Artisan {
   id: string;
@@ -51,6 +64,13 @@ export interface Artisan {
   joinedDate: Date;
   description?: string;
   website?: string;
+}
+
+export interface ArtisanWithProfile extends Artisan {
+  profilePhoto?: string;
+  user?: {
+    email?: string;
+  };
 }
 
 // Category and Subcategory Interfaces

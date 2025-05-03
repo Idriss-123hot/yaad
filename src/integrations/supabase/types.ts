@@ -632,6 +632,53 @@ export type Database = {
           },
         ]
       }
+      support_messages: {
+        Row: {
+          admin_response: string | null
+          artisan_id: string
+          created_at: string
+          id: string
+          message: string
+          responded_at: string | null
+          responded_by: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          admin_response?: string | null
+          artisan_id: string
+          created_at?: string
+          id?: string
+          message: string
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          admin_response?: string | null
+          artisan_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_artisan_id_fkey"
+            columns: ["artisan_id"]
+            isOneToOne: false
+            referencedRelation: "artisans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       translations: {
         Row: {
           created_at: string

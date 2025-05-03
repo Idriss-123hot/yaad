@@ -22,6 +22,8 @@ import ArtisansList from './pages/admin/artisans/ArtisansList';
 import AdminArtisanNew from './pages/admin/artisans/NewArtisan';
 import EditArtisan from './pages/admin/artisans/EditArtisan';
 import ArtisanModifications from './pages/admin/artisans/ArtisanModifications';
+import SalesList from './pages/admin/sales/SalesList';
+import SupportList from './pages/admin/support/SupportList';
 import CategoriesList from './pages/admin/categories/CategoriesList';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
@@ -39,6 +41,9 @@ import ArtisanDashboard from './pages/artisan/Dashboard';
 import ArtisanProductsList from './pages/artisan/products/ProductsList';
 import ArtisanProductNew from './pages/artisan/products/NewProduct';
 import ArtisanProductEdit from './pages/artisan/products/EditProduct';
+import ArtisanOrders from './pages/artisan/orders/OrdersList';
+import ArtisanStatistics from './pages/artisan/stats/Statistics';
+import ArtisanSupport from './pages/artisan/support/ArtisanSupport';
 import ArtisanSettings from './pages/artisan/settings/Settings';
 
 function App() {
@@ -76,6 +81,9 @@ function App() {
       <Route path="/artisan/products" element={<ArtisanProductsList />} />
       <Route path="/artisan/products/new" element={<ArtisanProductNew />} />
       <Route path="/artisan/products/:id/edit" element={<ArtisanProductEdit />} />
+      <Route path="/artisan/orders" element={<ArtisanOrders />} />
+      <Route path="/artisan/stats" element={<ArtisanStatistics />} />
+      <Route path="/artisan/support" element={<ArtisanSupport />} />
       <Route path="/artisan/settings" element={<ArtisanSettings />} />
       
       {/* Admin routes */}
@@ -88,6 +96,8 @@ function App() {
       <Route path="/admin/artisans/new" element={<AdminArtisanNew />} />
       <Route path="/admin/artisans/:id" element={<EditArtisan />} />
       <Route path="/admin/artisans/modifications" element={<ArtisanModifications />} />
+      <Route path="/admin/sales" element={<SalesList />} />
+      <Route path="/admin/support" element={<SupportList />} />
       <Route path="/admin/categories" element={<CategoriesList />} />
       <Route path="/admin/blog" element={<BlogsList />} />
       <Route path="/admin/blog/new" element={<NewBlog />} />

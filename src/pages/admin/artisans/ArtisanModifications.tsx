@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,18 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { ModificationLog, ArtisanModificationLog, ArtisanData, QueryError } from '@/types/supabase-custom';
+import { ModificationLog, ArtisanModificationLog } from '@/types/supabase-custom';
+
+// Define the necessary interface
+interface ArtisanData {
+  name?: string;
+  profile_photo?: string;
+  [key: string]: any;
+}
+
+interface QueryError {
+  error: string;
+}
 
 const ArtisanModifications = () => {
   const [modifications, setModifications] = useState<ArtisanModificationLog[]>([]);
@@ -47,11 +59,13 @@ const ArtisanModifications = () => {
           )
         `)
         .eq('table_name', 'artisans')
+        .eq('status', 'pending')
         .order('modification_date', { ascending: false });
 
       if (error) throw error;
       
       const processedData = data.map(mod => {
+        // Identify which fields were changed
         const changedFields = mod.new_values 
           ? Object.keys(mod.new_values).filter(key => 
               mod.old_values && 
@@ -59,6 +73,7 @@ const ArtisanModifications = () => {
             )
           : [];
         
+        // Get artisan name from either the artisans relation or the new_values
         let artisanName = 'Inconnu';
         let artisanData = null;
         
@@ -83,6 +98,7 @@ const ArtisanModifications = () => {
           }
         }
         
+        // Return the enhanced modification log
         const artisanMod: ArtisanModificationLog = {
           ...mod,
           changedFields,
@@ -115,6 +131,7 @@ const ArtisanModifications = () => {
     if (!selectedMod) return;
     
     try {
+      // Update the artisan with the new values
       const { error } = await supabase
         .from('artisans')
         .update(selectedMod.new_values as any)
@@ -122,6 +139,7 @@ const ArtisanModifications = () => {
         
       if (error) throw error;
       
+      // Update the modification status
       await supabase
         .from('modification_logs')
         .update({ status: 'approved' })
@@ -148,6 +166,7 @@ const ArtisanModifications = () => {
     if (!selectedMod) return;
     
     try {
+      // Update the modification status to rejected
       await supabase
         .from('modification_logs')
         .update({ status: 'rejected' })
@@ -300,7 +319,7 @@ const ArtisanModifications = () => {
           <DialogHeader>
             <DialogTitle>Détails de la modification</DialogTitle>
             <DialogDescription>
-              Artisan: {selectedMod?.artisanName} - {format(new Date(selectedMod?.modification_date || Date.now()), 'dd/MM/yyyy HH:mm')}
+              Artisan: {selectedMod?.artisanName} - {selectedMod && format(new Date(selectedMod.modification_date), 'dd/MM/yyyy HH:mm')}
             </DialogDescription>
           </DialogHeader>
           

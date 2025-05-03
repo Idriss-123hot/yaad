@@ -10,7 +10,9 @@ import {
   Bell,
   LogOut,
   Menu,
-  X
+  X,
+  DollarSign,
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -149,6 +151,34 @@ export function AdminSidebar({ open, setOpen }: AdminSidebarProps) {
               >
                 <Bell className="mr-3 h-5 w-5" />
                 Modifications Artisans
+              </Link>
+              
+              <Link 
+                to="/admin/sales"
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-md",
+                  isActive('/admin/sales') 
+                    ? "bg-terracotta-500 text-white" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+                onClick={() => setOpen(false)}
+              >
+                <DollarSign className="mr-3 h-5 w-5" />
+                Ventes
+              </Link>
+              
+              <Link 
+                to="/admin/support"
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-md",
+                  isActive('/admin/support') 
+                    ? "bg-terracotta-500 text-white" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+                onClick={() => setOpen(false)}
+              >
+                <MessageSquare className="mr-3 h-5 w-5" />
+                Support
               </Link>
               
               <Link 
