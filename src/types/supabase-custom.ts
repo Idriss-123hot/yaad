@@ -16,6 +16,7 @@ export interface ModificationLog {
 export interface ArtisanData {
   name?: string;
   profile_photo?: string;
+  error?: string;
   [key: string]: any;
 }
 

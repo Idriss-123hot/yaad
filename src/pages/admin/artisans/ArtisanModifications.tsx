@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { ModificationLog, ArtisanModificationLog } from '@/types/supabase-custom';
+import { ModificationLog, ArtisanModificationLog, ArtisanData } from '@/types/supabase-custom';
 
 const ArtisanModifications = () => {
   const [modifications, setModifications] = useState<ArtisanModificationLog[]>([]);
@@ -72,10 +73,10 @@ const ArtisanModifications = () => {
         
         // Get artisan name from either the artisans relation or the new_values
         let artisanName = 'Inconnu';
-        let artisanData = null;
+        let artisanData: ArtisanData | null = null;
         
         if (mod.artisans !== null && mod.artisans !== undefined && typeof mod.artisans === 'object') {
-          const artisansObj = mod.artisans;
+          const artisansObj = mod.artisans as ArtisanData;
           
           if (artisansObj && 'error' in artisansObj) {
             console.log('Error in artisan data:', artisansObj.error);
