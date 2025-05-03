@@ -21,18 +21,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { ModificationLog, ArtisanModificationLog, ArtisanData, QueryError } from '@/types/supabase-custom';
-
-// Define the necessary interface
-interface ArtisanData {
-  name?: string;
-  profile_photo?: string;
-  [key: string]: any;
-}
-
-interface QueryError {
-  error: string;
-}
+import { ModificationLog, ArtisanModificationLog } from '@/types/supabase-custom';
 
 const ArtisanModifications = () => {
   const [modifications, setModifications] = useState<ArtisanModificationLog[]>([]);
@@ -89,13 +78,12 @@ const ArtisanModifications = () => {
           const artisansObj = mod.artisans;
           
           if (artisansObj && 'error' in artisansObj) {
-            console.log('Error in artisan data:', (artisansObj as QueryError).error);
+            console.log('Error in artisan data:', artisansObj.error);
           } else if (artisansObj) {
-            const safeArtisanData = artisansObj as ArtisanData;
-            if (safeArtisanData.name && typeof safeArtisanData.name === 'string') {
-              artisanName = safeArtisanData.name;
+            if ('name' in artisansObj && typeof artisansObj.name === 'string') {
+              artisanName = artisansObj.name;
             }
-            artisanData = safeArtisanData;
+            artisanData = artisansObj;
           }
         } 
         
@@ -112,7 +100,8 @@ const ArtisanModifications = () => {
           new_values: newValues,
           changedFields,
           artisanName,
-          artisans: artisanData
+          artisans: artisanData,
+          status: (mod.status as 'pending' | 'approved' | 'rejected') || 'pending'
         };
         
         return artisanMod;
