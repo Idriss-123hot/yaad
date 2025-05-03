@@ -7,6 +7,14 @@ import { useToast } from '@/components/ui/use-toast';
 import { Loader2, ArrowUp, DollarSign, Package, Eye, ShoppingBag } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatPrice } from '@/lib/utils';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
 
 interface SalesData {
   monthDate: Date;
@@ -109,30 +117,35 @@ const Statistics = () => {
           }
           
           // Process each order
-          product.order_products?.forEach(orderProduct => {
-            orderProduct.orders?.forEach(order => {
-              // Count only completed or processing orders
-              if (order.status === 'completed' || order.status === 'processing') {
-                const orderDate = new Date(order.created_at);
-                const monthKey = `${orderDate.getFullYear()}-${orderDate.getMonth() + 1}`;
+          if (product.order_products && Array.isArray(product.order_products)) {
+            product.order_products.forEach(orderProduct => {
+              if (orderProduct.orders && typeof orderProduct.orders === 'object') {
+                // Ensure orders is properly typed as an object with the right properties
+                const order = orderProduct.orders as { created_at: string; status: string };
                 
-                // Add to monthly data if within last 6 months
-                if (monthMap[monthKey]) {
-                  const orderRevenue = orderProduct.quantity * orderProduct.unit_price;
-                  monthMap[monthKey].totalSales += orderRevenue;
-                  monthMap[monthKey].orders += 1;
+                // Count only completed or processing orders
+                if (order.status === 'completed' || order.status === 'processing') {
+                  const orderDate = new Date(order.created_at);
+                  const monthKey = `${orderDate.getFullYear()}-${orderDate.getMonth() + 1}`;
                   
-                  // Add to overall totals
-                  revenue += orderRevenue;
-                  orderCount += 1;
-                  
-                  // Add to product performance
-                  productPerformance[product.id].salesCount += orderProduct.quantity;
-                  productPerformance[product.id].revenue += orderRevenue;
+                  // Add to monthly data if within last 6 months
+                  if (monthMap[monthKey]) {
+                    const orderRevenue = orderProduct.quantity * orderProduct.unit_price;
+                    monthMap[monthKey].totalSales += orderRevenue;
+                    monthMap[monthKey].orders += 1;
+                    
+                    // Add to overall totals
+                    revenue += orderRevenue;
+                    orderCount += 1;
+                    
+                    // Add to product performance
+                    productPerformance[product.id].salesCount += orderProduct.quantity;
+                    productPerformance[product.id].revenue += orderRevenue;
+                  }
                 }
               }
             });
-          });
+          }
         });
 
         // Convert monthly data to array and sort by date

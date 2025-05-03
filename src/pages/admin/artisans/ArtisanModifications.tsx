@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { ModificationLog, ArtisanModificationLog } from '@/types/supabase-custom';
+import { ModificationLog, ArtisanModificationLog, ArtisanData, QueryError } from '@/types/supabase-custom';
 
 // Define the necessary interface
 interface ArtisanData {
@@ -65,11 +64,20 @@ const ArtisanModifications = () => {
       if (error) throw error;
       
       const processedData = data.map(mod => {
+        // Convert Json to Record<string, any> explicitly
+        const oldValues = typeof mod.old_values === 'string' 
+          ? JSON.parse(mod.old_values) 
+          : mod.old_values as Record<string, any> | null;
+          
+        const newValues = typeof mod.new_values === 'string'
+          ? JSON.parse(mod.new_values)
+          : mod.new_values as Record<string, any> | null;
+        
         // Identify which fields were changed
-        const changedFields = mod.new_values 
-          ? Object.keys(mod.new_values).filter(key => 
-              mod.old_values && 
-              JSON.stringify(mod.old_values[key]) !== JSON.stringify(mod.new_values[key])
+        const changedFields = newValues 
+          ? Object.keys(newValues).filter(key => 
+              oldValues && 
+              JSON.stringify(oldValues[key]) !== JSON.stringify(newValues[key])
             )
           : [];
         
@@ -91,16 +99,17 @@ const ArtisanModifications = () => {
           }
         } 
         
-        if (artisanName === 'Inconnu' && mod.new_values && typeof mod.new_values === 'object') {
-          const newValues = mod.new_values as Record<string, any>;
+        if (artisanName === 'Inconnu' && newValues && typeof newValues === 'object') {
           if (newValues.name && typeof newValues.name === 'string') {
             artisanName = newValues.name;
           }
         }
         
-        // Return the enhanced modification log
+        // Return the enhanced modification log with properly typed values
         const artisanMod: ArtisanModificationLog = {
           ...mod,
+          old_values: oldValues,
+          new_values: newValues,
           changedFields,
           artisanName,
           artisans: artisanData

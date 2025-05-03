@@ -28,3 +28,20 @@ export interface ArtisanModificationLog extends ModificationLog {
   artisanName: string;
   artisans: ArtisanData | null;
 }
+
+// Define the BlogPost interface that was missing
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  featured_image?: string;
+  category?: string;
+  tags?: string[];
+  author_id?: string;
+  published: boolean;
+  published_at?: string;
+  created_at: string;
+  updated_at: string;
+}

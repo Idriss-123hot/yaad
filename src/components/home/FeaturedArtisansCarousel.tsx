@@ -30,7 +30,7 @@ export function FeaturedArtisansCarousel() {
         
         const { data, error } = await supabase
           .from('artisans')
-          .select('*')
+          .select('*, products(id)')
           .eq('featured', true)
           .order('name');
           
@@ -47,6 +47,7 @@ export function FeaturedArtisansCarousel() {
           website: artisan.website || '',
           rating: artisan.rating || 0,
           reviewCount: artisan.review_count || 0,
+          productCount: artisan.products?.length || 0,  // Add productCount property
           featured: artisan.featured || false,
           joinedDate: new Date(artisan.joined_date),
           galleryImages: artisan.first_gallery_images || []
