@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (event, session) => {
         if (session && session.user) {
           // We need to fetch profile data after session change
+          // Use setTimeout to avoid infinite recursion with RLS policies
           setTimeout(async () => {
             try {
               // Get user profile data
@@ -160,7 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .from('profiles')
           .select('role')
           .eq('id', data.user.id)
-          .single();
+          .maybeSingle();
           
         if (profileError) {
           console.error('Error fetching profile:', profileError);

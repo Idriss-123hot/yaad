@@ -25,11 +25,12 @@ export const checkAdminRole = async (): Promise<boolean> => {
     
     if (!session) return false;
     
+    // Use the maybeSingle() method to avoid errors when no results are found
     const { data, error } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', session.user.id)
-      .single();
+      .maybeSingle();
     
     if (error) {
       console.error('Error checking admin role:', error);
@@ -50,11 +51,12 @@ export const checkArtisanRole = async (): Promise<boolean> => {
     
     if (!session) return false;
     
+    // Use the maybeSingle() method to avoid errors when no results are found
     const { data, error } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', session.user.id)
-      .single();
+      .maybeSingle();
     
     if (error) {
       console.error('Error checking artisan role:', error);
@@ -79,7 +81,7 @@ export const getCurrentArtisanId = async (): Promise<string | null> => {
       .from('artisans')
       .select('id')
       .eq('user_id', session.user.id)
-      .single();
+      .maybeSingle();
     
     if (error || !data) {
       console.error('Error getting artisan ID:', error);

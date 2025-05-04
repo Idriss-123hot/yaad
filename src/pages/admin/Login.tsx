@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -36,9 +37,13 @@ export default function AdminLogin() {
   // Vérifier si l'utilisateur est déjà connecté et est un admin
   useEffect(() => {
     const checkAuth = async () => {
-      const isAdmin = await checkAdminRole();
-      if (isAdmin) {
-        navigate('/admin/dashboard');
+      // First check if we have a session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const isAdmin = await checkAdminRole();
+        if (isAdmin) {
+          navigate('/admin/dashboard');
+        }
       }
     };
     

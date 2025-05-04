@@ -9,13 +9,12 @@ export const searchProductsWithDatabase = async (filters: SearchFilters): Promis
     
     let query = supabase.from('products').select(`
       *,
-      artisan:artisan_id(*),
-      category:category_id(*)
+      artisan:artisan_id(id, name, profile_photo, location, rating),
+      category:category_id(id, name)
     `, { count: 'exact' });
     
     if (category && category.length > 0) {
       // Use the first category from the array for now
-      // In the future, we could use .in() to search for multiple categories
       query = query.eq('category_id', category[0]);
     }
     

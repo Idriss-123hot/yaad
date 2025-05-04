@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { checkAdminRole, checkArtisanRole } from '@/utils/authUtils';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -22,24 +23,27 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Vérifier si l'utilisateur est connecté
+        // Check if user is logged in
         const { data: sessionData } = await supabase.auth.getSession();
         setSession(sessionData.session);
         
-        // Si l'utilisateur est connecté et qu'un rôle est requis, vérifier le rôle
+        // If user is logged in and a role is required, check role
         if (sessionData.session && requiredRole) {
-          const { data: profileData, error } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', sessionData.session.user.id)
-            .single();
-            
-          if (error) throw error;
+          let hasRole = false;
           
-          setUserRole(profileData?.role || null);
+          if (requiredRole === 'admin') {
+            hasRole = await checkAdminRole();
+          } else if (requiredRole === 'artisan') {
+            hasRole = await checkArtisanRole();
+          } else if (requiredRole === 'customer') {
+            // For customer role, we just need to be logged in
+            hasRole = true;
+          }
+          
+          setUserRole(hasRole ? requiredRole : null);
         }
       } catch (error) {
-        console.error('Erreur lors de la vérification de l\'authentification:', error);
+        console.error('Authentication check error:', error);
       } finally {
         setLoading(false);
       }
@@ -47,23 +51,24 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     
     checkAuth();
     
-    // Configurer un écouteur pour les changements d'état d'authentification
+    // Set up auth state listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         setSession(newSession);
         
         if (newSession && requiredRole) {
-          try {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('role')
-              .eq('id', newSession.user.id)
-              .single();
-              
-            setUserRole(profileData?.role || null);
-          } catch (error) {
-            console.error('Erreur lors de la récupération du rôle:', error);
+          let hasRole = false;
+          
+          if (requiredRole === 'admin') {
+            hasRole = await checkAdminRole();
+          } else if (requiredRole === 'artisan') {
+            hasRole = await checkArtisanRole();
+          } else if (requiredRole === 'customer') {
+            // For customer role, we just need to be logged in
+            hasRole = true;
           }
+          
+          setUserRole(hasRole ? requiredRole : null);
         } else {
           setUserRole(null);
         }
@@ -86,8 +91,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!session) {
-    // Si l'utilisateur n'est pas connecté, le rediriger vers la page de connexion
-    // avec l'URL actuelle comme URL de redirection
+    // If user is not logged in, redirect to login page
+    // with the current URL as redirect URL
     toast({
       title: "Authentification requise",
       description: "Veuillez vous connecter pour accéder à cette page.",
@@ -98,7 +103,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (requiredRole && userRole !== requiredRole) {
-    // Si un rôle spécifique est requis et que l'utilisateur n'a pas ce rôle
+    // If a specific role is required and user doesn't have that role
     toast({
       title: "Accès refusé",
       description: `Vous devez être ${requiredRole} pour accéder à cette page.`,
@@ -108,7 +113,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/" replace />;
   }
 
-  // Si l'utilisateur est connecté (et a le bon rôle si requis), rendre les enfants
+  // If user is logged in (and has the correct role if required), render children
   return <>{children}</>;
 };
 

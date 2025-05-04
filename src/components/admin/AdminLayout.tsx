@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +22,19 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   useEffect(() => {
     const checkAdmin = async () => {
       try {
+        // First check if we have a session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          toast({
+            title: 'Authentification requise',
+            description: 'Vous devez être connecté pour accéder à cette section',
+            variant: 'destructive',
+          });
+          navigate('/admin/login');
+          return;
+        }
+        
+        // Then check if user has admin role using the fixed utility function
         const isAdmin = await checkAdminRole();
         
         if (!isAdmin) {
