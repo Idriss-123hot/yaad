@@ -36,8 +36,8 @@ export async function searchProductsWithDatabase(filters: SearchFilters): Promis
     }
     
     // Apply artisan filter
-    if (filters.artisan && filters.artisan.length > 0) {
-      query = query.in('artisan_id', filters.artisan);
+    if (filters.artisans && filters.artisans.length > 0) {
+      query = query.in('artisan_id', filters.artisans);
     }
 
     // Apply rating filter

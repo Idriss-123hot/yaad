@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -127,6 +126,7 @@ const Blog = () => {
                             role: 'Administrateur',
                             avatar: '/placeholder.svg'
                           },
+                          content: [], // Add empty content array to fix the type error
                           tags: post.tags || []
                         }}
                         className="hover-lift"
