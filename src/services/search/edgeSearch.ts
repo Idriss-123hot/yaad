@@ -1,45 +1,98 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import { SearchFilters, SearchResults } from './types';
-import { Product } from '@/models/types';
-import { mapDatabaseProductsToProducts } from '@/utils/productMappers';
-import { filterProducts, sortProducts } from './filterUtils';
+import { mapDatabaseProductToProduct } from '@/utils/productMappers';
 
-export const searchProductsWithEdgeFunction = async (filters: SearchFilters): Promise<SearchResults> => {
+export async function searchProductsWithEdgeFunction(filters: SearchFilters): Promise<SearchResults> {
   try {
-    const { q, page = 1, limit = 20 } = filters;
+    let query = supabase
+      .from('products')
+      .select(`
+        *,
+        artisan:artisans(*),
+        category:categories(*),
+        subcategory:subcategories(*),
+        product_variations(*)
+      `);
     
-    const url = new URL(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/search`);
+    // Text search using the search_vector column
+    if (filters.q && filters.q.trim()) {
+      // Convert query to a format suitable for ts_query
+      const searchTerms = filters.q
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map(term => term + ':*')
+        .join(' & ');
+      
+      query = query.textSearch('search_vector', searchTerms, {
+        type: 'websearch',
+        config: 'english'
+      });
+    }
     
-    if (q) url.searchParams.append('q', q);
-    url.searchParams.append('type', 'products');
+    // Apply category filter
+    if (filters.category && filters.category.length > 0) {
+      query = query.in('category_id', filters.category);
+    }
     
-    const response = await fetch(url.toString(), {
-      headers: {
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Search API error: ${response.status}`);
+    // Apply subcategory filter
+    if (filters.subcategory && filters.subcategory.length > 0) {
+      query = query.in('subcategory_id', filters.subcategory);
+    }
+    
+    // Apply price range filter
+    if (filters.priceRange) {
+      if (filters.priceRange.min !== undefined) {
+        query = query.gte('price', filters.priceRange.min);
+      }
+      if (filters.priceRange.max !== undefined) {
+        query = query.lte('price', filters.priceRange.max);
+      }
+    }
+    
+    // Apply artisan filter
+    if (filters.artisan && filters.artisan.length > 0) {
+      query = query.in('artisan_id', filters.artisan);
     }
 
-    const data = await response.json();
-    let products = data.products || [];
+    // Apply rating filter
+    if (filters.rating && filters.rating > 0) {
+      query = query.gte('rating', filters.rating);
+    }
     
-    // Apply client-side filtering and sorting
-    products = filterProducts(products, filters);
-    products = sortProducts(products, filters.sort);
+    // Apply stock filter
+    if (filters.stock === 'in-stock') {
+      query = query.gt('stock', 0);
+    }
     
-    // Handle pagination
-    const paginatedProducts = products.slice((page - 1) * limit, page * limit);
+    // Apply limit
+    if (filters.limit) {
+      query = query.limit(filters.limit);
+    }
     
-    return { 
-      products: paginatedProducts.map(p => mapDatabaseProductsToProducts([p])[0]), 
-      total: products.length 
+    // Apply page offset
+    if (filters.page && filters.limit) {
+      const offset = (filters.page - 1) * filters.limit;
+      query = query.range(offset, offset + filters.limit - 1);
+    }
+    
+    // Execute query
+    const { data, error } = await query;
+    
+    if (error) {
+      throw error;
+    }
+    
+    // Transform results to match expected format
+    const products = data.map(mapDatabaseProductToProduct);
+    
+    return {
+      products,
+      total: products.length
     };
   } catch (error) {
-    console.error("Error in edge function search:", error);
+    console.error('Edge search error:', error);
     throw error;
   }
-};
+}
