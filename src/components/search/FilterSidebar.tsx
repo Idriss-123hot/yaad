@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -135,7 +136,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   };
   
   const handleResetFilters = () => {
-    const resetFilters: Partial<SearchFilters> = {
+    const resetFilters = {
       ...localFilters,
       category: [],
       subcategory: [],
@@ -167,7 +168,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
         <h3 className="font-medium mb-3">Prix</h3>
         <div className="px-2">
           <Slider 
-            value={localFilters.priceRange as number[] || [0, 1000]} 
+            value={localFilters.priceRange} 
             min={0} 
             max={1000}
             step={10}
@@ -175,8 +176,8 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
             aria-label="Plage de prix"
           />
           <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-            <span>{(localFilters.priceRange as number[])?.[0] || 0} MAD</span>
-            <span>{(localFilters.priceRange as number[])?.[1] || 1000} MAD</span>
+            <span>{localFilters.priceRange?.[0] || 0} MAD</span>
+            <span>{localFilters.priceRange?.[1] || 1000} MAD</span>
           </div>
         </div>
       </div>

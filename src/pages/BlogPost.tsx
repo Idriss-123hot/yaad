@@ -3,24 +3,23 @@ import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { SAMPLE_BLOG_POSTS } from '@/models/blog';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useBlogPost, useBlogPosts } from '@/hooks/useBlogPosts';
-import { parseBlogContent } from '@/models/blogTypes';
 
 const BlogPost = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   
-  const { post, loading, error } = useBlogPost(slug);
-  const { posts: relatedPosts } = useBlogPosts({ limit: 3 });
+  // Find the post with the matching slug
+  const post = SAMPLE_BLOG_POSTS.find(post => post.slug === slug);
   
-  // Redirect to 404 if post not found after loading is complete
+  // Redirect to 404 if post not found
   useEffect(() => {
-    if (!loading && !post && !error) {
+    if (!post) {
       navigate('/not-found', { replace: true });
     }
-  }, [post, loading, error, navigate]);
+  }, [post, navigate]);
   
   // Smooth scroll to top on page load
   useEffect(() => {
@@ -30,28 +29,10 @@ const BlogPost = () => {
     });
   }, []);
 
-  // If still loading, show loading state
-  if (loading) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow pt-24">
-          <div className="max-w-5xl mx-auto py-24 px-6 md:px-12 flex items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-terracotta-600"></div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   // If post not found and not yet redirected
   if (!post) {
     return null;
   }
-
-  // Parse blog content sections from the content field
-  const contentSections = parseBlogContent(post.content);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -66,42 +47,31 @@ const BlogPost = () => {
             </Link>
             
             <div className="flex items-center space-x-2 mb-4">
-              {post.category && (
-                <span className="px-3 py-1 bg-terracotta-100 text-terracotta-600 text-xs font-medium rounded-full">
-                  {post.category}
-                </span>
-              )}
+              <span className="px-3 py-1 bg-terracotta-100 text-terracotta-600 text-xs font-medium rounded-full">
+                {post.category}
+              </span>
               <span className="text-muted-foreground text-sm">
-                {post.published_at ? 
-                  new Date(post.published_at).toLocaleDateString('fr-FR', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  }) : 
-                  new Date(post.created_at).toLocaleDateString('fr-FR', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })
-                }
+                {new Date(post.publishedAt).toLocaleDateString('fr-FR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
               </span>
             </div>
             
             <h1 className="font-serif text-4xl md:text-5xl font-bold mb-6">{post.title}</h1>
             
-            {post.author && (
-              <div className="flex items-center">
-                <img 
-                  src={post.author.avatar} 
-                  alt={post.author.name}
-                  className="w-12 h-12 rounded-full mr-4"
-                />
-                <div>
-                  <p className="font-medium">{post.author.name}</p>
-                  <p className="text-sm text-muted-foreground">{post.author.role}</p>
-                </div>
+            <div className="flex items-center">
+              <img 
+                src={post.author.avatar} 
+                alt={post.author.name}
+                className="w-12 h-12 rounded-full mr-4"
+              />
+              <div>
+                <p className="font-medium">{post.author.name}</p>
+                <p className="text-sm text-muted-foreground">{post.author.role}</p>
               </div>
-            )}
+            </div>
           </div>
         </section>
 
@@ -110,7 +80,7 @@ const BlogPost = () => {
           <div className="max-w-5xl mx-auto">
             <div className="aspect-[16/9] overflow-hidden rounded-xl">
               <img 
-                src={post.featured_image || '/placeholder.svg'} 
+                src={post.coverImage} 
                 alt={post.title} 
                 className="w-full h-full object-cover"
               />
@@ -122,7 +92,7 @@ const BlogPost = () => {
         <section className="py-8 px-6 md:px-12">
           <div className="max-w-3xl mx-auto">
             <div className="prose prose-lg prose-stone mx-auto">
-              {contentSections.map((section: any, index: number) => (
+              {post.content.map((section, index) => (
                 <div key={index} className="mb-8">
                   {section.type === 'paragraph' && <p>{section.content}</p>}
                   {section.type === 'heading' && <h2 className="font-serif font-bold text-2xl mt-8 mb-4">{section.content}</h2>}
@@ -145,18 +115,16 @@ const BlogPost = () => {
             {/* Share and Tags */}
             <div className="mt-12 pt-8 border-t border-border">
               <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                {post.tags && post.tags.length > 0 && (
-                  <div>
-                    <p className="font-medium mb-2">Tags:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {post.tags.map((tag, index) => (
-                        <span key={index} className="px-3 py-1 bg-sage-100 text-sage-700 text-xs rounded-full">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                <div>
+                  <p className="font-medium mb-2">Tags:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {post.tags.map((tag, index) => (
+                      <span key={index} className="px-3 py-1 bg-sage-100 text-sage-700 text-xs rounded-full">
+                        {tag}
+                      </span>
+                    ))}
                   </div>
-                )}
+                </div>
                 <div>
                   <p className="font-medium mb-2">Partager:</p>
                   <div className="flex space-x-2">
@@ -171,55 +139,45 @@ const BlogPost = () => {
         </section>
 
         {/* Related Posts */}
-        {relatedPosts.length > 0 && (
-          <section className="py-16 px-6 md:px-12 bg-cream-50">
-            <div className="max-w-5xl mx-auto">
-              <h2 className="font-serif text-2xl font-bold mb-8 text-center">Articles similaires</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {relatedPosts
-                  .filter(relatedPost => relatedPost.id !== post.id)
-                  .slice(0, 3)
-                  .map(relatedPost => (
-                    <Link 
-                      key={relatedPost.id} 
-                      to={`/blog/${relatedPost.slug}`} 
-                      className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all group"
-                    >
-                      <div className="aspect-[16/9] overflow-hidden">
-                        <img 
-                          src={relatedPost.featured_image || '/placeholder.svg'} 
-                          alt={relatedPost.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      </div>
-                      <div className="p-6">
-                        <span className="text-sm text-muted-foreground block mb-2">
-                          {relatedPost.published_at ? 
-                            new Date(relatedPost.published_at).toLocaleDateString('fr-FR', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            }) : 
-                            new Date(relatedPost.created_at).toLocaleDateString('fr-FR', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })
-                          }
-                        </span>
-                        <h3 className="font-serif font-medium text-lg mb-2 group-hover:text-terracotta-600 transition-colors">
-                          {relatedPost.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {relatedPost.excerpt}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-              </div>
+        <section className="py-16 px-6 md:px-12 bg-cream-50">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="font-serif text-2xl font-bold mb-8 text-center">Articles similaires</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {SAMPLE_BLOG_POSTS.filter(p => p.id !== post.id)
+                .slice(0, 3)
+                .map(relatedPost => (
+                  <Link 
+                    key={relatedPost.id} 
+                    to={`/blog/${relatedPost.slug}`} 
+                    className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all group"
+                  >
+                    <div className="aspect-[16/9] overflow-hidden">
+                      <img 
+                        src={relatedPost.coverImage} 
+                        alt={relatedPost.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="p-6">
+                      <span className="text-sm text-muted-foreground block mb-2">
+                        {new Date(relatedPost.publishedAt).toLocaleDateString('fr-FR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </span>
+                      <h3 className="font-serif font-medium text-lg mb-2 group-hover:text-terracotta-600 transition-colors">
+                        {relatedPost.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {relatedPost.excerpt}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
             </div>
-          </section>
-        )}
+          </div>
+        </section>
       </main>
       <Footer />
     </div>

@@ -24,8 +24,6 @@ import EditArtisan from './pages/admin/artisans/EditArtisan';
 import SalesList from './pages/admin/sales/SalesList';
 import SupportList from './pages/admin/support/SupportList';
 import CategoriesList from './pages/admin/categories/CategoriesList';
-import NewCategory from './pages/admin/categories/NewCategory';
-import EditCategory from './pages/admin/categories/EditCategory';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import BlogsList from './pages/admin/blog/BlogsList';
@@ -102,8 +100,6 @@ function App() {
       <Route path="/admin/sales" element={<SalesList />} />
       <Route path="/admin/support" element={<SupportList />} />
       <Route path="/admin/categories" element={<CategoriesList />} />
-      <Route path="/admin/categories/new" element={<NewCategory />} />
-      <Route path="/admin/categories/edit/:id" element={<EditCategory />} />
       <Route path="/admin/blog" element={<BlogsList />} />
       <Route path="/admin/blog/new" element={<NewBlog />} />
       <Route path="/admin/blog/edit/:id" element={<EditBlog />} />

@@ -1,83 +1,92 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { SearchFilters, SearchResults } from './types';
-import { mapDatabaseProductToProduct } from '@/utils/productMappers';
+import { mapDatabaseProductsToProducts } from '@/utils/productMappers';
 
-export async function searchProductsWithDatabase(filters: SearchFilters): Promise<SearchResults> {
+export const searchProductsWithDatabase = async (filters: SearchFilters): Promise<SearchResults> => {
   try {
-    let query = supabase
-      .from('products')
-      .select(`
-        *,
-        artisan:artisans(*),
-        category:categories(*),
-        subcategory:subcategories(*),
-        product_variations(*)
-      `);
+    const { category, subcategory, minPrice, maxPrice, rating, delivery, artisans, sort, page = 1, limit = 20 } = filters;
     
-    // Apply category filter
-    if (filters.category && filters.category.length > 0) {
-      query = query.in('category_id', filters.category);
+    let query = supabase.from('products').select(`
+      *,
+      artisan:artisan_id(*),
+      category:category_id(*)
+    `, { count: 'exact' });
+    
+    if (category && category.length > 0) {
+      // Use the first category from the array for now
+      // In the future, we could use .in() to search for multiple categories
+      query = query.eq('category_id', category[0]);
     }
     
-    // Apply subcategory filter
-    if (filters.subcategory && filters.subcategory.length > 0) {
-      query = query.in('subcategory_id', filters.subcategory);
+    if (subcategory && subcategory.length > 0) {
+      // Use the first subcategory from the array
+      query = query.eq('category_id', subcategory[0]);
     }
     
-    // Apply price range filter
-    if (filters.priceRange && filters.priceRange.length === 2) {
-      const [minPrice, maxPrice] = filters.priceRange;
-      if (minPrice !== undefined) {
-        query = query.gte('price', minPrice);
-      }
-      if (maxPrice !== undefined) {
-        query = query.lte('price', maxPrice);
-      }
+    if (artisans && artisans.length > 0) {
+      query = query.in('artisan_id', artisans);
     }
     
-    // Apply artisan filter
-    if (filters.artisans && filters.artisans.length > 0) {
-      query = query.in('artisan_id', filters.artisans);
+    if (minPrice !== undefined) {
+      query = query.gte('price', minPrice);
+    }
+    
+    if (maxPrice !== undefined) {
+      query = query.lte('price', maxPrice);
+    }
+    
+    if (rating !== undefined) {
+      query = query.gte('rating', rating);
     }
 
-    // Apply rating filter
-    if (filters.rating && filters.rating > 0) {
-      query = query.gte('rating', filters.rating);
+    if (delivery) {
+      switch (delivery) {
+        case 'express':
+          query = query.lte('production_time', 3);
+          break;
+        case 'standard':
+          query = query.lte('production_time', 7).gt('production_time', 3);
+          break;
+        case 'economy':
+          query = query.gt('production_time', 7);
+          break;
+      }
     }
     
-    // Apply stock filter
-    if (filters.stock === 'in-stock') {
-      query = query.gt('stock', 0);
+    if (sort) {
+      switch (sort) {
+        case 'price-low':
+          query = query.order('price', { ascending: true });
+          break;
+        case 'price-high':
+          query = query.order('price', { ascending: false });
+          break;
+        case 'newest':
+          query = query.order('created_at', { ascending: false });
+          break;
+        case 'rating':
+          query = query.order('rating', { ascending: false });
+          break;
+        default:
+          query = query.order('featured', { ascending: false });
+      }
+    } else {
+      query = query.order('featured', { ascending: false });
     }
     
-    // Apply limit
-    if (filters.limit) {
-      query = query.limit(filters.limit);
-    }
+    query = query.range((page - 1) * limit, (page * limit) - 1);
     
-    // Apply page offset
-    if (filters.page && filters.limit) {
-      const offset = (filters.page - 1) * filters.limit;
-      query = query.range(offset, offset + filters.limit - 1);
-    }
+    const { data, error, count } = await query;
     
-    // Execute query
-    const { data, error } = await query;
+    if (error) throw error;
     
-    if (error) {
-      throw error;
-    }
-    
-    // Transform results to match expected format
-    const products = data.map(mapDatabaseProductToProduct);
-    
-    return {
-      products,
-      total: products.length // This is approximate; for exact count, use a count() query
+    return { 
+      products: data ? mapDatabaseProductsToProducts(data) : [], 
+      total: count || 0 
     };
   } catch (error) {
-    console.error('Database search error:', error);
+    console.error("Error in database search:", error);
     throw error;
   }
-}
+};

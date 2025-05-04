@@ -8,10 +8,9 @@ export interface SearchFilters {
   artisans?: string[];
   minPrice?: number;
   maxPrice?: number;
-  priceRange?: [number, number]; // Change back to a tuple type to maintain consistency
+  priceRange?: [number, number];
   rating?: number;
   delivery?: string;
-  stock?: string;
   sort?: string;
   page?: number;
   limit?: number;
