@@ -5,7 +5,6 @@ export const filterProducts = (products: any[], filters: SearchFilters) => {
   if (!products || products.length === 0) return [];
   
   const { category, subcategory, minPrice, maxPrice, rating, delivery, artisans, priceRange } = filters;
-  const [minPriceRange, maxPriceRange] = priceRange || [0, 1000];
   
   return products.filter(product => {
     // Filter by category (if array is provided)
@@ -46,6 +45,7 @@ export const filterProducts = (products: any[], filters: SearchFilters) => {
     
     // Filter by price range array if provided
     if (priceRange && priceRange.length === 2) {
+      const [minPriceRange, maxPriceRange] = priceRange;
       if (productPrice < minPriceRange || productPrice > maxPriceRange) {
         return false;
       }

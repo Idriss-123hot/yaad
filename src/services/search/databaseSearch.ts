@@ -26,12 +26,13 @@ export async function searchProductsWithDatabase(filters: SearchFilters): Promis
     }
     
     // Apply price range filter
-    if (filters.priceRange) {
-      if (filters.priceRange.min !== undefined) {
-        query = query.gte('price', filters.priceRange.min);
+    if (filters.priceRange && filters.priceRange.length === 2) {
+      const [minPrice, maxPrice] = filters.priceRange;
+      if (minPrice !== undefined) {
+        query = query.gte('price', minPrice);
       }
-      if (filters.priceRange.max !== undefined) {
-        query = query.lte('price', filters.priceRange.max);
+      if (maxPrice !== undefined) {
+        query = query.lte('price', maxPrice);
       }
     }
     

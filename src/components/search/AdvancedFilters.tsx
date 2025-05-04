@@ -128,8 +128,8 @@ const AdvancedFilters = ({
   // Initialize filters from props
   useEffect(() => {
     setFilters(initialFilters);
-    if (initialFilters.priceRange) {
-      setPriceRange(initialFilters.priceRange);
+    if (initialFilters.priceRange && Array.isArray(initialFilters.priceRange)) {
+      setPriceRange(initialFilters.priceRange as [number, number]);
     }
   }, [initialFilters]);
   
