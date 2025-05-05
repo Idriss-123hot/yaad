@@ -38,7 +38,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session && session.user) {
-          // We need to fetch profile data after session change
+          // We need to fetch profile data after session change, but avoid recursion
+          // Don't use function calls directly in onAuthStateChange callback to prevent recursion
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+          });
+          
           // Use setTimeout to avoid infinite recursion with RLS policies
           setTimeout(async () => {
             try {
@@ -51,16 +57,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               
               if (profileError) {
                 console.error('Error fetching profile:', profileError);
+                return;
               }
               
-              // Set user state with profile data
-              setUser({
-                id: session.user.id,
-                email: session.user.email || '',
-                firstName: profileData?.first_name,
-                lastName: profileData?.last_name,
-                role: profileData?.role,
-              });
+              if (profileData) {
+                // Update user with profile data
+                setUser(prev => ({
+                  ...prev!,
+                  firstName: profileData.first_name,
+                  lastName: profileData.last_name,
+                  role: profileData.role,
+                }));
+              }
               
               // Check if there's an intended action in localStorage
               const intendedAction = localStorage.getItem('intended_action');
@@ -80,18 +88,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
               }
             } catch (error) {
-              // If profile fetch failed, still set basic user data
-              setUser({
-                id: session.user.id,
-                email: session.user.email || '',
-              });
+              console.error('Error processing auth state change:', error);
+            } finally {
+              setLoading(false);
             }
-          }, 0);
+          }, 100);
         } else {
           setUser(null);
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
 
@@ -101,43 +106,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session && session.user) {
-          try {
-            // Get user profile data
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .maybeSingle();
-            
-            if (profileError) {
-              console.error('Error fetching profile:', profileError);
+          // Set basic user data immediately
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+          });
+          
+          // Fetch profile data with a slight delay to avoid recursion
+          setTimeout(async () => {
+            try {
+              // Get user profile data
+              const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
+              
+              if (profileError) {
+                console.error('Error fetching profile:', profileError);
+                return;
+              }
+              
+              if (profileData) {
+                // Update user with profile data
+                setUser(prev => ({
+                  ...prev!,
+                  firstName: profileData.first_name,
+                  lastName: profileData.last_name,
+                  role: profileData.role,
+                }));
+              }
+            } catch (error) {
+              console.error('Error fetching profile data:', error);
+            } finally {
+              setLoading(false);
             }
-            
-            // Set user state with profile data
-            setUser({
-              id: session.user.id,
-              email: session.user.email || '',
-              firstName: profileData?.first_name,
-              lastName: profileData?.last_name,
-              role: profileData?.role,
-            });
-          } catch (error) {
-            // If profile fetch failed, still set basic user data
-            setUser({
-              id: session.user.id,
-              email: session.user.email || '',
-            });
-          }
+          }, 100);
+        } else {
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error checking user session:', error);
-      } finally {
         setLoading(false);
       }
     };
 
     checkUser();
     
+    // Cleanup subscription on unmount
     return () => {
       subscription.unsubscribe();
     };
@@ -155,37 +171,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log('Sign in successful:', data);
 
-      // Get user profile to check role
-      if (data.user) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .maybeSingle();
-          
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-        }
-
-        toast({
-          title: 'Connexion réussie',
-          description: 'Bienvenue sur SaharaMart!',
-        });
-        
-        // Navigate to appropriate dashboard based on role
-        if (profileData) {
-          if (profileData.role === 'admin') {
-            navigate('/admin/dashboard');
-            return;
-          } else if (profileData.role === 'artisan') {
-            navigate('/artisan/dashboard');
-            return;
-          }
-        }
-        
-        // Default navigation
-        navigate('/');
-      }
+      // Role check and redirect handled by onAuthStateChange
+      toast({
+        title: 'Connexion réussie',
+        description: 'Bienvenue sur SaharaMart!',
+      });
     } catch (error: any) {
       console.error('Sign in error:', error);
       
@@ -194,6 +184,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: error.message || 'Une erreur est survenue lors de la connexion',
         variant: 'destructive',
       });
+      
+      throw error; // Rethrow for the calling code to handle
     }
   };
 
@@ -227,6 +219,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: error.message || 'Une erreur est survenue lors de l\'inscription',
         variant: 'destructive',
       });
+      
+      throw error; // Rethrow for the calling code to handle
     }
   };
 

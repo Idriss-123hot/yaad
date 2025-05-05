@@ -1,16 +1,71 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { SearchFilters, SearchResults } from './types';
-import { mapDatabaseProductsToProducts } from '@/utils/productMappers';
+
+// Map the result from database to a properly structured product object
+const mapDatabaseProductsToProducts = (data: any[]) => {
+  return data.map(item => {
+    const product = {
+      id: item.id,
+      title: item.title,
+      description: item.description || '',
+      price: item.price,
+      discountPrice: item.discount_price,
+      category: item.category?.name || '',
+      categoryId: item.category_id,
+      subcategory: '',
+      subcategoryId: item.subcategory_id,
+      tags: item.tags || [],
+      images: item.images || [],
+      stock: item.stock,
+      artisanId: item.artisan_id,
+      rating: item.rating || 0,
+      reviewCount: item.review_count || 0,
+      featured: item.featured || false,
+      createdAt: new Date(item.created_at),
+      material: item.material,
+      origin: item.origin
+    };
+
+    // Add artisan if available
+    if (item.artisan) {
+      product.artisan = {
+        id: item.artisan.id,
+        name: item.artisan.name,
+        bio: item.artisan.bio || '',
+        description: item.artisan.description || '',
+        location: item.artisan.location || '',
+        profileImage: item.artisan.profile_photo || '',
+        galleryImages: Array.isArray(item.artisan.first_gallery_images) 
+          ? item.artisan.first_gallery_images 
+          : [],
+        rating: item.artisan.rating || 0,
+        reviewCount: item.artisan.review_count || 0,
+        productCount: 0,
+        featured: item.artisan.featured || false,
+        joinedDate: new Date(item.artisan.created_at),
+        website: item.artisan.website || ''
+      };
+    }
+
+    return product;
+  });
+};
 
 export const searchProductsWithDatabase = async (filters: SearchFilters): Promise<SearchResults> => {
   try {
     const { category, subcategory, minPrice, maxPrice, rating, delivery, artisans, sort, page = 1, limit = 20 } = filters;
     
+    // For products, get only specific fields from artisans to avoid recursion
     let query = supabase.from('products').select(`
       *,
-      artisan:artisan_id(id, name, profile_photo, location, rating, bio, created_at, description, featured, first_gallery_images, joined_date, review_count, second_gallery_images, updated_at, user_id, website),
-      category:category_id(id, name)
+      artisan:artisan_id (
+        id, name, profile_photo, location, rating, bio, created_at, description, 
+        featured, first_gallery_images, joined_date, review_count, website
+      ),
+      category:category_id (
+        id, name
+      )
     `, { count: 'exact' });
     
     if (category && category.length > 0) {
@@ -80,9 +135,8 @@ export const searchProductsWithDatabase = async (filters: SearchFilters): Promis
     
     if (error) throw error;
     
-    // Type assertion to ensure the data matches the DatabaseProduct type expected by mapDatabaseProductsToProducts
     return { 
-      products: data ? mapDatabaseProductsToProducts(data as any) : [], 
+      products: data ? mapDatabaseProductsToProducts(data) : [], 
       total: count || 0 
     };
   } catch (error) {

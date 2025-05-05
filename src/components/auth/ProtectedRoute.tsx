@@ -29,22 +29,33 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         
         // If user is logged in and a role is required, check role
         if (sessionData.session && requiredRole) {
-          let hasRole = false;
-          
-          if (requiredRole === 'admin') {
-            hasRole = await checkAdminRole();
-          } else if (requiredRole === 'artisan') {
-            hasRole = await checkArtisanRole();
-          } else if (requiredRole === 'customer') {
-            // For customer role, we just need to be logged in
-            hasRole = true;
-          }
-          
-          setUserRole(hasRole ? requiredRole : null);
+          // Avoid nesting async calls directly inside onAuthStateChange
+          // Use setTimeout to prevent recursion
+          setTimeout(async () => {
+            try {
+              let hasRole = false;
+              
+              if (requiredRole === 'admin') {
+                hasRole = await checkAdminRole();
+              } else if (requiredRole === 'artisan') {
+                hasRole = await checkArtisanRole();
+              } else if (requiredRole === 'customer') {
+                // For customer role, we just need to be logged in
+                hasRole = true;
+              }
+              
+              setUserRole(hasRole ? requiredRole : null);
+              setLoading(false);
+            } catch (error) {
+              console.error('Role check error:', error);
+              setLoading(false);
+            }
+          }, 100);
+        } else {
+          setLoading(false);
         }
       } catch (error) {
         console.error('Authentication check error:', error);
-      } finally {
         setLoading(false);
       }
     };
@@ -57,23 +68,31 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         setSession(newSession);
         
         if (newSession && requiredRole) {
-          let hasRole = false;
-          
-          if (requiredRole === 'admin') {
-            hasRole = await checkAdminRole();
-          } else if (requiredRole === 'artisan') {
-            hasRole = await checkArtisanRole();
-          } else if (requiredRole === 'customer') {
-            // For customer role, we just need to be logged in
-            hasRole = true;
-          }
-          
-          setUserRole(hasRole ? requiredRole : null);
+          // Use setTimeout to prevent recursion
+          setTimeout(async () => {
+            try {
+              let hasRole = false;
+              
+              if (requiredRole === 'admin') {
+                hasRole = await checkAdminRole();
+              } else if (requiredRole === 'artisan') {
+                hasRole = await checkArtisanRole();
+              } else if (requiredRole === 'customer') {
+                // For customer role, we just need to be logged in
+                hasRole = true;
+              }
+              
+              setUserRole(hasRole ? requiredRole : null);
+              setLoading(false);
+            } catch (error) {
+              console.error('Role check error:', error);
+              setLoading(false);
+            }
+          }, 100);
         } else {
           setUserRole(null);
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
     

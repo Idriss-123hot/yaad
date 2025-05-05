@@ -25,7 +25,7 @@ export const checkAdminRole = async (): Promise<boolean> => {
     
     if (!session) return false;
     
-    // Use the maybeSingle() method to avoid errors when no results are found
+    // Use a direct query instead of calling a function that might trigger RLS recursion
     const { data, error } = await supabase
       .from('profiles')
       .select('role')
@@ -51,7 +51,7 @@ export const checkArtisanRole = async (): Promise<boolean> => {
     
     if (!session) return false;
     
-    // Use the maybeSingle() method to avoid errors when no results are found
+    // Use a direct query instead of calling a function that might trigger RLS recursion
     const { data, error } = await supabase
       .from('profiles')
       .select('role')

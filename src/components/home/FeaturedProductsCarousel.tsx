@@ -20,14 +20,6 @@ import { Skeleton } from '@/components/ui/skeleton';
  * Fetches featured products from Supabase and displays them in an auto-rotating carousel.
  * Products are filtered where featured = true in the database.
  * The carousel automatically rotates through the products using a useRef approach for better performance.
- * 
- * Features:
- * - Dynamic data fetching from Supabase
- * - Auto-rotation every 5 seconds
- * - Responsive grid display
- * - Loading skeletons while fetching
- * - Error handling
- * - Fallback image for products without images
  */
 const FeaturedProductsCarousel = () => {
   // Use useRef instead of useState for the carousel API
@@ -58,39 +50,77 @@ const FeaturedProductsCarousel = () => {
   const { data: featuredProducts, isLoading, error } = useQuery({
     queryKey: ['featuredProducts'],
     queryFn: async () => {
-      // Fetch all featured products with their related data
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          *,
-          artisan:artisans(
-            *
-          ),
-          category:categories(
-            *
-          ),
-          subcategory:subcategories(
-            *
-          ),
-          product_variations(*)
-        `)
-        .eq('featured', true)
-        .order('created_at', { ascending: false });
+      try {
+        // Fetch all featured products with their related data
+        // Important: Using .select('*') for artisans directly causes the infinite recursion
+        // So we'll fetch minimal data needed for display
+        const { data, error } = await supabase
+          .from('products')
+          .select(`
+            *,
+            artisan:artisan_id (
+              id, name, profile_photo, location, rating
+            ),
+            category:category_id (
+              id, name
+            )
+          `)
+          .eq('featured', true)
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      
-      // Process each product through our mapper to ensure correct typing
-      // and add fallback image if no images are available
-      return data.map(product => {
-        const mappedProduct = mapDatabaseProductToProduct(product);
+        if (error) throw error;
         
-        // Add fallback image if the product has no images
-        if (!mappedProduct.images || mappedProduct.images.length === 0) {
-          mappedProduct.images = [fallbackImage];
-        }
-        
-        return mappedProduct;
-      }) as ProductWithArtisan[];
+        // Process each product through our mapper to ensure correct typing
+        // and add fallback image if no images are available
+        return data.map(product => {
+          // Create a properly structured product object to match expected interface
+          const mappedProduct = {
+            id: product.id,
+            title: product.title,
+            description: product.description || '',
+            price: product.price,
+            discountPrice: product.discount_price,
+            category: product.category?.name || '',
+            categoryId: product.category_id,
+            subcategory: '',
+            subcategoryId: product.subcategory_id,
+            tags: product.tags || [],
+            images: product.images || [],
+            stock: product.stock,
+            artisanId: product.artisan_id,
+            rating: product.rating || 0,
+            reviewCount: product.review_count || 0,
+            featured: product.featured || false,
+            createdAt: new Date(product.created_at),
+            material: product.material,
+            origin: product.origin,
+            // Add artisan data if available
+            artisan: product.artisan ? {
+              id: product.artisan.id,
+              name: product.artisan.name,
+              bio: '',
+              location: product.artisan.location || '',
+              profileImage: product.artisan.profile_photo || '',
+              galleryImages: [],
+              rating: product.artisan.rating || 4.5,
+              reviewCount: 0,
+              productCount: 0,
+              featured: false,
+              joinedDate: new Date()
+            } : undefined
+          };
+          
+          // Add fallback image if the product has no images
+          if (!mappedProduct.images || mappedProduct.images.length === 0) {
+            mappedProduct.images = [fallbackImage];
+          }
+          
+          return mappedProduct as ProductWithArtisan;
+        });
+      } catch (err) {
+        console.error("Error fetching featured products:", err);
+        throw err;
+      }
     }
   });
 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -8,12 +7,12 @@ import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { supabase } from '@/integrations/supabase/client';
 import { Artisan, ProductWithArtisan } from '@/models/types';
-import { mapDatabaseProductToProduct, mapDatabaseArtisanToArtisan } from '@/utils/mapDatabaseModels';
 import { Loader2, MapPin, Globe, Calendar } from 'lucide-react';
 
 const ArtisanDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
   const [artisan, setArtisan] = useState<Artisan | null>(null);
   const [products, setProducts] = useState<ProductWithArtisan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +27,7 @@ const ArtisanDetail = () => {
       }
 
       try {
-        // Fetch artisan data
+        // Fetch artisan data - using direct fields instead of joins to avoid recursion
         const { data: artisanData, error: artisanError } = await supabase
           .from('artisans')
           .select('*')
@@ -46,16 +45,32 @@ const ArtisanDetail = () => {
         }
 
         // Map to our artisan model
-        const mappedArtisan = mapDatabaseArtisanToArtisan(artisanData);
+        const mappedArtisan: Artisan = {
+          id: artisanData.id,
+          name: artisanData.name,
+          bio: artisanData.bio || '',
+          description: artisanData.description || '',
+          location: artisanData.location || 'Morocco',
+          profileImage: artisanData.profile_photo || '/placeholder.svg',
+          galleryImages: Array.isArray(artisanData.first_gallery_images) 
+            ? artisanData.first_gallery_images 
+            : [],
+          rating: artisanData.rating || 4.5,
+          reviewCount: artisanData.review_count || 0,
+          productCount: 0, // We'll calculate this below
+          featured: artisanData.featured || false,
+          joinedDate: new Date(artisanData.joined_date),
+          website: artisanData.website || ''
+        };
+        
         setArtisan(mappedArtisan);
 
-        // Fetch products by this artisan
+        // Fetch products by this artisan using separate queries to avoid recursion
         const { data: productsData, error: productsError } = await supabase
           .from('products')
           .select(`
             *,
-            category:categories(*),
-            subcategory:subcategories(*)
+            category:category_id(id, name)
           `)
           .eq('artisan_id', id);
 
@@ -65,13 +80,36 @@ const ArtisanDetail = () => {
 
         // Map products to our model
         const mappedProducts = productsData.map(product => {
-          return mapDatabaseProductToProduct({
-            ...product,
-            artisan: artisanData
-          });
+          return {
+            id: product.id,
+            title: product.title,
+            description: product.description || '',
+            price: product.price,
+            discountPrice: product.discount_price,
+            category: product.category?.name || '',
+            categoryId: product.category_id,
+            subcategory: '',
+            subcategoryId: product.subcategory_id,
+            tags: product.tags || [],
+            images: product.images || [],
+            stock: product.stock,
+            artisanId: product.artisan_id,
+            rating: product.rating || 0,
+            reviewCount: product.review_count || 0,
+            featured: product.featured || false,
+            createdAt: new Date(product.created_at),
+            material: product.material,
+            origin: product.origin,
+            artisan: mappedArtisan
+          } as ProductWithArtisan;
         });
 
         setProducts(mappedProducts);
+        
+        // Update productCount in the artisan object
+        mappedArtisan.productCount = mappedProducts.length;
+        setArtisan(mappedArtisan);
+        
         setLoading(false);
       } catch (err) {
         console.error("Error fetching artisan details:", err);

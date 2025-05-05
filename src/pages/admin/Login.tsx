@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -37,13 +36,17 @@ export default function AdminLogin() {
   // Vérifier si l'utilisateur est déjà connecté et est un admin
   useEffect(() => {
     const checkAuth = async () => {
-      // First check if we have a session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const isAdmin = await checkAdminRole();
-        if (isAdmin) {
-          navigate('/admin/dashboard');
+      try {
+        // First check if we have a session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const isAdmin = await checkAdminRole();
+          if (isAdmin) {
+            navigate('/admin/dashboard');
+          }
         }
+      } catch (error) {
+        console.error("Erreur de vérification de session:", error);
       }
     };
     
@@ -61,7 +64,6 @@ export default function AdminLogin() {
 
   /**
    * Gère la soumission du formulaire de connexion
-   * @param values - Les valeurs du formulaire (email, password)
    */
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -75,42 +77,61 @@ export default function AdminLogin() {
       
       if (error) throw error;
       
-      // Vérification du rôle admin
-      const isAdmin = await checkAdminRole();
+      console.log("Login successful, checking admin role...");
       
-      if (!isAdmin) {
-        // Déconnexion si l'utilisateur n'est pas admin
-        await supabase.auth.signOut();
-        
-        toast({
-          title: 'Accès refusé',
-          description: 'Vous n\'avez pas les privilèges administrateur',
-          variant: 'destructive',
-        });
-        
-        setIsLoading(false);
-        return;
-      }
-      
-      // Mise à jour du timestamp de dernière activité
-      updateLastActivity();
-      
-      toast({
-        title: 'Bienvenue',
-        description: 'Vous êtes maintenant connecté en tant qu\'administrateur',
-      });
-      
-      navigate('/admin/dashboard');
-    } catch (error) {
+      // Vérification du rôle admin avec un délai pour éviter les problèmes de récursion
+      setTimeout(async () => {
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.user.id)
+            .maybeSingle();
+          
+          if (profileError) throw profileError;
+          
+          if (profileData?.role !== 'admin') {
+            await supabase.auth.signOut();
+            
+            toast({
+              title: 'Accès refusé',
+              description: 'Vous n\'avez pas les privilèges administrateur',
+              variant: 'destructive',
+            });
+            
+            setIsLoading(false);
+            return;
+          }
+          
+          // Mise à jour du timestamp de dernière activité
+          updateLastActivity();
+          
+          toast({
+            title: 'Bienvenue',
+            description: 'Vous êtes maintenant connecté en tant qu\'administrateur',
+          });
+          
+          navigate('/admin/dashboard');
+        } catch (checkError) {
+          console.error("Error checking profile:", checkError);
+          setIsLoading(false);
+          
+          toast({
+            title: 'Erreur de vérification',
+            description: 'Problème lors de la vérification du profil administrateur.',
+            variant: 'destructive',
+          });
+        }
+      }, 100);
+    } catch (error: any) {
       console.error('Login error:', error);
+      setIsLoading(false);
       
       toast({
         title: 'Erreur de connexion',
-        description: error instanceof Error ? error.message : 'Email ou mot de passe invalide',
+        description: error.message || 'Email ou mot de passe invalide',
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -177,7 +198,7 @@ export default function AdminLogin() {
                       <FormControl>
                         <Input 
                           type="password" 
-                          placeholder="••••••••" 
+                          placeholder="•��••••••" 
                           {...field} 
                           disabled={isLoading}
                         />

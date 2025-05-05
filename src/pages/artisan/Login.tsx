@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -28,9 +27,17 @@ export default function ArtisanLogin() {
   // Check if user is already logged in and is an artisan
   useEffect(() => {
     const checkAuth = async () => {
-      const isArtisan = await checkArtisanRole();
-      if (isArtisan) {
-        navigate('/artisan/dashboard');
+      try {
+        // First check if we have a session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const isArtisan = await checkArtisanRole();
+          if (isArtisan) {
+            navigate('/artisan/dashboard');
+          }
+        }
+      } catch (error) {
+        console.error("Erreur de vérification de session:", error);
       }
     };
     
@@ -58,49 +65,60 @@ export default function ArtisanLogin() {
       
       console.log("Login successful, checking artisan role...");
       
-      // Check if the user has artisan role
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .single();
-      
-      if (profileError) {
-        throw new Error('Failed to fetch user profile');
-      }
-      
-      if (profileData.role !== 'artisan') {
-        await supabase.auth.signOut();
-        
-        toast({
-          title: 'Accès refusé',
-          description: 'Vous n\'avez pas les privilèges artisan',
-          variant: 'destructive',
-        });
-        
-        setIsLoading(false);
-        return;
-      }
-      
-      // Update last activity timestamp
-      updateLastActivity();
-      
-      toast({
-        title: 'Bienvenue',
-        description: 'Vous êtes maintenant connecté en tant qu\'artisan',
-      });
-      
-      navigate('/artisan/dashboard');
+      // Utilisation de setTimeout pour éviter les problèmes de récursion
+      setTimeout(async () => {
+        try {
+          // Check if the user has artisan role
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.user.id)
+            .maybeSingle();
+          
+          if (profileError) throw profileError;
+          
+          if (profileData?.role !== 'artisan') {
+            await supabase.auth.signOut();
+            
+            toast({
+              title: 'Accès refusé',
+              description: 'Vous n\'avez pas les privilèges artisan',
+              variant: 'destructive',
+            });
+            
+            setIsLoading(false);
+            return;
+          }
+          
+          // Update last activity timestamp
+          updateLastActivity();
+          
+          toast({
+            title: 'Bienvenue',
+            description: 'Vous êtes maintenant connecté en tant qu\'artisan',
+          });
+          
+          navigate('/artisan/dashboard');
+        } catch (checkError) {
+          console.error("Error checking profile:", checkError);
+          setIsLoading(false);
+          
+          toast({
+            title: 'Erreur de vérification',
+            description: 'Problème lors de la vérification du profil artisan.',
+            variant: 'destructive',
+          });
+        }
+      }, 100);
     } catch (error) {
       console.error('Login error:', error);
+      setIsLoading(false);
       
       toast({
         title: 'Erreur de connexion',
         description: error instanceof Error ? error.message : 'Email ou mot de passe invalide',
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 

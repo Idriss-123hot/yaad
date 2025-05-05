@@ -34,50 +34,87 @@ const ProductDetail = () => {
 
   // Fetch the product from Supabase
   useEffect(() => {
-    const fetchProduct = async () => {
-      if (!id) {
-        navigate('/products');
-        return;
-      }
-
+    const fetchProductDetails = async () => {
+      if (!id) return;
+      
       try {
         setLoading(true);
         setError(null);
         
-        // Fetch the product with its related artisan
+        // Fetch products by id with limited data to avoid recursion
         const { data, error } = await supabase
           .from('products')
           .select(`
             *,
-            artisan:artisans(*),
-            category:categories(*),
-            subcategory:subcategories(*)
+            artisan:artisan_id(
+              id, name, location, profile_photo, rating, review_count
+            ),
+            category:category_id(
+              id, name
+            )
           `)
           .eq('id', id)
           .single();
-
+        
         if (error) throw error;
         
         if (data) {
-          // Map the database product to our ProductWithArtisan model
-          const mappedProduct = mapDatabaseProductToProduct(data);
+          // Map to ProductWithArtisan type
+          const mappedProduct: ProductWithArtisan = {
+            id: data.id,
+            title: data.title,
+            description: data.description || '',
+            price: data.price,
+            discountPrice: data.discount_price,
+            category: data.category?.name || '',
+            categoryId: data.category_id,
+            subcategory: '',
+            subcategoryId: data.subcategory_id,
+            tags: data.tags || [],
+            images: data.images || [],
+            stock: data.stock,
+            artisanId: data.artisan_id,
+            rating: data.rating || 0,
+            reviewCount: data.review_count || 0,
+            featured: data.featured || false,
+            createdAt: new Date(data.created_at),
+            material: data.material,
+            origin: data.origin,
+          };
+          
+          // Add artisan data if available
+          if (data.artisan) {
+            mappedProduct.artisan = {
+              id: data.artisan.id,
+              name: data.artisan.name,
+              bio: '',
+              description: '',
+              location: data.artisan.location || '',
+              profileImage: data.artisan.profile_photo || '',
+              galleryImages: [],
+              rating: data.artisan.rating || 0,
+              reviewCount: data.artisan.review_count || 0,
+              productCount: 0,
+              featured: false,
+              joinedDate: new Date()
+            };
+          }
+          
           setProduct(mappedProduct);
         } else {
-          // Product not found
           setError('Product not found');
-          navigate('/products');
         }
-      } catch (error: any) {
-        console.error('Error fetching product:', error);
-        setError(error.message);
+      } catch (err: any) {
+        console.error('Error fetching product:', err);
+        setError(err.message || 'Failed to load product');
       } finally {
         setLoading(false);
       }
     };
     
-    fetchProduct();
-  }, [id, navigate]);
-
+    fetchProductDetails();
+  }, [id]);
+  
   // Scroll to top when route changes
   useEffect(() => {
     window.scrollTo({
