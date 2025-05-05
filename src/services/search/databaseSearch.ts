@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { SearchFilters, SearchResults } from './types';
 
@@ -29,6 +28,7 @@ const mapDatabaseProductsToProducts = (data: any[]) => {
 
     // Add artisan if available
     if (item.artisan) {
+      // Create an artisan property on the product object before trying to access it
       product.artisan = {
         id: item.artisan.id,
         name: item.artisan.name,
