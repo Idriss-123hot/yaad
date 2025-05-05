@@ -19,59 +19,82 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
   const { toast } = useToast();
   
   useEffect(() => {
-    const checkArtisan = async () => {
+    const checkArtisanAccess = async () => {
       try {
-        // First check if we have a session
+        console.log("ArtisanLayout: Checking session and artisan role");
+        
+        // Vérifier si nous avons une session
         const { data: { session } } = await supabase.auth.getSession();
+        
         if (!session) {
-          console.log("No session found, redirecting to login");
+          console.log("ArtisanLayout: No session found, redirecting to login");
+          
           toast({
             title: 'Authentification requise',
             description: 'Vous devez être connecté pour accéder à cette section',
             variant: 'destructive',
           });
+          
           navigate('/artisan/login');
           return;
         }
         
-        console.log("Session found, checking artisan role");
-        // Utilisation d'un setTimeout pour éviter les problèmes de récursion avec les RLS policies
-        setTimeout(async () => {
-          try {
-            const isArtisan = await checkArtisanRole();
-            console.log("Artisan check result:", isArtisan);
-            
-            if (!isArtisan) {
-              console.log("User is not an artisan, logging out and redirecting");
-              await supabase.auth.signOut();
-              
-              toast({
-                title: 'Accès non autorisé',
-                description: 'Vous devez être artisan pour accéder à cette section',
-                variant: 'destructive',
-              });
-              navigate('/artisan/login');
-              return;
-            }
-            
-            updateLastActivity();
-            setIsAuthorized(true);
-            setIsLoading(false);
-          } catch (error) {
-            console.error('Erreur de vérification du rôle artisan:', error);
-            navigate('/artisan/login');
-            setIsLoading(false);
-          }
-        }, 100);
+        console.log("ArtisanLayout: Session found, checking artisan role");
+        
+        // Vérifier si l'utilisateur a le rôle artisan
+        const isArtisan = await checkArtisanRole();
+        console.log("ArtisanLayout: Artisan check result:", isArtisan);
+        
+        if (!isArtisan) {
+          console.log("ArtisanLayout: User is not an artisan, logging out");
+          
+          await supabase.auth.signOut();
+          
+          toast({
+            title: 'Accès non autorisé',
+            description: 'Vous devez être artisan pour accéder à cette section',
+            variant: 'destructive',
+          });
+          
+          navigate('/artisan/login');
+          return;
+        }
+        
+        // Utilisateur est un artisan
+        updateLastActivity();
+        setIsAuthorized(true);
+        setIsLoading(false);
       } catch (error) {
-        console.error('Erreur de vérification :', error);
+        console.error('ArtisanLayout: Erreur de vérification :', error);
         navigate('/artisan/login');
         setIsLoading(false);
       }
     };
     
-    checkArtisan();
+    checkArtisanAccess();
   }, [navigate, toast]);
+
+  // Écouteur pour les changements d'état d'authentification
+  useEffect(() => {
+    console.log("ArtisanLayout: Setting up auth state change listener");
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("ArtisanLayout: Auth state changed:", event);
+        
+        if (event === 'SIGNED_OUT' || !session) {
+          console.log("ArtisanLayout: User signed out or session ended");
+          setIsAuthorized(false);
+          navigate('/artisan/login');
+        }
+      }
+    );
+    
+    return () => {
+      console.log("ArtisanLayout: Cleaning up auth state listener");
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   if (isLoading) {
     return (
@@ -85,8 +108,6 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
   }
 
   if (!isAuthorized) {
-    // The useProtectedRoute hook will automatically redirect
-    // This is just a fallback
     return null;
   }
 

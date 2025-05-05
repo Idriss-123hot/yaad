@@ -6,7 +6,7 @@ import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 import { SessionTimeout } from '@/components/shared/SessionTimeout';
 import { checkAdminRole, updateLastActivity } from '@/utils/authUtils';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -23,51 +23,51 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   useEffect(() => {
     const checkAdmin = async () => {
       try {
-        // First check if we have a session
+        console.log("AdminLayout: Checking session and admin role");
+        
+        // Vérifier si nous avons une session
         const { data: { session } } = await supabase.auth.getSession();
+        
         if (!session) {
-          console.log("No session found, redirecting to login");
+          console.log("AdminLayout: No session found, redirecting to login");
+          
           toast({
             title: 'Authentification requise',
             description: 'Vous devez être connecté pour accéder à cette section',
             variant: 'destructive',
           });
+          
           navigate('/admin/login');
           return;
         }
         
-        console.log("Session found, checking admin role");
-        // Then check if user has admin role using the fixed utility function
-        // Utilisation d'un setTimeout pour éviter les problèmes de récursion avec les RLS policies
-        setTimeout(async () => {
-          try {
-            const isAdmin = await checkAdminRole();
-            console.log("Admin check result:", isAdmin);
-            
-            if (!isAdmin) {
-              console.log("User is not an admin, logging out and redirecting");
-              await supabase.auth.signOut();
-              
-              toast({
-                title: 'Accès non autorisé',
-                description: 'Vous devez être administrateur pour accéder à cette section',
-                variant: 'destructive',
-              });
-              navigate('/admin/login');
-              return;
-            }
-            
-            updateLastActivity();
-            setIsAuthorized(true);
-            setIsLoading(false);
-          } catch (error) {
-            console.error('Erreur de vérification du rôle admin:', error);
-            navigate('/admin/login');
-            setIsLoading(false);
-          }
-        }, 100);
+        console.log("AdminLayout: Session found, checking admin role");
+        
+        // Vérifier si l'utilisateur a le rôle admin
+        const isAdmin = await checkAdminRole();
+        console.log("AdminLayout: Admin check result:", isAdmin);
+        
+        if (!isAdmin) {
+          console.log("AdminLayout: User is not an admin, logging out");
+          
+          await supabase.auth.signOut();
+          
+          toast({
+            title: 'Accès non autorisé',
+            description: 'Vous devez être administrateur pour accéder à cette section',
+            variant: 'destructive',
+          });
+          
+          navigate('/admin/login');
+          return;
+        }
+        
+        // Utilisateur est un admin
+        updateLastActivity();
+        setIsAuthorized(true);
+        setIsLoading(false);
       } catch (error) {
-        console.error('Erreur de vérification :', error);
+        console.error('AdminLayout: Erreur de vérification :', error);
         navigate('/admin/login');
         setIsLoading(false);
       }
@@ -75,6 +75,28 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     
     checkAdmin();
   }, [navigate, toast]);
+
+  // Écouteur pour les changements d'état d'authentification
+  useEffect(() => {
+    console.log("AdminLayout: Setting up auth state change listener");
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("AdminLayout: Auth state changed:", event);
+        
+        if (event === 'SIGNED_OUT' || !session) {
+          console.log("AdminLayout: User signed out or session ended");
+          setIsAuthorized(false);
+          navigate('/admin/login');
+        }
+      }
+    );
+    
+    return () => {
+      console.log("AdminLayout: Cleaning up auth state listener");
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   if (isLoading) {
     return (

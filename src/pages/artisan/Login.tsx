@@ -15,8 +15,8 @@ import { updateLastActivity, checkArtisanRole } from '@/utils/authUtils';
 import ForgotPassword from '@/components/auth/ForgotPassword';
 
 const formSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('Adresse email invalide'),
+  password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
 });
 
 export default function ArtisanLogin() {
@@ -25,30 +25,7 @@ export default function ArtisanLogin() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Check if user is already logged in and is an artisan
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // First check if we have a session
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          // Utilisation d'un setTimeout pour éviter les problèmes de récursion avec les RLS policies
-          setTimeout(async () => {
-            const isArtisan = await checkArtisanRole();
-            console.log("Session exists, artisan check result:", isArtisan);
-            if (isArtisan) {
-              navigate('/artisan/dashboard');
-            }
-          }, 100);
-        }
-      } catch (error) {
-        console.error("Erreur de vérification de session:", error);
-      }
-    };
-    
-    checkAuth();
-  }, [navigate]);
-
+  // Configuration du formulaire avec validation
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -57,70 +34,110 @@ export default function ArtisanLogin() {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
-    
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
-      });
-      
-      if (error) throw error;
-      
-      console.log("Login successful, checking artisan role...");
-      
-      // Mise à jour du timestamp de dernière activité
-      updateLastActivity();
-      
-      // Utilisation d'un simple délai pour éviter les problèmes avec les RLS policies
-      setTimeout(async () => {
-        try {
-          console.log("Checking artisan role after timeout");
+  // Vérifier si l'utilisateur est déjà connecté et est un artisan
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      try {
+        console.log("Checking existing session");
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          console.log("Existing session found:", session.user.id);
+          
+          // Vérifier le rôle artisan
           const isArtisan = await checkArtisanRole();
           console.log("Is artisan:", isArtisan);
           
-          if (!isArtisan) {
-            console.error("User is not an artisan, logging out");
-            await supabase.auth.signOut();
-            
+          if (isArtisan) {
+            console.log("Artisan role confirmed, redirecting to dashboard");
+            updateLastActivity();
+            navigate('/artisan/dashboard');
+          } else {
+            console.log("User is logged in but not an artisan");
+            // Ne pas déconnecter automatiquement si l'utilisateur n'est pas artisan
+          }
+        }
+      } catch (error) {
+        console.error("Erreur de vérification de session:", error);
+      }
+    };
+    
+    checkExistingSession();
+  }, [navigate]);
+
+  // Mettre en place l'écouteur pour les changements d'état d'authentification
+  useEffect(() => {
+    console.log("Setting up auth state change listener");
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
+        
+        // N'agir que sur les événements de connexion
+        if (event === 'SIGNED_IN' && session) {
+          console.log("User signed in, checking artisan role");
+          
+          // Mettre à jour le timestamp de dernière activité
+          updateLastActivity();
+          
+          // Vérifier si l'utilisateur est artisan
+          const isArtisan = await checkArtisanRole();
+          console.log("Is artisan:", isArtisan);
+          
+          if (isArtisan) {
+            console.log("Artisan role confirmed, redirecting to dashboard");
+            toast({
+              title: 'Bienvenue',
+              description: 'Vous êtes maintenant connecté en tant qu\'artisan',
+            });
+            navigate('/artisan/dashboard');
+          } else {
+            console.log("Not an artisan, logging out");
             toast({
               title: 'Accès refusé',
               description: 'Vous n\'avez pas les privilèges artisan',
               variant: 'destructive',
             });
             
-            setIsLoading(false);
-            return;
+            await supabase.auth.signOut();
           }
-          
-          toast({
-            title: 'Bienvenue',
-            description: 'Vous êtes maintenant connecté en tant qu\'artisan',
-          });
-          
-          // Ajout d'un court délai avant la redirection pour éviter les problèmes
-          setTimeout(() => {
-            navigate('/artisan/dashboard');
-          }, 100);
-        } catch (checkError) {
-          console.error("Error checking profile:", checkError);
-          setIsLoading(false);
-          
-          toast({
-            title: 'Erreur de vérification',
-            description: 'Problème lors de la vérification du profil artisan.',
-            variant: 'destructive',
-          });
         }
-      }, 500);
-    } catch (error) {
+      }
+    );
+    
+    return () => {
+      console.log("Cleaning up auth state listener");
+      subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
+    
+    try {
+      console.log("Attempting login with:", values.email);
+      
+      // Tentative de connexion à Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
+      });
+      
+      if (error) {
+        console.error('Login error:', error);
+        throw error;
+      }
+      
+      console.log("Login successful, session:", data?.session?.user?.id);
+      
+      // L'écouteur onAuthStateChange se chargera de vérifier le rôle et de rediriger
+    } catch (error: any) {
       console.error('Login error:', error);
       setIsLoading(false);
       
       toast({
         title: 'Erreur de connexion',
-        description: error instanceof Error ? error.message : 'Email ou mot de passe invalide',
+        description: error.message || 'Email ou mot de passe invalide',
         variant: 'destructive',
       });
     }

@@ -18,56 +18,46 @@ export const updateLastActivity = (): void => {
   localStorage.setItem('lastActivity', new Date().toISOString());
 };
 
-// Function to check if user has admin role
-export const checkAdminRole = async (): Promise<boolean> => {
+// Optimized function to check a user's role without risking RLS recursion
+export const checkUserRole = async (roleToCheck: string): Promise<boolean> => {
   try {
+    console.log(`Checking if user has ${roleToCheck} role`);
+    
     const { data: { session } } = await supabase.auth.getSession();
     
-    if (!session) return false;
+    if (!session) {
+      console.log('No session found when checking role');
+      return false;
+    }
     
-    // Use the direct query approach
+    // Direct query approach without nesting calls that might trigger RLS recursion
     const { data, error } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', session.user.id)
-      .single();
+      .maybeSingle();
     
     if (error) {
-      console.error('Error checking admin role:', error);
+      console.error(`Error checking ${roleToCheck} role:`, error);
       return false;
     }
     
-    return data?.role === 'admin';
+    console.log('Role check result:', data?.role);
+    return data?.role === roleToCheck;
   } catch (error) {
-    console.error('Exception checking admin role:', error);
+    console.error(`Exception checking ${roleToCheck} role:`, error);
     return false;
   }
 };
 
+// Function to check if user has admin role
+export const checkAdminRole = async (): Promise<boolean> => {
+  return checkUserRole('admin');
+};
+
 // Function to check if user has artisan role
 export const checkArtisanRole = async (): Promise<boolean> => {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) return false;
-    
-    // Use the direct query approach
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
-    
-    if (error) {
-      console.error('Error checking artisan role:', error);
-      return false;
-    }
-    
-    return data?.role === 'artisan';
-  } catch (error) {
-    console.error('Exception checking artisan role:', error);
-    return false;
-  }
+  return checkUserRole('artisan');
 };
 
 // Function to get the current user's artisan ID (for artisan users)

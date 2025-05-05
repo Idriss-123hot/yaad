@@ -18,45 +18,18 @@ import ForgotPassword from '@/components/auth/ForgotPassword';
  * Schéma de validation du formulaire de connexion
  */
 const formSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('Adresse email invalide'),
+  password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
 });
 
 /**
  * Composant de la page de connexion pour les administrateurs
- * 
- * Gère le processus d'authentification des administrateurs
- * et la redirection vers le tableau de bord administrateur.
  */
 export default function AdminLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Vérifier si l'utilisateur est déjà connecté et est un admin
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // First check if we have a session
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          // Utilisation d'un setTimeout pour éviter les problèmes de récursion avec les RLS policies
-          setTimeout(async () => {
-            const isAdmin = await checkAdminRole();
-            console.log("Session exists, admin check result:", isAdmin);
-            if (isAdmin) {
-              navigate('/admin/dashboard');
-            }
-          }, 100);
-        }
-      } catch (error) {
-        console.error("Erreur de vérification de session:", error);
-      }
-    };
-    
-    checkAuth();
-  }, [navigate]);
 
   // Configuration du formulaire avec validation
   const form = useForm<z.infer<typeof formSchema>>({
@@ -67,6 +40,83 @@ export default function AdminLogin() {
     },
   });
 
+  // Vérifier si l'utilisateur est déjà connecté et est un admin
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      try {
+        console.log("Checking existing session");
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          console.log("Existing session found:", session.user.id);
+          
+          // Vérifier le rôle admin
+          const isAdmin = await checkAdminRole();
+          console.log("Is admin:", isAdmin);
+          
+          if (isAdmin) {
+            console.log("Admin role confirmed, redirecting to dashboard");
+            updateLastActivity();
+            navigate('/admin/dashboard');
+          } else {
+            console.log("User is logged in but not an admin");
+            // Ne pas déconnecter automatiquement si l'utilisateur n'est pas admin
+          }
+        }
+      } catch (error) {
+        console.error("Erreur de vérification de session:", error);
+      }
+    };
+    
+    checkExistingSession();
+  }, [navigate]);
+
+  // Mettre en place l'écouteur pour les changements d'état d'authentification
+  useEffect(() => {
+    console.log("Setting up auth state change listener");
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
+        
+        // N'agir que sur les événements de connexion
+        if (event === 'SIGNED_IN' && session) {
+          console.log("User signed in, checking admin role");
+          
+          // Mettre à jour le timestamp de dernière activité
+          updateLastActivity();
+          
+          // Vérifier si l'utilisateur est admin
+          const isAdmin = await checkAdminRole();
+          console.log("Is admin:", isAdmin);
+          
+          if (isAdmin) {
+            console.log("Admin role confirmed, redirecting to dashboard");
+            toast({
+              title: 'Bienvenue',
+              description: 'Vous êtes maintenant connecté en tant qu\'administrateur',
+            });
+            navigate('/admin/dashboard');
+          } else {
+            console.log("Not an admin, logging out");
+            toast({
+              title: 'Accès refusé',
+              description: 'Vous n\'avez pas les privilèges administrateur',
+              variant: 'destructive',
+            });
+            
+            await supabase.auth.signOut();
+          }
+        }
+      }
+    );
+    
+    return () => {
+      console.log("Cleaning up auth state listener");
+      subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
+
   /**
    * Gère la soumission du formulaire de connexion
    */
@@ -74,60 +124,22 @@ export default function AdminLogin() {
     setIsLoading(true);
     
     try {
+      console.log("Attempting login with:", values.email);
+      
       // Tentative de connexion à Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Login error:', error);
+        throw error;
+      }
       
-      console.log("Login successful, checking admin role...");
+      console.log("Login successful, session:", data?.session?.user?.id);
       
-      // Mise à jour du timestamp de dernière activité
-      updateLastActivity();
-      
-      // Utilisation d'un simple délai pour éviter les problèmes avec les RLS policies
-      setTimeout(async () => {
-        try {
-          console.log("Checking admin role after timeout");
-          const isAdmin = await checkAdminRole();
-          console.log("Is admin:", isAdmin);
-          
-          if (!isAdmin) {
-            console.error("User is not an admin, logging out");
-            await supabase.auth.signOut();
-            
-            toast({
-              title: 'Accès refusé',
-              description: 'Vous n\'avez pas les privilèges administrateur',
-              variant: 'destructive',
-            });
-            
-            setIsLoading(false);
-            return;
-          }
-                    
-          toast({
-            title: 'Bienvenue',
-            description: 'Vous êtes maintenant connecté en tant qu\'administrateur',
-          });
-          
-          // Ajout d'un court délai avant la redirection pour éviter les problèmes
-          setTimeout(() => {
-            navigate('/admin/dashboard');
-          }, 100);
-        } catch (checkError) {
-          console.error("Error checking profile:", checkError);
-          setIsLoading(false);
-          
-          toast({
-            title: 'Erreur de vérification',
-            description: 'Problème lors de la vérification du profil administrateur.',
-            variant: 'destructive',
-          });
-        }
-      }, 500);
+      // L'écouteur onAuthStateChange se chargera de vérifier le rôle et de rediriger
     } catch (error: any) {
       console.error('Login error:', error);
       setIsLoading(false);
@@ -203,7 +215,7 @@ export default function AdminLogin() {
                       <FormControl>
                         <Input 
                           type="password" 
-                          placeholder="•��••••••" 
+                          placeholder="••••••••" 
                           {...field} 
                           disabled={isLoading}
                         />
