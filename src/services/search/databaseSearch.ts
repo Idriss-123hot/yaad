@@ -9,7 +9,7 @@ export const searchProductsWithDatabase = async (filters: SearchFilters): Promis
     
     let query = supabase.from('products').select(`
       *,
-      artisan:artisan_id(id, name, profile_photo, location, rating),
+      artisan:artisan_id(id, name, profile_photo, location, rating, bio, created_at, description, featured, first_gallery_images, joined_date, review_count, second_gallery_images, updated_at, user_id, website),
       category:category_id(id, name)
     `, { count: 'exact' });
     
@@ -80,8 +80,9 @@ export const searchProductsWithDatabase = async (filters: SearchFilters): Promis
     
     if (error) throw error;
     
+    // Type assertion to ensure the data matches the DatabaseProduct type expected by mapDatabaseProductsToProducts
     return { 
-      products: data ? mapDatabaseProductsToProducts(data) : [], 
+      products: data ? mapDatabaseProductsToProducts(data as any) : [], 
       total: count || 0 
     };
   } catch (error) {

@@ -8,9 +8,9 @@ import { Loader2 } from 'lucide-react';
 
 const EditBlog = () => {
   const { id } = useParams<{ id: string }>();
-  const [blogData, setBlogData] = useState(null);
+  const [blogData, setBlogData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchBlogData = async () => {
@@ -25,7 +25,7 @@ const EditBlog = () => {
           
         if (error) throw error;
         setBlogData(data);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching blog post:', err);
         setError(err.message);
       } finally {
