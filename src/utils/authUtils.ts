@@ -30,12 +30,12 @@ export const checkUserRole = async (roleToCheck: string): Promise<boolean> => {
       return false;
     }
     
-    // Direct query approach without nesting calls that might trigger RLS recursion
+    // Use direct service role API call to avoid RLS recursion
     const { data, error } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', session.user.id)
-      .maybeSingle();
+      .single();
     
     if (error) {
       console.error(`Error checking ${roleToCheck} role:`, error);
@@ -71,7 +71,7 @@ export const getCurrentArtisanId = async (): Promise<string | null> => {
       .from('artisans')
       .select('id')
       .eq('user_id', session.user.id)
-      .maybeSingle();
+      .single();
     
     if (error || !data) {
       console.error('Error getting artisan ID:', error);

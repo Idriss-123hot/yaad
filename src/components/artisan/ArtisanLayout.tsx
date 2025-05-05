@@ -18,6 +18,7 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  // Vérifier l'autorisation au chargement
   useEffect(() => {
     const checkArtisanAccess = async () => {
       try {
@@ -41,29 +42,38 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
         
         console.log("ArtisanLayout: Session found, checking artisan role");
         
-        // Vérifier si l'utilisateur a le rôle artisan
-        const isArtisan = await checkArtisanRole();
-        console.log("ArtisanLayout: Artisan check result:", isArtisan);
-        
-        if (!isArtisan) {
-          console.log("ArtisanLayout: User is not an artisan, logging out");
-          
-          await supabase.auth.signOut();
-          
-          toast({
-            title: 'Accès non autorisé',
-            description: 'Vous devez être artisan pour accéder à cette section',
-            variant: 'destructive',
-          });
-          
-          navigate('/artisan/login');
-          return;
-        }
-        
-        // Utilisateur est un artisan
-        updateLastActivity();
-        setIsAuthorized(true);
-        setIsLoading(false);
+        // Utiliser setTimeout pour éviter les récursions potentielles avec RLS
+        setTimeout(async () => {
+          try {
+            // Vérifier si l'utilisateur a le rôle artisan
+            const isArtisan = await checkArtisanRole();
+            console.log("ArtisanLayout: Artisan check result:", isArtisan);
+            
+            if (!isArtisan) {
+              console.log("ArtisanLayout: User is not an artisan, logging out");
+              
+              await supabase.auth.signOut();
+              
+              toast({
+                title: 'Accès non autorisé',
+                description: 'Vous devez être artisan pour accéder à cette section',
+                variant: 'destructive',
+              });
+              
+              navigate('/artisan/login');
+              return;
+            }
+            
+            // Utilisateur est un artisan
+            updateLastActivity();
+            setIsAuthorized(true);
+            setIsLoading(false);
+          } catch (error) {
+            console.error("ArtisanLayout: Role check error:", error);
+            navigate('/artisan/login');
+            setIsLoading(false);
+          }
+        }, 100);
       } catch (error) {
         console.error('ArtisanLayout: Erreur de vérification :', error);
         navigate('/artisan/login');
@@ -79,7 +89,7 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
     console.log("ArtisanLayout: Setting up auth state change listener");
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log("ArtisanLayout: Auth state changed:", event);
         
         if (event === 'SIGNED_OUT' || !session) {

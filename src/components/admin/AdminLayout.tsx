@@ -20,6 +20,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Vérifier l'autorisation au chargement
   useEffect(() => {
     const checkAdmin = async () => {
       try {
@@ -43,29 +44,38 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         
         console.log("AdminLayout: Session found, checking admin role");
         
-        // Vérifier si l'utilisateur a le rôle admin
-        const isAdmin = await checkAdminRole();
-        console.log("AdminLayout: Admin check result:", isAdmin);
-        
-        if (!isAdmin) {
-          console.log("AdminLayout: User is not an admin, logging out");
-          
-          await supabase.auth.signOut();
-          
-          toast({
-            title: 'Accès non autorisé',
-            description: 'Vous devez être administrateur pour accéder à cette section',
-            variant: 'destructive',
-          });
-          
-          navigate('/admin/login');
-          return;
-        }
-        
-        // Utilisateur est un admin
-        updateLastActivity();
-        setIsAuthorized(true);
-        setIsLoading(false);
+        // Utiliser setTimeout pour éviter les récursions potentielles avec RLS
+        setTimeout(async () => {
+          try {
+            // Vérifier si l'utilisateur a le rôle admin
+            const isAdmin = await checkAdminRole();
+            console.log("AdminLayout: Admin check result:", isAdmin);
+            
+            if (!isAdmin) {
+              console.log("AdminLayout: User is not an admin, logging out");
+              
+              await supabase.auth.signOut();
+              
+              toast({
+                title: 'Accès non autorisé',
+                description: 'Vous devez être administrateur pour accéder à cette section',
+                variant: 'destructive',
+              });
+              
+              navigate('/admin/login');
+              return;
+            }
+            
+            // Utilisateur est un admin
+            updateLastActivity();
+            setIsAuthorized(true);
+            setIsLoading(false);
+          } catch (error) {
+            console.error("AdminLayout: Role check error:", error);
+            navigate('/admin/login');
+            setIsLoading(false);
+          }
+        }, 100);
       } catch (error) {
         console.error('AdminLayout: Erreur de vérification :', error);
         navigate('/admin/login');
@@ -81,7 +91,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     console.log("AdminLayout: Setting up auth state change listener");
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log("AdminLayout: Auth state changed:", event);
         
         if (event === 'SIGNED_OUT' || !session) {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -49,6 +48,7 @@ export default function AdminLogin() {
         
         if (session) {
           console.log("Existing session found:", session.user.id);
+          updateLastActivity();
           
           // Vérifier le rôle admin
           const isAdmin = await checkAdminRole();
@@ -56,49 +56,10 @@ export default function AdminLogin() {
           
           if (isAdmin) {
             console.log("Admin role confirmed, redirecting to dashboard");
-            updateLastActivity();
             navigate('/admin/dashboard');
           } else {
             console.log("User is logged in but not an admin");
-            // Ne pas déconnecter automatiquement si l'utilisateur n'est pas admin
-          }
-        }
-      } catch (error) {
-        console.error("Erreur de vérification de session:", error);
-      }
-    };
-    
-    checkExistingSession();
-  }, [navigate]);
-
-  // Mettre en place l'écouteur pour les changements d'état d'authentification
-  useEffect(() => {
-    console.log("Setting up auth state change listener");
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("Auth state changed:", event, session?.user?.id);
-        
-        // N'agir que sur les événements de connexion
-        if (event === 'SIGNED_IN' && session) {
-          console.log("User signed in, checking admin role");
-          
-          // Mettre à jour le timestamp de dernière activité
-          updateLastActivity();
-          
-          // Vérifier si l'utilisateur est admin
-          const isAdmin = await checkAdminRole();
-          console.log("Is admin:", isAdmin);
-          
-          if (isAdmin) {
-            console.log("Admin role confirmed, redirecting to dashboard");
-            toast({
-              title: 'Bienvenue',
-              description: 'Vous êtes maintenant connecté en tant qu\'administrateur',
-            });
-            navigate('/admin/dashboard');
-          } else {
-            console.log("Not an admin, logging out");
+            // Informer l'utilisateur qu'il n'est pas admin
             toast({
               title: 'Accès refusé',
               description: 'Vous n\'avez pas les privilèges administrateur',
@@ -107,6 +68,64 @@ export default function AdminLogin() {
             
             await supabase.auth.signOut();
           }
+        }
+      } catch (error) {
+        console.error("Erreur de vérification de session:", error);
+      }
+    };
+    
+    checkExistingSession();
+  }, [navigate, toast]);
+
+  // Mettre en place l'écouteur pour les changements d'état d'authentification
+  useEffect(() => {
+    console.log("Setting up auth state change listener");
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
+        
+        // N'agir que sur les événements de connexion
+        if (event === 'SIGNED_IN' && session) {
+          console.log("User signed in, checking admin role");
+          updateLastActivity();
+          
+          // Utiliser un setTimeout pour éviter la récursion dans les politiques RLS
+          setTimeout(async () => {
+            try {
+              // Vérifier si l'utilisateur est admin
+              const isAdmin = await checkAdminRole();
+              console.log("Is admin:", isAdmin);
+              
+              if (isAdmin) {
+                console.log("Admin role confirmed, redirecting to dashboard");
+                toast({
+                  title: 'Bienvenue',
+                  description: 'Vous êtes maintenant connecté en tant qu\'administrateur',
+                });
+                navigate('/admin/dashboard');
+              } else {
+                console.log("Not an admin, logging out");
+                toast({
+                  title: 'Accès refusé',
+                  description: 'Vous n\'avez pas les privilèges administrateur',
+                  variant: 'destructive',
+                });
+                
+                await supabase.auth.signOut();
+              }
+            } catch (error) {
+              console.error("Error checking admin role:", error);
+              setIsLoading(false);
+              toast({
+                title: 'Erreur de vérification',
+                description: 'Une erreur est survenue lors de la vérification de vos droits',
+                variant: 'destructive',
+              });
+            }
+          }, 100);
+        } else if (event === 'SIGNED_OUT') {
+          setIsLoading(false);
         }
       }
     );
@@ -134,11 +153,11 @@ export default function AdminLogin() {
       
       if (error) {
         console.error('Login error:', error);
+        setIsLoading(false);
         throw error;
       }
       
-      console.log("Login successful, session:", data?.session?.user?.id);
-      
+      console.log("Login successful, session established:", data?.session?.user?.id);
       // L'écouteur onAuthStateChange se chargera de vérifier le rôle et de rediriger
     } catch (error: any) {
       console.error('Login error:', error);
