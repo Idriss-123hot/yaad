@@ -1,10 +1,12 @@
 import { supabase } from '@/integrations/supabase/client';
 import { SearchFilters, SearchResults } from './types';
+import { ProductWithArtisan } from '@/models/types';
 
 // Map the result from database to a properly structured product object
 const mapDatabaseProductsToProducts = (data: any[]) => {
   return data.map(item => {
-    const product = {
+    // Create the base product object as a ProductWithArtisan type
+    const product: ProductWithArtisan = {
       id: item.id,
       title: item.title,
       description: item.description || '',
@@ -28,7 +30,6 @@ const mapDatabaseProductsToProducts = (data: any[]) => {
 
     // Add artisan if available
     if (item.artisan) {
-      // Create an artisan property on the product object before trying to access it
       product.artisan = {
         id: item.artisan.id,
         name: item.artisan.name,
