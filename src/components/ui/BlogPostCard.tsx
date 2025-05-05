@@ -1,7 +1,26 @@
 
 import { Link } from 'react-router-dom';
-import { BlogPost } from '@/models/blog';
 import { cn } from '@/lib/utils';
+
+interface Author {
+  id: string;
+  name: string;
+  role: string;
+  avatar: string;
+}
+
+export interface BlogPost {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  featured_image: string;
+  published_at: string;
+  author: Author;
+  content: string;
+  tags: string[];
+}
 
 interface BlogPostCardProps {
   post: BlogPost;
@@ -24,7 +43,7 @@ export function BlogPostCard({ post, className, linkTo }: BlogPostCardProps) {
         <Link to={postLink}>
           <div className="zoom-image-container">
             <img 
-              src={post.coverImage} 
+              src={post.featured_image} 
               alt={post.title} 
               className="zoom-image object-cover"
             />
@@ -40,7 +59,7 @@ export function BlogPostCard({ post, className, linkTo }: BlogPostCardProps) {
       {/* Blog Post Info */}
       <div className="p-6">
         <div className="text-sm text-muted-foreground mb-2">
-          {new Date(post.publishedAt).toLocaleDateString('fr-FR', {
+          {new Date(post.published_at).toLocaleDateString('fr-FR', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'

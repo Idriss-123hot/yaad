@@ -102,3 +102,48 @@ export const ensureStorageBuckets = async () => {
     return { success: false, error };
   }
 };
+
+/**
+ * Gets profile data for a user by user ID
+ */
+export const getUserProfile = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (error) {
+      console.error('Error getting user profile:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Exception getting user profile:', error);
+    return null;
+  }
+};
+
+/**
+ * Gets all authors (admins and artisans)
+ */
+export const getAuthors = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .in('role', ['admin', 'artisan']);
+    
+    if (error) {
+      console.error('Error getting authors:', error);
+      return [];
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Exception getting authors:', error);
+    return [];
+  }
+};
