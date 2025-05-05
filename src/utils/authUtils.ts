@@ -25,12 +25,12 @@ export const checkAdminRole = async (): Promise<boolean> => {
     
     if (!session) return false;
     
-    // Use a direct query instead of calling a function that might trigger RLS recursion
+    // Use the direct query approach
     const { data, error } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', session.user.id)
-      .maybeSingle();
+      .single();
     
     if (error) {
       console.error('Error checking admin role:', error);
@@ -51,12 +51,12 @@ export const checkArtisanRole = async (): Promise<boolean> => {
     
     if (!session) return false;
     
-    // Use a direct query instead of calling a function that might trigger RLS recursion
+    // Use the direct query approach
     const { data, error } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', session.user.id)
-      .maybeSingle();
+      .single();
     
     if (error) {
       console.error('Error checking artisan role:', error);

@@ -24,6 +24,7 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
         // First check if we have a session
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
+          console.log("No session found, redirecting to login");
           toast({
             title: 'Authentification requise',
             description: 'Vous devez être connecté pour accéder à cette section',
@@ -33,25 +34,38 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
           return;
         }
         
-        // Then check if user has artisan role
-        const isArtisan = await checkArtisanRole();
-        
-        if (!isArtisan) {
-          toast({
-            title: 'Accès non autorisé',
-            description: 'Vous devez être artisan pour accéder à cette section',
-            variant: 'destructive',
-          });
-          navigate('/artisan/login');
-          return;
-        }
-        
-        updateLastActivity();
-        setIsAuthorized(true);
+        console.log("Session found, checking artisan role");
+        // Utilisation d'un setTimeout pour éviter les problèmes de récursion avec les RLS policies
+        setTimeout(async () => {
+          try {
+            const isArtisan = await checkArtisanRole();
+            console.log("Artisan check result:", isArtisan);
+            
+            if (!isArtisan) {
+              console.log("User is not an artisan, logging out and redirecting");
+              await supabase.auth.signOut();
+              
+              toast({
+                title: 'Accès non autorisé',
+                description: 'Vous devez être artisan pour accéder à cette section',
+                variant: 'destructive',
+              });
+              navigate('/artisan/login');
+              return;
+            }
+            
+            updateLastActivity();
+            setIsAuthorized(true);
+            setIsLoading(false);
+          } catch (error) {
+            console.error('Erreur de vérification du rôle artisan:', error);
+            navigate('/artisan/login');
+            setIsLoading(false);
+          }
+        }, 100);
       } catch (error) {
         console.error('Erreur de vérification :', error);
         navigate('/artisan/login');
-      } finally {
         setIsLoading(false);
       }
     };
@@ -64,7 +78,7 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-terracotta-600 mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">Chargement de l'espace artisan...</p>
         </div>
       </div>
     );

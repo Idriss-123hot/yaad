@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -31,10 +32,14 @@ export default function ArtisanLogin() {
         // First check if we have a session
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          const isArtisan = await checkArtisanRole();
-          if (isArtisan) {
-            navigate('/artisan/dashboard');
-          }
+          // Utilisation d'un setTimeout pour éviter les problèmes de récursion avec les RLS policies
+          setTimeout(async () => {
+            const isArtisan = await checkArtisanRole();
+            console.log("Session exists, artisan check result:", isArtisan);
+            if (isArtisan) {
+              navigate('/artisan/dashboard');
+            }
+          }, 100);
         }
       } catch (error) {
         console.error("Erreur de vérification de session:", error);
@@ -65,19 +70,18 @@ export default function ArtisanLogin() {
       
       console.log("Login successful, checking artisan role...");
       
-      // Utilisation de setTimeout pour éviter les problèmes de récursion
+      // Mise à jour du timestamp de dernière activité
+      updateLastActivity();
+      
+      // Utilisation d'un simple délai pour éviter les problèmes avec les RLS policies
       setTimeout(async () => {
         try {
-          // Check if the user has artisan role
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', data.user.id)
-            .maybeSingle();
+          console.log("Checking artisan role after timeout");
+          const isArtisan = await checkArtisanRole();
+          console.log("Is artisan:", isArtisan);
           
-          if (profileError) throw profileError;
-          
-          if (profileData?.role !== 'artisan') {
+          if (!isArtisan) {
+            console.error("User is not an artisan, logging out");
             await supabase.auth.signOut();
             
             toast({
@@ -90,15 +94,15 @@ export default function ArtisanLogin() {
             return;
           }
           
-          // Update last activity timestamp
-          updateLastActivity();
-          
           toast({
             title: 'Bienvenue',
             description: 'Vous êtes maintenant connecté en tant qu\'artisan',
           });
           
-          navigate('/artisan/dashboard');
+          // Ajout d'un court délai avant la redirection pour éviter les problèmes
+          setTimeout(() => {
+            navigate('/artisan/dashboard');
+          }, 100);
         } catch (checkError) {
           console.error("Error checking profile:", checkError);
           setIsLoading(false);
@@ -109,7 +113,7 @@ export default function ArtisanLogin() {
             variant: 'destructive',
           });
         }
-      }, 100);
+      }, 500);
     } catch (error) {
       console.error('Login error:', error);
       setIsLoading(false);

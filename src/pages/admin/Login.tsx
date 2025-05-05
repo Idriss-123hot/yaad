@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -40,10 +41,14 @@ export default function AdminLogin() {
         // First check if we have a session
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          const isAdmin = await checkAdminRole();
-          if (isAdmin) {
-            navigate('/admin/dashboard');
-          }
+          // Utilisation d'un setTimeout pour éviter les problèmes de récursion avec les RLS policies
+          setTimeout(async () => {
+            const isAdmin = await checkAdminRole();
+            console.log("Session exists, admin check result:", isAdmin);
+            if (isAdmin) {
+              navigate('/admin/dashboard');
+            }
+          }, 100);
         }
       } catch (error) {
         console.error("Erreur de vérification de session:", error);
@@ -79,18 +84,18 @@ export default function AdminLogin() {
       
       console.log("Login successful, checking admin role...");
       
-      // Vérification du rôle admin avec un délai pour éviter les problèmes de récursion
+      // Mise à jour du timestamp de dernière activité
+      updateLastActivity();
+      
+      // Utilisation d'un simple délai pour éviter les problèmes avec les RLS policies
       setTimeout(async () => {
         try {
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', data.user.id)
-            .maybeSingle();
+          console.log("Checking admin role after timeout");
+          const isAdmin = await checkAdminRole();
+          console.log("Is admin:", isAdmin);
           
-          if (profileError) throw profileError;
-          
-          if (profileData?.role !== 'admin') {
+          if (!isAdmin) {
+            console.error("User is not an admin, logging out");
             await supabase.auth.signOut();
             
             toast({
@@ -102,16 +107,16 @@ export default function AdminLogin() {
             setIsLoading(false);
             return;
           }
-          
-          // Mise à jour du timestamp de dernière activité
-          updateLastActivity();
-          
+                    
           toast({
             title: 'Bienvenue',
             description: 'Vous êtes maintenant connecté en tant qu\'administrateur',
           });
           
-          navigate('/admin/dashboard');
+          // Ajout d'un court délai avant la redirection pour éviter les problèmes
+          setTimeout(() => {
+            navigate('/admin/dashboard');
+          }, 100);
         } catch (checkError) {
           console.error("Error checking profile:", checkError);
           setIsLoading(false);
@@ -122,7 +127,7 @@ export default function AdminLogin() {
             variant: 'destructive',
           });
         }
-      }, 100);
+      }, 500);
     } catch (error: any) {
       console.error('Login error:', error);
       setIsLoading(false);
