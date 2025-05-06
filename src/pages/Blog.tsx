@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getUserProfile } from '@/utils/authUtils';
 
 // Définir une interface pour les données de blog
 interface BlogPost {
@@ -66,8 +67,7 @@ const Blog = () => {
           published_at,
           content,
           tags,
-          author_id,
-          profiles:author_id (id, first_name, last_name, role)
+          author_id
         `)
         .eq('published', true)
         .order('published_at', { ascending: false })
@@ -75,29 +75,48 @@ const Blog = () => {
 
       if (error) throw error;
 
-      // Transformer les données pour correspondre au format attendu
-      const formattedPosts: BlogPost[] = posts.map(post => ({
-        id: post.id,
-        slug: post.slug,
-        title: post.title,
-        excerpt: post.excerpt || '',
-        category: post.category || 'Non classé',
-        featured_image: post.featured_image || 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//placeholder-blog.jpg',
-        published_at: post.published_at || new Date().toISOString(),
-        content: post.content || '',
-        tags: post.tags || [],
-        author: {
-          id: post.profiles?.id || 'anonymous',
-          name: post.profiles ? `${post.profiles.first_name || ''} ${post.profiles.last_name || ''}`.trim() : 'Auteur anonyme',
-          role: post.profiles?.role || 'Éditeur',
-          avatar: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//avatar-placeholder.png'
-        }
-      }));
+      if (!posts || posts.length === 0) {
+        setBlogPosts([]);
+        setHasMore(false);
+        setLoading(false);
+        return;
+      }
+
+      // Get author details for each post
+      const postsWithAuthors = await Promise.all(
+        posts.map(async (post) => {
+          let authorProfile = null;
+          
+          if (post.author_id) {
+            authorProfile = await getUserProfile(post.author_id);
+          }
+          
+          return {
+            id: post.id,
+            slug: post.slug,
+            title: post.title,
+            excerpt: post.excerpt || '',
+            category: post.category || 'Non classé',
+            featured_image: post.featured_image || 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//placeholder-blog.jpg',
+            published_at: post.published_at || new Date().toISOString(),
+            content: post.content || '',
+            tags: post.tags || [],
+            author: {
+              id: post.author_id || 'anonymous',
+              name: authorProfile 
+                ? `${authorProfile.first_name || ''} ${authorProfile.last_name || ''}`.trim() 
+                : 'Auteur anonyme',
+              role: authorProfile?.role || 'Éditeur',
+              avatar: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//avatar-placeholder.png'
+            }
+          };
+        })
+      );
 
       if (pageNum === 1) {
-        setBlogPosts(formattedPosts);
+        setBlogPosts(postsWithAuthors);
       } else {
-        setBlogPosts(prev => [...prev, ...formattedPosts]);
+        setBlogPosts(prev => [...prev, ...postsWithAuthors]);
       }
       
       // Vérifier s'il y a plus d'articles à charger

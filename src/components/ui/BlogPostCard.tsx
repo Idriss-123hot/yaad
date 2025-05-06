@@ -1,6 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface Author {
   id: string;
@@ -30,6 +31,12 @@ interface BlogPostCardProps {
 
 export function BlogPostCard({ post, className, linkTo }: BlogPostCardProps) {
   const postLink = linkTo || `/blog/${post.slug}`;
+  const authorInitials = post.author.name
+    .split(' ')
+    .map(name => name.charAt(0))
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
   
   return (
     <div 
@@ -75,11 +82,10 @@ export function BlogPostCard({ post, className, linkTo }: BlogPostCardProps) {
         </p>
         
         <div className="flex items-center mt-4 pt-4 border-t border-border/50">
-          <img 
-            src={post.author.avatar} 
-            alt={post.author.name}
-            className="w-8 h-8 rounded-full mr-3"
-          />
+          <Avatar className="mr-3">
+            <AvatarImage src={post.author.avatar} alt={post.author.name} />
+            <AvatarFallback>{authorInitials}</AvatarFallback>
+          </Avatar>
           <div className="text-sm">
             <p className="font-medium">{post.author.name}</p>
           </div>
