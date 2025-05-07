@@ -30,9 +30,14 @@ export const searchProducts = async (filters: SearchFilters): Promise<SearchResu
       results = await searchProductsWithDatabase(filters);
     }
     
+    console.log('Initial search results count:', results.products.length);
+    
     // Apply additional client-side filtering and sorting
     let filteredProducts = filterProducts(results.products, filters);
+    console.log('After filtering - products count:', filteredProducts.length);
+    
     let sortedProducts = sortProducts(filteredProducts, filters.sort);
+    console.log('After sorting - final products count:', sortedProducts.length);
     
     return {
       products: sortedProducts,

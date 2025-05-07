@@ -10,27 +10,50 @@ export const filterProducts = (products: any[], filters: SearchFilters) => {
   return products.filter(product => {
     // Filter by category (if array is provided)
     if (category && category.length > 0) {
-      const categoryMatches = category.some(cat => 
-        product.category_id === cat || 
-        (product.category && product.category.id === cat)
-      );
+      // Check if category matches either by direct ID or through the category object
+      const categoryMatches = category.some(cat => {
+        // Handle both formats: direct category_id or nested category object
+        if (product.category_id === cat) return true;
+        if (product.category && product.category.id === cat) return true;
+        
+        // Additional fallback for different data structures
+        if (product.categoryId === cat) return true;
+        if (product.category && typeof product.category === 'string' && product.category === cat) return true;
+        
+        return false;
+      });
+      
       if (!categoryMatches) return false;
     }
     
     // Filter by subcategory (if array is provided)
     if (subcategory && subcategory.length > 0) {
-      const subcategoryMatches = subcategory.some(subcat => 
-        product.subcategory_id === subcat
-      );
+      // Check if subcategory matches either by direct ID or through a subcategory object
+      const subcategoryMatches = subcategory.some(subcat => {
+        // Handle different possible formats
+        if (product.subcategory_id === subcat) return true;
+        if (product.subcategory && product.subcategory.id === subcat) return true;
+        if (product.subcategoryId === subcat) return true;
+        if (product.subcategory && typeof product.subcategory === 'string' && product.subcategory === subcat) return true;
+        
+        return false;
+      });
+      
       if (!subcategoryMatches) return false;
     }
     
     // Filter by artisan (if array is provided)
     if (artisans && artisans.length > 0) {
-      const artisanMatches = artisans.some(artisanId => 
-        product.artisan_id === artisanId ||
-        (product.artisan && product.artisan.id === artisanId)
-      );
+      // Check if artisan matches either by direct ID or through the artisan object
+      const artisanMatches = artisans.some(artisanId => {
+        // Handle different possible formats
+        if (product.artisan_id === artisanId) return true;
+        if (product.artisanId === artisanId) return true;
+        if (product.artisan && product.artisan.id === artisanId) return true;
+        
+        return false;
+      });
+      
       if (!artisanMatches) return false;
     }
     
