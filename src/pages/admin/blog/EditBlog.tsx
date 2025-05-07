@@ -6,6 +6,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getUserProfile } from '@/utils/authUtils';
 
 const EditBlog = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,21 +23,19 @@ const EditBlog = () => {
       try {
         console.log('Fetching blog post with ID:', id);
         
-        const { data, error } = await supabase
+        // First, fetch the blog post without the profiles join
+        const { data: post, error: postError } = await supabase
           .from('blog_posts')
-          .select(`
-            *,
-            profiles:author_id (id, first_name, last_name, role, email)
-          `)
+          .select('*')
           .eq('id', id)
-          .maybeSingle();
+          .single();
           
-        if (error) {
-          console.error('Error fetching blog data:', error);
-          throw error;
+        if (postError) {
+          console.error('Error fetching blog data:', postError);
+          throw postError;
         }
         
-        if (!data) {
+        if (!post) {
           setError('Blog post not found');
           toast({
             title: 'Erreur',
@@ -47,8 +46,21 @@ const EditBlog = () => {
           return;
         }
         
-        console.log('Blog post data retrieved:', data);
-        setBlogData(data);
+        // If there's an author_id, fetch the author details separately
+        let authorData = null;
+        if (post.author_id) {
+          authorData = await getUserProfile(post.author_id);
+          console.log('Author data retrieved:', authorData);
+        }
+        
+        // Combine blog post and author data
+        const blogPostWithAuthor = {
+          ...post,
+          profiles: authorData // This keeps backward compatibility with any code expecting profiles
+        };
+        
+        console.log('Blog post data retrieved:', blogPostWithAuthor);
+        setBlogData(blogPostWithAuthor);
       } catch (err: any) {
         console.error('Error fetching blog post:', err);
         setError(err.message);

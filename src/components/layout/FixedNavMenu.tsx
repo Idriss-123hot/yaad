@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { ChevronUp, ShoppingBag, Home, User, Search, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/useCart';
@@ -8,7 +8,6 @@ import { useWishlist } from '@/hooks/useWishlist';
 
 export function FixedNavMenu() {
   const [isVisible, setIsVisible] = useState(false);
-  const navigate = useNavigate();
   const { getCartCount } = useCart();
   const { wishlistItems } = useWishlist();
   const cartCount = getCartCount();
@@ -31,11 +30,6 @@ export function FixedNavMenu() {
       top: 0,
       behavior: 'smooth',
     });
-  };
-
-  // Handles proper navigation and prevents page reload issues
-  const handleNavigation = (path: string) => {
-    navigate(path);
   };
 
   return (

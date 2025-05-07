@@ -1,3 +1,4 @@
+
 import { Link } from 'react-router-dom';
 
 export function Footer() {
@@ -12,6 +13,7 @@ export function Footer() {
               La boutique de l'artisanat marocain authentique, qui met en valeur le travail des artisans locaux.
             </p>
             <div className="flex space-x-4 text-gray-400">
+              {/* TODO: Mettre à jour les URL des réseaux sociaux */}
               <a href="#" className="hover:text-white transition-colors">
                 <span className="sr-only">Facebook</span>
                 <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
