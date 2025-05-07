@@ -6,7 +6,8 @@ import ArtisanSidebar from './ArtisanSidebar';
 import { ArtisanHeader } from './ArtisanHeader';
 import { checkArtisanRole, updateLastActivity } from '@/utils/authUtils';
 import { Loader2 } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ArtisanLayoutProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   // Vérifier l'autorisation au chargement
   useEffect(() => {
@@ -51,8 +53,6 @@ export function ArtisanLayout({ children }: ArtisanLayoutProps) {
             
             if (!isArtisan) {
               console.log("ArtisanLayout: User is not an artisan, logging out");
-              
-              await supabase.auth.signOut();
               
               toast({
                 title: 'Accès non autorisé',
