@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -19,8 +19,8 @@ export function LanguageSelector({ className }: LanguageSelectorProps) {
   
   // Function to handle language change
   const handleLanguageChange = (language: Language) => {
+    console.log(`LanguageSelector: Selected language ${language}`);
     changeLanguage(language);
-    // The HTML dir attribute will be updated via the RTL effect in App.tsx
   };
 
   // Language options with their display names

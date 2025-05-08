@@ -8,6 +8,7 @@ export function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { t } = useTranslations();
   
+  // Prepare slides with translations
   const slides = [
     {
       image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Blog%20et%20home%20page/Photo%20salon%20marocain.jpeg',

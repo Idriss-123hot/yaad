@@ -13,6 +13,7 @@ import FeaturedArtisansCarousel from '@/components/home/FeaturedArtisansCarousel
 import SearchBar from '@/components/search/SearchBar';
 import { useNavigate } from 'react-router-dom';
 import { useTranslations } from '@/lib/i18n';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 /**
  * Home page component
@@ -27,6 +28,7 @@ import { useTranslations } from '@/lib/i18n';
 const Home = () => {
   const navigate = useNavigate();
   const { t } = useTranslations();
+  const { currentLanguage } = useLanguage();
   
   useEffect(() => {
     // Smooth scroll to top when component mounts
@@ -35,6 +37,11 @@ const Home = () => {
       behavior: 'smooth',
     });
   }, []);
+  
+  useEffect(() => {
+    // Force re-render when language changes
+    console.log(`Home page: Language changed to ${currentLanguage}`);
+  }, [currentLanguage]);
   
   // Handle search from the homepage
   const handleSearch = (filters) => {

@@ -32,13 +32,13 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
 
   // Effect to update localStorage when language changes
   useEffect(() => {
+    console.log(`LanguageProvider: Language changed to ${currentLanguage}`);
     localStorage.setItem('yaad-language', currentLanguage);
-    // You might want to add additional code here to refresh content
-    // when language changes, depending on your implementation
   }, [currentLanguage]);
 
   // Function to change the current language
   const changeLanguage = (language: Language) => {
+    console.log(`Changing language to: ${language}`);
     setCurrentLanguage(language);
   };
 

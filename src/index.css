@@ -76,38 +76,46 @@
   }
 }
 
-/* RTL Support */
-.rtl {
+/* RTL Text Support - Only affect text properties, not layout */
+.rtl-text {
   direction: rtl;
   text-align: right;
 }
 
-/* RTL-specific adjustments */
-.rtl .flex-row {
+/* RTL for text elements only - not changing layout */
+.rtl-text h1,
+.rtl-text h2,
+.rtl-text h3,
+.rtl-text h4,
+.rtl-text h5,
+.rtl-text h6,
+.rtl-text p,
+.rtl-text span,
+.rtl-text li,
+.rtl-text label,
+.rtl-text input,
+.rtl-text textarea,
+.rtl-text button {
+  text-align: right;
+}
+
+/* Fix for shadcn dropdown menus in RTL */
+[dir="rtl"] [data-radix-popper-content-wrapper] {
+  transform-origin: right top !important;
+}
+
+/* Specific RTL adjustments for inline elements with icons */
+.rtl-text .inline-flex:has(svg) {
   flex-direction: row-reverse;
 }
 
-.rtl .mr-2 {
-  margin-right: 0;
-  margin-left: 0.5rem;
-}
-
-.rtl .ml-2 {
+/* Specific adjustments for icon+text spacing in RTL */
+.rtl-text .ml-2 {
   margin-left: 0;
   margin-right: 0.5rem;
 }
 
-.rtl .mr-4 {
+.rtl-text .mr-2 {
   margin-right: 0;
-  margin-left: 1rem;
-}
-
-.rtl .ml-4 {
-  margin-left: 0;
-  margin-right: 1rem;
-}
-
-/* Fix for shadcn dropdown menus in RTL */
-.rtl [data-radix-popper-content-wrapper] {
-  transform-origin: right top !important;
+  margin-left: 0.5rem;
 }
