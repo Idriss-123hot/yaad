@@ -2,30 +2,32 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/lib/i18n';
 
 export function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { t } = useTranslations();
   
   const slides = [
     {
       image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Blog%20et%20home%20page/Photo%20salon%20marocain.jpeg',
-      title: 'Artisanat Authentique',
-      subtitle: 'Découvrez notre collection exclusive d\'artisanat marocain',
-      cta: 'Explorer',
+      title: t('authentic_crafts', 'Artisanat Authentique'),
+      subtitle: t('discover_collection', 'Découvrez notre collection exclusive d\'artisanat marocain'),
+      cta: t('explore', 'Explorer'),
       link: '/categories',
     },
     {
       image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Blog%20et%20home%20page/Cusine%20Marocaine.png',
-      title: 'Tapis Berbères',
-      subtitle: 'Des motifs traditionnels tissés à la main par nos artisans',
-      cta: 'Découvrir',
+      title: t('berber_carpets', 'Tapis Berbères'),
+      subtitle: t('traditional_patterns', 'Des motifs traditionnels tissés à la main par nos artisans'),
+      cta: t('discover', 'Découvrir'),
       link: '/categories/textiles-fabrics',
     },
     {
       image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Blog%20et%20home%20page/Chambre%20Marocaine.png',
-      title: 'Savoir-Faire Marocain',
-      subtitle: 'Rencontrez nos artisans passionnés et leur expertise',
-      cta: 'Rencontrer',
+      title: t('moroccan_craftsmanship', 'Savoir-Faire Marocain'),
+      subtitle: t('meet_artisans', 'Rencontrez nos artisans passionnés et leur expertise'),
+      cta: t('meet', 'Rencontrer'),
       link: '/artisans',
     },
   ];
@@ -92,7 +94,7 @@ export function Hero() {
         onClick={prevSlide}
       >
         <ArrowLeft className="h-6 w-6" />
-        <span className="sr-only">Précédent</span>
+        <span className="sr-only">{t('previous', 'Précédent')}</span>
       </Button>
       <Button
         variant="outline"
@@ -101,7 +103,7 @@ export function Hero() {
         onClick={nextSlide}
       >
         <ArrowRight className="h-6 w-6" />
-        <span className="sr-only">Suivant</span>
+        <span className="sr-only">{t('next', 'Suivant')}</span>
       </Button>
 
       {/* Dots indicator */}
@@ -113,7 +115,7 @@ export function Hero() {
               currentSlide === index ? 'bg-terracotta-600' : 'bg-white hover:bg-white/80'
             } shadow-sm`}
             onClick={() => setCurrentSlide(index)}
-            aria-label={`Aller à la diapositive ${index + 1}`}
+            aria-label={`${t('go_to_slide', 'Aller à la diapositive')} ${index + 1}`}
           />
         ))}
       </div>

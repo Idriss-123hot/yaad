@@ -16,8 +16,8 @@ const productCarouselStyle = "px-4 md:px-8";
 const artisanCarouselStyle = "animate-fade-in";
 
 const Index = () => {
-  // Get translations from our translations table
-  const { t, isLoading } = useTranslations('fr');
+  // Get translations using our updated hook
+  const { t, isLoading } = useTranslations();
   const navigate = useNavigate();
 
   // Smooth scroll to top on page load

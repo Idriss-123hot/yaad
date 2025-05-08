@@ -12,6 +12,7 @@ import FeaturedProductsCarousel from '@/components/home/FeaturedProductsCarousel
 import FeaturedArtisansCarousel from '@/components/home/FeaturedArtisansCarousel';
 import SearchBar from '@/components/search/SearchBar';
 import { useNavigate } from 'react-router-dom';
+import { useTranslations } from '@/lib/i18n';
 
 /**
  * Home page component
@@ -25,6 +26,7 @@ import { useNavigate } from 'react-router-dom';
  */
 const Home = () => {
   const navigate = useNavigate();
+  const { t } = useTranslations();
   
   useEffect(() => {
     // Smooth scroll to top when component mounts
@@ -80,10 +82,10 @@ const Home = () => {
         <div className="py-16 px-4 md:px-6 lg:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-10">
-              <h2 className="font-serif text-3xl md:text-4xl font-bold">Savoir-Faire Exceptionnel</h2>
+              <h2 className="font-serif text-3xl md:text-4xl font-bold">{t('featured_collection', 'Savoir-Faire Exceptionnel')}</h2>
               <Button asChild variant="ghost" className="flex items-center">
                 <Link to="/products" className="flex items-center text-terracotta-600 hover:text-terracotta-700">
-                  Voir tous les produits 
+                  {t('view_all_products', 'Voir tous les produits')} 
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -97,9 +99,9 @@ const Home = () => {
         <div className="py-16 px-4 md:px-6 lg:px-8 bg-cream-50">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-10">
-              <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Catégories</h2>
+              <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">{t('browse_by_category', 'Catégories')}</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Découvrez notre sélection de produits artisanaux marocains, chaque pièce raconte une histoire unique de savoir-faire traditionnel
+                {t('explore_collection', 'Découvrez notre sélection de produits artisanaux marocains, chaque pièce raconte une histoire unique de savoir-faire traditionnel')}
               </p>
             </div>
             <Categories />
@@ -110,9 +112,9 @@ const Home = () => {
         <div className="py-16 px-4 md:px-6 lg:px-8 bg-cream-100">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-10">
-              <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Nos Artisans</h2>
+              <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">{t('our_artisans', 'Nos Artisans')}</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Découvrez les talentueux artisans derrière nos créations uniques
+                {t('discover_artisans', 'Découvrez les talentueux artisans derrière nos créations uniques')}
               </p>
             </div>
             {/* Dynamic featured artisans carousel connected to Supabase */}
@@ -120,7 +122,7 @@ const Home = () => {
             <div className="text-center mt-8">
               <Button asChild variant="outline">
                 <Link to="/artisans" className="inline-flex items-center">
-                  Tous nos artisans
+                  {t('all_artisans', 'Tous nos artisans')}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

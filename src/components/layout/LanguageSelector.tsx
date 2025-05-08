@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -8,31 +8,28 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Globe } from 'lucide-react';
-
-type Language = 'en' | 'fr';
+import { useLanguage, Language } from '@/contexts/LanguageContext';
 
 interface LanguageSelectorProps {
   className?: string;
 }
 
 export function LanguageSelector({ className }: LanguageSelectorProps) {
-  const [currentLanguage, setCurrentLanguage] = useState<Language>('fr');
-
-  const changeLanguage = (language: Language) => {
-    setCurrentLanguage(language);
-    
-    // Here you would integrate with your i18n solution
-    // For this example we're just showing the UI component
-    
-    // Example of how you might set a language in localStorage:
-    localStorage.setItem('yaad-language', language);
-    
-    // In a real app, you would trigger your i18n library here
-    // i18n.changeLanguage(language);
-    
-    // For a full implementation, you might need to reload the page
-    // or update all the translated content
+  const { currentLanguage, changeLanguage } = useLanguage();
+  
+  // Function to handle language change
+  const handleLanguageChange = (language: Language) => {
+    changeLanguage(language);
+    // The HTML dir attribute will be updated via the RTL effect in App.tsx
   };
+
+  // Language options with their display names
+  const languageOptions: { code: Language; name: string }[] = [
+    { code: 'fr', name: 'Français' },
+    { code: 'en', name: 'English' },
+    { code: 'ar', name: 'العربية' },
+    { code: 'ar-MA', name: 'الدارجة المغربية' }
+  ];
 
   return (
     <DropdownMenu>
@@ -43,18 +40,15 @@ export function LanguageSelector({ className }: LanguageSelectorProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem 
-          onClick={() => changeLanguage('fr')} 
-          className={currentLanguage === 'fr' ? 'bg-terracotta-50 text-terracotta-600' : ''}
-        >
-          Français
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => changeLanguage('en')}
-          className={currentLanguage === 'en' ? 'bg-terracotta-50 text-terracotta-600' : ''}
-        >
-          English
-        </DropdownMenuItem>
+        {languageOptions.map((option) => (
+          <DropdownMenuItem 
+            key={option.code}
+            onClick={() => handleLanguageChange(option.code)}
+            className={currentLanguage === option.code ? 'bg-terracotta-50 text-terracotta-600' : ''}
+          >
+            {option.name}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
