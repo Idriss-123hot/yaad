@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/lib/i18n';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { t } = useTranslations();
+  const { isRTL } = useLanguage();
   
   // Prepare slides with translations
   const slides = [
@@ -49,6 +51,10 @@ export function Hero() {
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
   };
+
+  // Choose arrow direction based on language (for semantic meaning)
+  const PreviousArrow = isRTL ? ArrowRight : ArrowLeft;
+  const NextArrow = isRTL ? ArrowLeft : ArrowRight;
 
   return (
     <section className="relative w-full h-[72vh] md:h-[72vh] mt-20">
@@ -94,7 +100,7 @@ export function Hero() {
         className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full h-12 w-12 z-10 shadow-md"
         onClick={prevSlide}
       >
-        <ArrowLeft className="h-6 w-6" />
+        <PreviousArrow className="h-6 w-6" />
         <span className="sr-only">{t('previous', 'Précédent')}</span>
       </Button>
       <Button
@@ -103,7 +109,7 @@ export function Hero() {
         className="absolute right-4 top-1/2 -translate-y-1/2 bg-white rounded-full h-12 w-12 z-10 shadow-md"
         onClick={nextSlide}
       >
-        <ArrowRight className="h-6 w-6" />
+        <NextArrow className="h-6 w-6" />
         <span className="sr-only">{t('next', 'Suivant')}</span>
       </Button>
 

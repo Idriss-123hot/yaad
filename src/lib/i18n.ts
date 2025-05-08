@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -13,57 +13,23 @@ const DEFAULT_TRANSLATIONS: { [key: string]: Translations } = {
   fr: {
     view_all_products: 'Voir tous les produits',
     featured_collection: 'Collection à la une',
-    browse_by_category: 'Rechercher par catégories',
-    explore_collection: 'Explorer la collection',
-    our_artisans: 'Nos Artisans',
-    discover_artisans: 'Découvrez les talentueux artisans derrière nos créations uniques',
-    all_artisans: 'Tous nos artisans',
-    authentic_crafts: 'Artisanat Authentique',
-    discover_collection: 'Découvrez notre collection exclusive d\'artisanat marocain',
-    berber_carpets: 'Tapis Berbères',
-    traditional_patterns: 'Des motifs traditionnels tissés à la main par nos artisans',
-    moroccan_craftsmanship: 'Savoir-Faire Marocain',
-    meet_artisans: 'Rencontrez nos artisans passionnés et leur expertise',
-    explore: 'Explorer',
-    discover: 'Découvrir',
-    meet: 'Rencontrer',
-    previous: 'Précédent',
-    next: 'Suivant',
-    go_to_slide: 'Aller à la diapositive',
+    // Essential fallbacks for critical UI elements
   },
   en: {
     view_all_products: 'View all products',
     featured_collection: 'Featured collection',
-    browse_by_category: 'Browse by category',
-    explore_collection: 'Explore collection',
-    our_artisans: 'Our Artisans',
-    discover_artisans: 'Discover the talented artisans behind our unique creations',
-    all_artisans: 'All artisans',
-    authentic_crafts: 'Authentic Crafts',
-    discover_collection: 'Discover our exclusive collection of Moroccan craftsmanship',
-    berber_carpets: 'Berber Carpets',
-    traditional_patterns: 'Traditional patterns hand-woven by our artisans',
-    moroccan_craftsmanship: 'Moroccan Craftsmanship',
-    meet_artisans: 'Meet our passionate artisans and their expertise',
-    explore: 'Explore',
-    discover: 'Discover',
-    meet: 'Meet',
-    previous: 'Previous',
-    next: 'Next',
-    go_to_slide: 'Go to slide',
+    // Essential fallbacks for critical UI elements
   },
   ar: {
     view_all_products: 'عرض جميع المنتجات',
     featured_collection: 'المجموعة المميزة',
-    browse_by_category: 'تصفح حسب الفئة',
-    explore_collection: 'استكشاف المجموعة',
+    // Essential fallbacks for critical UI elements
   },
   'ar-MA': {
     view_all_products: 'شوف گاع المنتوجات',
     featured_collection: 'المجموعة الخاصة',
-    browse_by_category: 'تصفح عبر الفئات',
-    explore_collection: 'اكتشف المجموعة',
-  },
+    // Essential fallbacks for critical UI elements
+  }
 };
 
 /**
@@ -77,15 +43,71 @@ export function useTranslations() {
   
   const [translations, setTranslations] = useState<Translations>(DEFAULT_TRANSLATIONS[locale] || DEFAULT_TRANSLATIONS.fr);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
+
+  // Cache management
+  const cacheTTL = 5 * 60 * 1000; // 5 minutes cache expiry
+  
+  // Function to check if cache is valid
+  const isCacheValid = useCallback(() => {
+    const cachedData = localStorage.getItem(`translations_cache_${locale}`);
+    if (!cachedData) return false;
+    
+    try {
+      const { timestamp, data } = JSON.parse(cachedData);
+      return Date.now() - timestamp < cacheTTL && Object.keys(data).length > 0;
+    } catch (e) {
+      console.error('Cache validation error:', e);
+      return false;
+    }
+  }, [locale, cacheTTL]);
+
+  // Function to get cached translations
+  const getCachedTranslations = useCallback(() => {
+    try {
+      const cachedData = localStorage.getItem(`translations_cache_${locale}`);
+      if (!cachedData) return null;
+      
+      const { data } = JSON.parse(cachedData);
+      return data;
+    } catch (e) {
+      console.error('Cache retrieval error:', e);
+      return null;
+    }
+  }, [locale]);
+
+  // Function to save translations to cache
+  const cacheTranslations = useCallback((data: Translations) => {
+    try {
+      const cacheData = {
+        timestamp: Date.now(),
+        data
+      };
+      localStorage.setItem(`translations_cache_${locale}`, JSON.stringify(cacheData));
+    } catch (e) {
+      console.error('Cache saving error:', e);
+    }
+  }, [locale]);
 
   useEffect(() => {
-    console.log(`useTranslations: Language changed to ${locale}`);
+    console.log(`useTranslations: Language changed to ${locale}, fetching translations...`);
     
     const fetchTranslations = async () => {
       try {
         setIsLoading(true);
         
-        // Use a direct RPC call with proper typing
+        // Try to use cached translations first
+        if (isCacheValid()) {
+          const cachedTranslations = getCachedTranslations();
+          if (cachedTranslations) {
+            console.log(`Using cached translations for ${locale}`);
+            setTranslations(cachedTranslations);
+            setIsLoading(false);
+            return;
+          }
+        }
+        
+        // Use a direct RPC call to get translations
         const { data, error } = await supabase.rpc('get_translations', { locale });
         
         if (error) {
@@ -97,8 +119,11 @@ export function useTranslations() {
         
         if (data && Object.keys(data).length > 0) {
           // Convert data to Translations type
-          console.log(`Retrieved translations for ${locale}:`, data);
+          console.log(`Retrieved ${Object.keys(data).length} translations for ${locale}`);
           setTranslations(data as Translations);
+          
+          // Cache the translations
+          cacheTranslations(data as Translations);
         } else {
           // Fall back to default translations if no data
           console.log(`No translations found for ${locale}, using defaults`);
@@ -114,7 +139,13 @@ export function useTranslations() {
     };
 
     fetchTranslations();
-  }, [locale]); // Re-fetch when locale changes
+    // Force refresh translations every cacheTTL
+    const interval = setInterval(() => {
+      setLastUpdated(Date.now());
+    }, cacheTTL);
+
+    return () => clearInterval(interval);
+  }, [locale, lastUpdated, isCacheValid, getCachedTranslations, cacheTranslations, cacheTTL]); 
 
   /**
    * Translate a key
@@ -122,9 +153,9 @@ export function useTranslations() {
    * @param fallback Fallback text if key is not found
    * @returns Translated text
    */
-  const t = (key: string, fallback?: string): string => {
+  const t = useCallback((key: string, fallback?: string): string => {
     return translations[key] || fallback || key;
-  };
+  }, [translations]);
 
   return { t, isLoading, locale };
 }

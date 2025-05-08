@@ -78,7 +78,6 @@
 
 /* RTL Text Support - Only affect text properties, not layout */
 .rtl-text {
-  direction: rtl;
   text-align: right;
 }
 
@@ -92,11 +91,15 @@
 .rtl-text p,
 .rtl-text span,
 .rtl-text li,
-.rtl-text label,
-.rtl-text input,
-.rtl-text textarea,
-.rtl-text button {
+.rtl-text label {
   text-align: right;
+}
+
+/* RTL for input fields */
+.rtl-text input,
+.rtl-text textarea {
+  text-align: right;
+  direction: rtl;
 }
 
 /* Fix for shadcn dropdown menus in RTL */
@@ -104,18 +107,22 @@
   transform-origin: right top !important;
 }
 
-/* Specific RTL adjustments for inline elements with icons */
-.rtl-text .inline-flex:has(svg) {
+/* Specific RTL adjustments for text with icons */
+.rtl-text .has-icon-text {
+  display: flex;
   flex-direction: row-reverse;
 }
 
-/* Specific adjustments for icon+text spacing in RTL */
-.rtl-text .ml-2 {
-  margin-left: 0;
-  margin-right: 0.5rem;
-}
-
-.rtl-text .mr-2 {
+.rtl-text .has-icon-text > svg {
   margin-right: 0;
   margin-left: 0.5rem;
 }
+
+/* Button text in RTL mode */
+.rtl-text button {
+  direction: rtl;
+}
+
+/* Preserve layout direction in RTL mode */
+/* DO NOT apply flex-direction: row-reverse to layout containers by default */
+/* This ensures the layout doesn't change, only text direction does */

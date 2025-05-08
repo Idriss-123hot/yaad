@@ -681,28 +681,55 @@ export type Database = {
       }
       translations: {
         Row: {
-          created_at: string
-          en: string
-          fr: string
+          created_at: string | null
           id: string
           key: string
-          updated_at: string
+          locale: string
+          updated_at: string | null
+          value: string
         }
         Insert: {
-          created_at?: string
-          en: string
-          fr: string
+          created_at?: string | null
           id?: string
           key: string
-          updated_at?: string
+          locale: string
+          updated_at?: string | null
+          value: string
         }
         Update: {
-          created_at?: string
-          en?: string
-          fr?: string
+          created_at?: string | null
           id?: string
           key?: string
-          updated_at?: string
+          locale?: string
+          updated_at?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
+      translations_backup: {
+        Row: {
+          created_at: string | null
+          en: string | null
+          fr: string | null
+          id: string | null
+          key: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          en?: string | null
+          fr?: string | null
+          id?: string | null
+          key?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          en?: string | null
+          fr?: string | null
+          id?: string | null
+          key?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -745,7 +772,7 @@ export type Database = {
         Returns: string
       }
       get_translations: {
-        Args: { locale?: string }
+        Args: { locale: string }
         Returns: Json
       }
       is_admin: {

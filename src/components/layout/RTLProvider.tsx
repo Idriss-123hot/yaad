@@ -7,16 +7,14 @@ interface RTLProviderProps {
 }
 
 export function RTLProvider({ children }: RTLProviderProps) {
-  const { currentLanguage } = useLanguage();
+  const { currentLanguage, isRTL } = useLanguage();
   
-  // Update the document's dir attribute based on language
+  // Update the document's dir attribute and CSS classes based on language
   useEffect(() => {
-    const isRTL = currentLanguage === 'ar' || currentLanguage === 'ar-MA';
-    
-    // Only update the document direction attribute
+    // Apply RTL direction to the HTML document for proper text rendering
     document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
     
-    // Add a class for text-specific RTL styling but not layout changes
+    // Add a class for text-specific RTL styling
     if (isRTL) {
       document.body.classList.add('rtl-text');
     } else {
@@ -30,7 +28,7 @@ export function RTLProvider({ children }: RTLProviderProps) {
     return () => {
       document.body.classList.remove('rtl-text');
     };
-  }, [currentLanguage]);
+  }, [currentLanguage, isRTL]);
   
   return <>{children}</>;
 }

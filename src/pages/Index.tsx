@@ -38,7 +38,7 @@ const Index = () => {
   }, []);
 
   // Handle search from the homepage
-  const handleSearch = (filters) => {
+  const handleSearch = (filters: any) => {
     const queryParams = new URLSearchParams();
     if (filters.q) {
       queryParams.set('q', filters.q);
@@ -56,6 +56,20 @@ const Index = () => {
     
     navigate(`/search?${queryParams.toString()}`);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin h-8 w-8 border-4 border-terracotta-600 rounded-full border-t-transparent mx-auto"></div>
+            <p className="mt-4">Loading translations...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
