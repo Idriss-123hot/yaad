@@ -181,7 +181,7 @@ export default function Auth() {
             Retour à l'accueil
           </Button>
           
-          <Tabs defaultValue={isLogin ? "login" : "signup"} onValueChange={(value) => setIsLogin(value === "login")}>
+          <Tabs Value={isLogin ? "login" : "signup"} onValueChange={(value) => setIsLogin(value === "login")}>
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>
