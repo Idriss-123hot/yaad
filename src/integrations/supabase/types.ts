@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_messages: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          message: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          message: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          message?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       artisans: {
         Row: {
           bio: string | null
@@ -214,6 +241,30 @@ export type Database = {
           name?: string
           slug?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      currency_rates: {
+        Row: {
+          currency_code: string
+          currency_name: string
+          currency_symbol: string
+          last_updated: string
+          rate_against_eur: number
+        }
+        Insert: {
+          currency_code: string
+          currency_name: string
+          currency_symbol: string
+          last_updated?: string
+          rate_against_eur: number
+        }
+        Update: {
+          currency_code?: string
+          currency_name?: string
+          currency_symbol?: string
+          last_updated?: string
+          rate_against_eur?: number
         }
         Relationships: []
       }
@@ -730,6 +781,33 @@ export type Database = {
           id?: string | null
           key?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      translations_duplicate08052025: {
+        Row: {
+          created_at: string | null
+          id: string
+          key: string
+          locale: string
+          updated_at: string | null
+          value: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          key: string
+          locale: string
+          updated_at?: string | null
+          value: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          key?: string
+          locale?: string
+          updated_at?: string | null
+          value?: string
         }
         Relationships: []
       }

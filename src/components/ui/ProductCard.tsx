@@ -5,38 +5,26 @@ import { ProductWithArtisan } from '@/models/types';
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface ProductCardProps {
   product: ProductWithArtisan;
   className?: string;
 }
 
-/**
- * ProductCard Component
- * 
- * Displays a product card with image, title, artisan info, rating, and price.
- * Includes proper loading states, error handling for images, and fallback image.
- * 
- * @param product - The product data to display
- * @param className - Optional additional CSS classes
- */
 export function ProductCard({ product, className }: ProductCardProps) {
   const { id, title, price, discountPrice, rating, reviewCount, images, artisan } = product;
   const [imageError, setImageError] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const { formatPrice } = useCurrency();
   
-  // Default fallback image if no images are available
   const fallbackImage = "https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//test.jpg";
-  
-  // Get the first image or use fallback
   const firstImage = images && images.length > 0 && !imageError ? images[0] : fallbackImage;
   
-  // Calculate discount percentage if both prices are available
   const discountPercentage = price && discountPrice 
     ? Math.round(((price - discountPrice) / price) * 100) 
     : 0;
   
-  // Get artisan information
   const artisanName = artisan?.name || 'Artisan Marocain';
   const artisanId = artisan?.id || product.artisanId;
   
@@ -54,7 +42,6 @@ export function ProductCard({ product, className }: ProductCardProps) {
       "group flex flex-col overflow-hidden rounded-lg transition-all duration-300 hover-lift",
       className
     )}>
-      {/* Product Image with loading state */}
       <Link to={`/products/${id}`} className="block aspect-square overflow-hidden rounded-lg bg-muted mb-3 relative">
         {isImageLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
@@ -81,7 +68,6 @@ export function ProductCard({ product, className }: ProductCardProps) {
         )}
       </Link>
       
-      {/* Product Info */}
       <div className="flex-1 flex flex-col">
         <Link to={`/products/${id}`}>
           <h3 className="font-medium text-base line-clamp-2 mb-1 group-hover:text-terracotta-600">
@@ -111,11 +97,11 @@ export function ProductCard({ product, className }: ProductCardProps) {
         <div className="flex items-center justify-between mt-2">
           {discountPrice ? (
             <div className="flex items-center gap-2">
-              <span className="text-lg font-medium">{discountPrice}€</span>
-              <span className="text-sm text-muted-foreground line-through">{price}€</span>
+              <span className="text-lg font-medium">{formatPrice(discountPrice)}</span>
+              <span className="text-sm text-muted-foreground line-through">{formatPrice(price)}</span>
             </div>
           ) : (
-            <span className="text-lg font-medium">{price}€</span>
+            <span className="text-lg font-medium">{formatPrice(price)}</span>
           )}
         </div>
       </div>
