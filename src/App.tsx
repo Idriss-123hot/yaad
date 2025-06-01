@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -126,7 +127,7 @@ function App() {
                 </Routes>
                 
                 <ChatWidget />
-                <SessionTimeout />
+                <SessionTimeout redirectPath="/auth" />
                 <Toaster />
               </div>
             </Router>

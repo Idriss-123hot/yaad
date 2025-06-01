@@ -175,13 +175,13 @@ export default function Auth() {
           <Button 
             variant="ghost" 
             className="mb-6" 
-            onClick={handleBackToHome}
+            onClick={() => navigate('/')}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour à l'accueil
           </Button>
           
-          <Tabs Value={isLogin ? "login" : "signup"} onValueChange={(value) => setIsLogin(value === "login")}>
+          <Tabs value={isLogin ? "login" : "signup"} onValueChange={(value) => setIsLogin(value === "login")}>
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>

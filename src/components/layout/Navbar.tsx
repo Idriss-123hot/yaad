@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -32,9 +33,9 @@ import { useWishlist } from '@/hooks/useWishlist';
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { items: cartItems } = useCart();
+  const { cartItems } = useCart();
   const { user } = useAuth();
-  const { items: wishlistItems } = useWishlist();
+  const { wishlistItems } = useWishlist();
   const navigate = useNavigate();
   const { toast } = useToast();
 
