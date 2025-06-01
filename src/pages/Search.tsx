@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -7,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search as SearchIcon, X, SlidersHorizontal, Loader2, ChevronUp, ChevronDown } from 'lucide-react';
 import { ProductWithArtisan } from '@/models/types';
-import { SearchFilters } from '@/services/search';
+import { SearchFilters, SortOption } from '@/services/search';
 import { searchProducts, filtersToURLParams, getFiltersFromURL } from '@/services/search';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDebounce } from '@/hooks/useDebounce';
