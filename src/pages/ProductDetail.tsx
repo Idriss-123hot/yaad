@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -18,22 +17,37 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useCart } from '@/hooks/useCart';
 import { useCurrency } from '@/contexts/CurrencyContext';
-
 const ProductDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const {
+    id
+  } = useParams<{
+    id: string;
+  }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { isAuthenticated, user } = useAuth();
-  const { wishlistItems, addToWishlist, removeFromWishlist } = useWishlist();
-  const { addToCart } = useCart();
-  const { formatPrice } = useCurrency();
-  
+  const {
+    toast
+  } = useToast();
+  const {
+    isAuthenticated,
+    user
+  } = useAuth();
+  const {
+    wishlistItems,
+    addToWishlist,
+    removeFromWishlist
+  } = useWishlist();
+  const {
+    addToCart
+  } = useCart();
+  const {
+    formatPrice
+  } = useCurrency();
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState('');
   const [product, setProduct] = useState<ProductWithArtisan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Check if the product is in the wishlist
   const isInWishlist = wishlistItems.some(item => item.productId === id);
 
@@ -41,15 +55,15 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProductDetails = async () => {
       if (!id) return;
-      
       try {
         setLoading(true);
         setError(null);
-        
+
         // Fetch products by id with limited data to avoid recursion
-        const { data, error } = await supabase
-          .from('products')
-          .select(`
+        const {
+          data,
+          error
+        } = await supabase.from('products').select(`
             *,
             artisan:artisan_id(
               id, name, location, profile_photo, rating, review_count
@@ -57,12 +71,8 @@ const ProductDetail = () => {
             category:category_id(
               id, name
             )
-          `)
-          .eq('id', id)
-          .single();
-        
+          `).eq('id', id).single();
         if (error) throw error;
-        
         if (data) {
           // Map to ProductWithArtisan type
           const mappedProduct: ProductWithArtisan = {
@@ -84,9 +94,9 @@ const ProductDetail = () => {
             featured: data.featured || false,
             createdAt: new Date(data.created_at),
             material: data.material,
-            origin: data.origin,
+            origin: data.origin
           };
-          
+
           // Add artisan data if available
           if (data.artisan) {
             mappedProduct.artisan = {
@@ -104,7 +114,6 @@ const ProductDetail = () => {
               joinedDate: new Date()
             };
           }
-          
           setProduct(mappedProduct);
         } else {
           setError('Product not found');
@@ -116,15 +125,14 @@ const ProductDetail = () => {
         setLoading(false);
       }
     };
-    
     fetchProductDetails();
   }, [id]);
-  
+
   // Scroll to top when route changes
   useEffect(() => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth',
+      behavior: 'smooth'
     });
   }, [id]);
 
@@ -145,15 +153,16 @@ const ProductDetail = () => {
   // Add to cart
   const handleAddToCart = async () => {
     if (!product) return;
-    
     try {
-      await addToCart(product.id, quantity, selectedColor ? { color: selectedColor } : {});
+      await addToCart(product.id, quantity, selectedColor ? {
+        color: selectedColor
+      } : {});
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'ajouter le produit au panier",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
@@ -163,12 +172,15 @@ const ProductDetail = () => {
     if (!isAuthenticated) {
       toast({
         title: "Authentication required",
-        description: "Please login to add products to your wishlist",
+        description: "Please login to add products to your wishlist"
       });
-      navigate('/auth', { state: { from: `/products/${id}` } });
+      navigate('/auth', {
+        state: {
+          from: `/products/${id}`
+        }
+      });
       return;
     }
-    
     try {
       if (isInWishlist) {
         await removeFromWishlist(id!);
@@ -193,16 +205,25 @@ const ProductDetail = () => {
   };
 
   // Color options for the product
-  const colorOptions = [
-    { name: 'Natural', value: 'natural', hex: '#D2B48C' },
-    { name: 'Terracotta', value: 'terracotta', hex: '#b06a5b' },
-    { name: 'Blue', value: 'blue', hex: '#4682B4' },
-    { name: 'Green', value: 'green', hex: '#556B2F' },
-  ];
-
+  const colorOptions = [{
+    name: 'Natural',
+    value: 'natural',
+    hex: '#D2B48C'
+  }, {
+    name: 'Terracotta',
+    value: 'terracotta',
+    hex: '#b06a5b'
+  }, {
+    name: 'Blue',
+    value: 'blue',
+    hex: '#4682B4'
+  }, {
+    name: 'Green',
+    value: 'green',
+    hex: '#556B2F'
+  }];
   if (loading) {
-    return (
-      <div className="flex flex-col min-h-screen">
+    return <div className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-grow pt-24 flex items-center justify-center">
           <div className="text-center">
@@ -212,13 +233,10 @@ const ProductDetail = () => {
         </main>
         <Footer />
         <FixedNavMenu />
-      </div>
-    );
+      </div>;
   }
-
   if (error || !product) {
-    return (
-      <div className="flex flex-col min-h-screen">
+    return <div className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-grow pt-24 flex items-center justify-center">
           <div className="text-center max-w-md mx-auto px-4">
@@ -233,12 +251,9 @@ const ProductDetail = () => {
         </main>
         <Footer />
         <FixedNavMenu />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="flex flex-col min-h-screen">
+  return <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow pt-24">
         {/* Breadcrumb */}
@@ -252,17 +267,12 @@ const ProductDetail = () => {
               <Link to="/products" className="hover:text-terracotta-600 transition-colors">
                 Products
               </Link>
-              {product.category && (
-                <>
+              {product.category && <>
                   <ChevronRight className="h-4 w-4 mx-2" />
-                  <Link 
-                    to={`/categories/${product.categoryId}/products`} 
-                    className="hover:text-terracotta-600 transition-colors"
-                  >
+                  <Link to={`/categories/${product.categoryId}/products`} className="hover:text-terracotta-600 transition-colors">
                     {product.category}
                   </Link>
-                </>
-              )}
+                </>}
               <ChevronRight className="h-4 w-4 mx-2" />
               <span className="text-foreground truncate max-w-[200px]">{product.title}</span>
             </div>
@@ -282,12 +292,7 @@ const ProductDetail = () => {
                 <h1 className="font-serif text-3xl font-bold mb-2">{product.title}</h1>
                 <div className="flex items-center mb-4">
                   <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i}
-                        className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
-                      />
-                    ))}
+                    {[...Array(5)].map((_, i) => <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} />)}
                   </div>
                   <span className="ml-2 text-sm text-muted-foreground">
                     {product.rating.toFixed(1)} ({product.reviewCount} reviews)
@@ -296,8 +301,7 @@ const ProductDetail = () => {
 
                 {/* Price with currency conversion */}
                 <div className="mb-6">
-                  {product.discountPrice ? (
-                    <div className="flex items-center">
+                  {product.discountPrice ? <div className="flex items-center">
                       <span className="text-2xl font-bold text-terracotta-600">
                         {formatPrice(product.discountPrice)}
                       </span>
@@ -307,12 +311,9 @@ const ProductDetail = () => {
                       <span className="ml-3 bg-terracotta-100 text-terracotta-800 px-2 py-1 rounded-full text-xs font-medium">
                         {Math.round((1 - product.discountPrice / product.price) * 100)}% OFF
                       </span>
-                    </div>
-                  ) : (
-                    <span className="text-2xl font-bold text-terracotta-600">
+                    </div> : <span className="text-2xl font-bold text-terracotta-600">
                       {formatPrice(product.price)}
-                    </span>
-                  )}
+                    </span>}
                 </div>
 
                 {/* Description */}
@@ -322,40 +323,26 @@ const ProductDetail = () => {
 
                 {/* Color Options */}
                 <div className="mb-6">
-                  <p className="font-medium mb-2">Color</p>
+                  <p className="font-medium mb-2">Couleur</p>
                   <div className="flex space-x-3">
-                    {colorOptions.map((color) => (
-                      <button
-                        key={color.value}
-                        onClick={() => setSelectedColor(color.value)}
-                        className={`w-8 h-8 rounded-full border-2 ${selectedColor === color.value ? 'border-terracotta-600' : 'border-transparent'}`}
-                        style={{ backgroundColor: color.hex }}
-                        title={color.name}
-                      >
+                    {colorOptions.map(color => <button key={color.value} onClick={() => setSelectedColor(color.value)} className={`w-8 h-8 rounded-full border-2 ${selectedColor === color.value ? 'border-terracotta-600' : 'border-transparent'}`} style={{
+                    backgroundColor: color.hex
+                  }} title={color.name}>
                         <span className="sr-only">{color.name}</span>
-                      </button>
-                    ))}
+                      </button>)}
                   </div>
                 </div>
 
                 {/* Quantity Selector */}
                 <div className="mb-6">
-                  <p className="font-medium mb-2">Quantity</p>
+                  <p className="font-medium mb-2">Quantité</p>
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center border rounded-md">
-                      <button 
-                        onClick={decrementQuantity}
-                        className="px-3 py-2 text-muted-foreground hover:text-terracotta-600 disabled:opacity-50"
-                        disabled={quantity <= 1}
-                      >
+                      <button onClick={decrementQuantity} className="px-3 py-2 text-muted-foreground hover:text-terracotta-600 disabled:opacity-50" disabled={quantity <= 1}>
                         <Minus className="h-4 w-4" />
                       </button>
                       <span className="w-8 text-center">{quantity}</span>
-                      <button 
-                        onClick={incrementQuantity}
-                        className="px-3 py-2 text-muted-foreground hover:text-terracotta-600 disabled:opacity-50"
-                        disabled={quantity >= 10 || quantity >= product.stock}
-                      >
+                      <button onClick={incrementQuantity} className="px-3 py-2 text-muted-foreground hover:text-terracotta-600 disabled:opacity-50" disabled={quantity >= 10 || quantity >= product.stock}>
                         <Plus className="h-4 w-4" />
                       </button>
                     </div>
@@ -367,19 +354,11 @@ const ProductDetail = () => {
 
                 {/* Add to Cart & Wishlist */}
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-8">
-                  <Button 
-                    onClick={handleAddToCart}
-                    className="flex-1 bg-terracotta-600 hover:bg-terracotta-700 text-white"
-                    disabled={product.stock < 1}
-                  >
+                  <Button onClick={handleAddToCart} className="flex-1 bg-terracotta-600 hover:bg-terracotta-700 text-white" disabled={product.stock < 1}>
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     {product.stock < 1 ? 'Out of Stock' : 'Add to Cart'}
                   </Button>
-                  <Button 
-                    onClick={handleToggleWishlist}
-                    variant="outline"
-                    className={`flex-1 ${isInWishlist ? 'bg-rose-50 text-rose-600 border-rose-200' : ''}`}
-                  >
+                  <Button onClick={handleToggleWishlist} variant="outline" className={`flex-1 ${isInWishlist ? 'bg-rose-50 text-rose-600 border-rose-200' : ''}`}>
                     <Heart className={`mr-2 h-4 w-4 ${isInWishlist ? 'fill-rose-500' : ''}`} />
                     {isInWishlist ? 'In Favorites' : 'Add to Favorites'}
                   </Button>
@@ -390,19 +369,15 @@ const ProductDetail = () => {
                   <div className="flex items-start mb-3">
                     <Truck className="h-5 w-5 text-terracotta-600 mr-3 mt-0.5" />
                     <div>
-                      <p className="font-medium">Shipping</p>
-                      <p className="text-sm text-muted-foreground">
-                        Free shipping in France from €100. Estimated time: 5-7 business days.
-                      </p>
+                      <p className="font-medium">Livraison</p>
+                      <p className="text-sm text-muted-foreground">Livraison gratuite à partir de €100. Délai de livraison estimé: 2-7 jour ouvré.</p>
                     </div>
                   </div>
                   <div className="flex items-start">
                     <ShieldCheck className="h-5 w-5 text-terracotta-600 mr-3 mt-0.5" />
                     <div>
-                      <p className="font-medium">Returns</p>
-                      <p className="text-sm text-muted-foreground">
-                        Returns accepted within 14 days for non-personalized products.
-                      </p>
+                      <p className="font-medium">Retours</p>
+                      <p className="text-sm text-muted-foreground">Retours acceptés sous 14 jours ouvrés après récéption (valable uniquement pour les produits non personalisés).</p>
                     </div>
                   </div>
                 </div>
@@ -413,14 +388,9 @@ const ProductDetail = () => {
                     <Share2 className="h-4 w-4 mr-1" />
                     Share
                   </button>
-                  {product.artisan && (
-                    <Link 
-                      to={`/artisans/${product.artisanId}`} 
-                      className="text-terracotta-600 hover:underline"
-                    >
+                  {product.artisan && <Link to={`/artisans/${product.artisanId}`} className="text-terracotta-600 hover:underline">
                       View Artisan
-                    </Link>
-                  )}
+                    </Link>}
                 </div>
               </div>
             </div>
@@ -433,7 +403,7 @@ const ProductDetail = () => {
             <Tabs defaultValue="description">
               <TabsList className="grid grid-cols-3 mb-8">
                 <TabsTrigger value="description">Description</TabsTrigger>
-                <TabsTrigger value="details">Product Details</TabsTrigger>
+                <TabsTrigger value="details">Détails du produit</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews ({product.reviewCount})</TabsTrigger>
               </TabsList>
               
@@ -492,45 +462,27 @@ const ProductDetail = () => {
                   <h3 className="font-medium text-lg">Customer Reviews ({product.reviewCount})</h3>
                   <div className="flex items-center">
                     <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i}
-                          className={`h-5 w-5 ${i < Math.floor(product.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
-                        />
-                      ))}
+                      {[...Array(5)].map((_, i) => <Star key={i} className={`h-5 w-5 ${i < Math.floor(product.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} />)}
                     </div>
                     <span className="ml-2 font-medium">{product.rating.toFixed(1)}/5</span>
                   </div>
                 </div>
                 
                 <div className="space-y-6">
-                  {[...Array(3)].map((_, idx) => (
-                    <div key={idx} className="border-b pb-6 last:border-0 last:pb-0">
+                  {[...Array(3)].map((_, idx) => <div key={idx} className="border-b pb-6 last:border-0 last:pb-0">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium">Satisfied Customer</h4>
                         <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <Star 
-                              key={i}
-                              className={`h-4 w-4 ${i < 5 - idx ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
-                            />
-                          ))}
+                          {[...Array(5)].map((_, i) => <Star key={i} className={`h-4 w-4 ${i < 5 - idx ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} />)}
                         </div>
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">
                         {new Date(Date.now() - 1000 * 60 * 60 * 24 * 30 * idx).toLocaleDateString()}
                       </p>
                       <p className="text-muted-foreground">
-                        {idx === 0 ? (
-                          "Superb quality and beautiful design. I am very satisfied with my purchase. The product is exactly as described and the finish is impeccable."
-                        ) : idx === 1 ? (
-                          "Very beautiful piece of artisanal furniture that found its place in my living room. The delivery was quick and the packaging was well done. I highly recommend!"
-                        ) : (
-                          "Good product but a little smaller than I expected. The quality is still excellent and the customer service very responsive."
-                        )}
+                        {idx === 0 ? "Superb quality and beautiful design. I am very satisfied with my purchase. The product is exactly as described and the finish is impeccable." : idx === 1 ? "Very beautiful piece of artisanal furniture that found its place in my living room. The delivery was quick and the packaging was well done. I highly recommend!" : "Good product but a little smaller than I expected. The quality is still excellent and the customer service very responsive."}
                       </p>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
                 
                 <Button className="mt-8 bg-terracotta-600 hover:bg-terracotta-700 text-white">
@@ -542,17 +494,10 @@ const ProductDetail = () => {
         </section>
 
         {/* Related Products */}
-        <RelatedProducts 
-          currentProductId={product.id}
-          categoryId={product.categoryId}
-          artisanId={product.artisanId}
-          maxProducts={4}
-        />
+        <RelatedProducts currentProductId={product.id} categoryId={product.categoryId} artisanId={product.artisanId} maxProducts={4} />
       </main>
       <Footer />
       <FixedNavMenu />
-    </div>
-  );
+    </div>;
 };
-
 export default ProductDetail;
