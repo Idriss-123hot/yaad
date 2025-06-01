@@ -38,6 +38,15 @@ const Index = () => {
     });
   }, []);
 
+  useEffect(() => {
+    // Set CSS variable for admin banner height adjustment
+    const adminBanner = document.querySelector('[data-admin-banner]');
+    if (adminBanner) {
+      const height = adminBanner.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--admin-banner-height', `${height}px`);
+    }
+  }, []);
+
   // Handle search from the homepage
   const handleSearch = (filters: any) => {
     const queryParams = new URLSearchParams();
@@ -74,9 +83,11 @@ const Index = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <AdminBanner />
+      <div data-admin-banner>
+        <AdminBanner />
+      </div>
       <Navbar />
-      <main className="flex-grow">
+      <main className="flex-grow" style={{ marginTop: 'calc(64px + var(--admin-banner-height, 0px))' }}>
         <Hero />
         
         <section className="py-12 px-6 md:px-12 bg-cream-50">

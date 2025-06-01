@@ -50,7 +50,7 @@ export function AdminBanner() {
   if (messages.length === 0) return null;
 
   return (
-    <div className="bg-black text-white text-center py-2 px-4 text-sm font-medium">
+    <div className="bg-black text-white text-center py-2 px-4 text-sm font-medium relative z-40">
       <div className="max-w-7xl mx-auto">
         {messages[currentMessageIndex]?.message}
       </div>
