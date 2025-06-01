@@ -16,11 +16,15 @@ interface CurrencySelectorProps {
 export function CurrencySelector({ className }: CurrencySelectorProps) {
   const { currentCurrency, currencyRates, changeCurrency } = useCurrency();
 
+  // Get the current currency symbol for display
+  const currentCurrencyData = currencyRates.find(rate => rate.currency_code === currentCurrency);
+  const displaySymbol = currentCurrencyData?.currency_symbol || '$';
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className={className}>
-          <DollarSign className="h-[1.2rem] w-[1.2rem]" />
+          <span className="text-sm font-medium">{displaySymbol}</span>
           <span className="sr-only">Toggle currency</span>
         </Button>
       </DropdownMenuTrigger>

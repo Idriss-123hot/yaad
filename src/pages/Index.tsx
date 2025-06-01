@@ -70,8 +70,11 @@ const Index = () => {
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen">
+        <div data-admin-banner>
+          <AdminBanner />
+        </div>
         <Navbar />
-        <main className="flex-grow flex items-center justify-center">
+        <main className="flex-grow flex items-center justify-center" style={{ marginTop: 'calc(64px + var(--admin-banner-height, 0px))' }}>
           <div className="text-center">
             <div className="animate-spin h-8 w-8 border-4 border-terracotta-600 rounded-full border-t-transparent mx-auto"></div>
             <p className="mt-4">Loading translations...</p>

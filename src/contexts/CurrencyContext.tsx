@@ -36,10 +36,10 @@ interface CurrencyProviderProps {
 
 export const CurrencyProvider = ({ children }: CurrencyProviderProps) => {
   const [currentCurrency, setCurrentCurrency] = useState<string>(() => {
-    return localStorage.getItem('yaad-currency') || 'EUR';
+    return localStorage.getItem('yaad-currency') || 'MAD';
   });
   const [currencyRates, setCurrencyRates] = useState<CurrencyRate[]>([]);
-  const [currencySymbol, setCurrencySymbol] = useState('€');
+  const [currencySymbol, setCurrencySymbol] = useState('DH');
 
   // Fetch currency rates from Supabase
   useEffect(() => {
@@ -97,11 +97,15 @@ export const CurrencyProvider = ({ children }: CurrencyProviderProps) => {
     const currency = targetCurrency || currentCurrency;
     const convertedPrice = convertPrice(priceInEur, currency);
     const rate = currencyRates.find(r => r.currency_code === currency);
-    const symbol = rate?.currency_symbol || '€';
+    const symbol = rate?.currency_symbol || 'DH';
     
-    // Special formatting for Japanese Yen (no decimals)
+    // Special formatting for different currencies
     if (currency === 'JPY') {
       return `${symbol}${Math.round(convertedPrice).toLocaleString()}`;
+    }
+    
+    if (currency === 'MAD') {
+      return `${convertedPrice.toFixed(2)} ${symbol}`;
     }
     
     return `${symbol}${convertedPrice.toFixed(2)}`;
