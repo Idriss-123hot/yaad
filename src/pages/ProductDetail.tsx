@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -15,6 +16,8 @@ import { RelatedProducts } from '@/components/product/RelatedProducts';
 import { Star, Truck, ShieldCheck, Heart, Share2, ChevronRight, Minus, Plus, ShoppingCart, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWishlist } from '@/hooks/useWishlist';
+import { useCart } from '@/hooks/useCart';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +25,8 @@ const ProductDetail = () => {
   const { toast } = useToast();
   const { isAuthenticated, user } = useAuth();
   const { wishlistItems, addToWishlist, removeFromWishlist } = useWishlist();
+  const { addToCart } = useCart();
+  const { formatPrice } = useCurrency();
   
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState('');
@@ -138,12 +143,19 @@ const ProductDetail = () => {
   };
 
   // Add to cart
-  const handleAddToCart = () => {
-    // This would normally call a cart service/hook
-    toast({
-      title: "Product added to cart",
-      description: `You have added ${quantity} ${product?.title} to your cart.`,
-    });
+  const handleAddToCart = async () => {
+    if (!product) return;
+    
+    try {
+      await addToCart(product.id, quantity, selectedColor ? { color: selectedColor } : {});
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter le produit au panier",
+        variant: "destructive",
+      });
+    }
   };
 
   // Add to wishlist
@@ -282,15 +294,15 @@ const ProductDetail = () => {
                   </span>
                 </div>
 
-                {/* Price */}
+                {/* Price with currency conversion */}
                 <div className="mb-6">
                   {product.discountPrice ? (
                     <div className="flex items-center">
                       <span className="text-2xl font-bold text-terracotta-600">
-                        {product.discountPrice.toFixed(2)} €
+                        {formatPrice(product.discountPrice)}
                       </span>
                       <span className="ml-3 text-lg text-muted-foreground line-through">
-                        {product.price.toFixed(2)} €
+                        {formatPrice(product.price)}
                       </span>
                       <span className="ml-3 bg-terracotta-100 text-terracotta-800 px-2 py-1 rounded-full text-xs font-medium">
                         {Math.round((1 - product.discountPrice / product.price) * 100)}% OFF
@@ -298,7 +310,7 @@ const ProductDetail = () => {
                     </div>
                   ) : (
                     <span className="text-2xl font-bold text-terracotta-600">
-                      {product.price.toFixed(2)} €
+                      {formatPrice(product.price)}
                     </span>
                   )}
                 </div>

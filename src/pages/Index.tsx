@@ -8,6 +8,7 @@ import { Categories } from '@/components/home/Categories';
 import FeaturedProductsCarousel from '@/components/home/FeaturedProductsCarousel';
 import FeaturedArtisansCarousel from '@/components/home/FeaturedArtisansCarousel';
 import SearchBar from '@/components/search/SearchBar';
+import { AdminBanner } from '@/components/layout/AdminBanner';
 import { ensureBucketsExist } from '@/utils/storageUtils';
 import { useTranslations } from '@/lib/i18n';
 
@@ -73,6 +74,7 @@ const Index = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <AdminBanner />
       <Navbar />
       <main className="flex-grow">
         <Hero />

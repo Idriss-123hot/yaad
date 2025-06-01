@@ -11,6 +11,7 @@ import { ArrowRight } from 'lucide-react';
 import FeaturedProductsCarousel from '@/components/home/FeaturedProductsCarousel';
 import FeaturedArtisansCarousel from '@/components/home/FeaturedArtisansCarousel';
 import SearchBar from '@/components/search/SearchBar';
+import { AdminBanner } from '@/components/layout/AdminBanner';
 import { useNavigate } from 'react-router-dom';
 import { useTranslations } from '@/lib/i18n';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -65,6 +66,7 @@ const Home = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <AdminBanner />
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
