@@ -1,4 +1,13 @@
+
 // If this file doesn't exist, I'll create it with the necessary types
+
+// Product Image Interface
+export interface ProductImage {
+  id: string;
+  url: string;
+  alt?: string;
+  isPrimary?: boolean;
+}
 
 // Product Interfaces
 export interface Product {
