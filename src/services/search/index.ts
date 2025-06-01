@@ -1,11 +1,10 @@
-
 import { debounce } from '@/lib/utils';
-import { SearchFilters, SearchResults } from './types';
+import { SearchFilters, SearchResults, SortOption } from './types';
 import { searchProductsWithEdgeFunction } from './edgeSearch';
 import { searchProductsWithDatabase } from './databaseSearch';
 import { filterProducts, sortProducts } from './filterUtils';
 export { getFiltersFromURL, filtersToURLParams } from './urlParams';
-export type { SearchFilters, SearchResults };
+export type { SearchFilters, SearchResults, SortOption };
 
 /**
  * Debounced search function to prevent rapid consecutive API calls
