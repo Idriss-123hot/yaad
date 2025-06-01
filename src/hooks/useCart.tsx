@@ -251,6 +251,42 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     saveCart(); // Appel de la fonction saveCart définie ci-dessus
   }, [cartItems, loading, user, isAuthenticated, toast, navigate]); // Ajoutez toast et navigate si utilisés dans l'effet
+
+  // Add item to cart
+  const addToCart = async (productId: string, quantity: number = 1, variations: Record<string, string> = {}) => {
+    const existingItemIndex = cartItems.findIndex(
+      (item) => item.productId === productId && 
+      JSON.stringify(item.variations) === JSON.stringify(variations)
+    );
+    
+    if (existingItemIndex >= 0) {
+      // If item already exists, update quantity
+      const updatedItems = [...cartItems];
+      updatedItems[existingItemIndex].quantity += quantity;
+      setCartItems(updatedItems);
+    } else {
+      // Get product details
+      const { data: productData, error: productError } = await supabase
+        .from('products')
+        .select(`
+          *,
+          product_variations(*),
+          artisan:artisans(*),
+          category:categories(*)
+        `)
+        .eq('id', productId)
+        .single();
+      
+      if (productError) {
+        console.error('Error fetching product:', productError);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible d\'ajouter le produit au panier',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
       // Add new item with product details
       setCartItems([
         ...cartItems,
