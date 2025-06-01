@@ -59,7 +59,9 @@ const mapDatabaseProductsToProducts = (data: DatabaseProductItem[]): ProductWith
       subcategory: '', // Ce champ pourrait être rempli si vous joignez aussi les infos de la sous-catégorie (nom, etc.)
       subcategoryId: item.subcategory_id, // ID de la sous-catégorie du produit (avec I majuscule dans le modèle JS)
       tags: item.tags || [],
-      images: (item.images as ProductImage[]) || [], // Assurez-vous du bon type ici
+      images: Array.isArray(item.images) 
+        ? item.images.map(img => typeof img === 'string' ? img : img.url || '') 
+        : [], // Convert ProductImage[] to string[] or handle string[]
       stock: item.stock,
       artisanId: item.artisan_id,         // ID de l'artisan du produit (avec I majuscule dans le modèle JS)
       rating: item.rating || 0,

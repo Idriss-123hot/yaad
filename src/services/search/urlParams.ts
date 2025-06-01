@@ -1,5 +1,18 @@
 
-import { SearchFilters } from './types';
+import { SearchFilters, SortOption } from './types';
+
+const isValidSortOption = (value: string): value is SortOption => {
+  const validOptions: SortOption[] = [
+    'price_asc', 
+    'price_desc', 
+    'created_desc', 
+    'rating_desc', 
+    'alphabetical_asc', 
+    'alphabetical_desc', 
+    'featured'
+  ];
+  return validOptions.includes(value as SortOption);
+};
 
 export const getFiltersFromURL = (searchParams: URLSearchParams): SearchFilters => {
   // Get query parameter
@@ -24,8 +37,9 @@ export const getFiltersFromURL = (searchParams: URLSearchParams): SearchFilters 
   // Get delivery option
   const delivery = searchParams.get('delivery') || undefined;
   
-  // Get sorting option
-  const sort = searchParams.get('sort') || undefined;
+  // Get sorting option with validation
+  const sortParam = searchParams.get('sort');
+  const sort = sortParam && isValidSortOption(sortParam) ? sortParam : undefined;
   
   // Get page number
   const page = searchParams.get('page') ? parseInt(searchParams.get('page') as string) : 1;

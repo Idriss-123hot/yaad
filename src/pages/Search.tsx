@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -103,7 +102,7 @@ const Search = () => {
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilters(prev => ({
       ...prev,
-      sort: e.target.value
+      sort: e.target.value as SortOption
     }));
   };
 
