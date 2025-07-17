@@ -1,7 +1,9 @@
 
 import { Link } from 'react-router-dom';
+import { useTranslations } from '@/lib/i18n';
 
 export function Footer() {
+  const { t } = useTranslations();
   return (
     <footer className="bg-stone-900 text-white pt-16 pb-8">
       <div className="container mx-auto px-4">
@@ -37,26 +39,26 @@ export function Footer() {
           
           {/* Column 2: Shop */}
           <div>
-            <h3 className="text-lg font-medium mb-4">Boutique</h3>
+            <h3 className="text-lg font-medium mb-4">{t('products', 'Boutique')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/categories" className="text-gray-400 hover:text-white transition-colors">
-                  Catégories
+                  {t('categories', 'Catégories')}
                 </Link>
               </li>
               <li>
                 <Link to="/artisans" className="text-gray-400 hover:text-white transition-colors">
-                  Artisans
+                  {t('artisans', 'Artisans')}
                 </Link>
               </li>
               <li>
                 <Link to="/search" className="text-gray-400 hover:text-white transition-colors">
-                  Recherche
+                  {t('search', 'Recherche')}
                 </Link>
               </li>
               <li>
                 <Link to="/blog" className="text-gray-400 hover:text-white transition-colors">
-                  Blog
+                  {t('blog', 'Blog')}
                 </Link>
               </li>
             </ul>
@@ -64,26 +66,26 @@ export function Footer() {
           
           {/* Column 3: Customer Service */}
           <div>
-            <h3 className="text-lg font-medium mb-4">Service Client</h3>
+            <h3 className="text-lg font-medium mb-4">{t('customer_service', 'Service Client')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/about" className="text-gray-400 hover:text-white transition-colors">
-                  À propos de nous
+                  {t('about_us', 'À propos de nous')}
                 </Link>
               </li>
               <li>
                 <Link to="/contact" className="text-gray-400 hover:text-white transition-colors">
-                  Contact
+                  {t('contact', 'Contact')}
                 </Link>
               </li>
               <li>
                 <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                  Livraison
+                  {t('shipping', 'Livraison')}
                 </a>
               </li>
               <li>
                 <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                  Retours et Remboursements
+                  {t('returns', 'Retours et Remboursements')}
                 </a>
               </li>
               <li>
@@ -96,21 +98,21 @@ export function Footer() {
           
           {/* Column 4: Newsletter */}
           <div>
-            <h3 className="text-lg font-medium mb-4">Newsletter</h3>
+            <h3 className="text-lg font-medium mb-4">{t('newsletter', 'Newsletter')}</h3>
             <p className="text-gray-400 mb-4">
               Abonnez-vous à notre newsletter pour recevoir les nouveautés et offres spéciales.
             </p>
             <form className="flex">
               <input
                 type="email"
-                placeholder="Votre email"
+                placeholder={t('email', 'Votre email')}
                 className="bg-stone-800 text-white px-4 py-2 rounded-l-md flex-grow focus:outline-none"
               />
               <button
                 type="submit"
                 className="bg-terracotta-600 hover:bg-terracotta-700 text-white px-4 py-2 rounded-r-md transition-colors"
               >
-                →
+                {t('subscribe', '→')}
               </button>
             </form>
           </div>
@@ -119,17 +121,17 @@ export function Footer() {
         <div className="border-t border-stone-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              &copy; 2023 Yaad. Tous droits réservés.
+              &copy; 2023 Yaad. {t('copyright', 'Tous droits réservés')}.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-gray-400 text-sm hover:text-white">
-                Politique de confidentialité
+                {t('privacy_policy', 'Politique de confidentialité')}
               </a>
               <a href="#" className="text-gray-400 text-sm hover:text-white">
-                Conditions d'utilisation
+                {t('terms_conditions', 'Conditions d\'utilisation')}
               </a>
               <a href="#" className="text-gray-400 text-sm hover:text-white">
-                FAQ
+                {t('faq', 'FAQ')}
               </a>
             </div>
           </div>

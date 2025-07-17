@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AdvancedFilters from './AdvancedFilters';
 import { SearchFilters } from '@/services/search';
+import { useTranslations } from '@/lib/i18n';
 
 interface SearchBarProps {
   onSearch: (filters: Partial<SearchFilters>) => void;
@@ -26,6 +27,7 @@ export const SearchBar = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslations();
   
   useEffect(() => {
     if (autoFocus && inputRef.current) {
@@ -88,7 +90,7 @@ export const SearchBar = ({
           <Input
             ref={inputRef}
             type="search"
-            placeholder="Search products, artisans, etc."
+            placeholder={t('search_products', 'Search products, artisans, etc.')}
             value={searchQuery}
             onChange={handleInputChange}
             className={`pr-8 ${inputClasses}`}

@@ -29,6 +29,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useWishlist } from '@/hooks/useWishlist';
+import { useTranslations } from '@/lib/i18n';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,6 +39,7 @@ export function Navbar() {
   const { wishlistItems } = useWishlist();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslations();
 
   const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -85,21 +87,21 @@ export function Navbar() {
             to="/artisans" 
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            Artisans
+            {t('artisans', 'Artisans')}
           </Link>
           
           <Link 
             to="/about" 
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            À propos
+            {t('about', 'À propos')}
           </Link>
           
           <Link 
             to="/contact" 
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            Contact
+            {t('contact', 'Contact')}
           </Link>
         </div>
 
@@ -108,7 +110,7 @@ export function Navbar() {
           <form onSubmit={handleSearchSubmit} className="relative w-full">
             <Input
               type="search"
-              placeholder="Rechercher..."
+              placeholder={t('search', 'Rechercher...')}
               className="pr-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -167,12 +169,12 @@ export function Navbar() {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => navigate('/profile')}>
                   <Settings className="mr-2 h-4 w-4" />
-                  Profil
+                  {t('profile', 'Profil')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  Déconnexion
+                  {t('logout', 'Déconnexion')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -215,7 +217,7 @@ export function Navbar() {
               <form onSubmit={handleSearchSubmit} className="relative mb-6">
                 <Input
                   type="search"
-                  placeholder="Rechercher..."
+                  placeholder={t('search', 'Rechercher...')}
                   className="pr-10"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -239,7 +241,7 @@ export function Navbar() {
                   className="block py-2 text-sm font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Artisans
+                  {t('artisans', 'Artisans')}
                 </Link>
                 
                 <Link 
@@ -247,7 +249,7 @@ export function Navbar() {
                   className="block py-2 text-sm font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  À propos
+                  {t('about', 'À propos')}
                 </Link>
                 
                 <Link 
@@ -255,7 +257,7 @@ export function Navbar() {
                   className="block py-2 text-sm font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Contact
+                  {t('contact', 'Contact')}
                 </Link>
 
                 <div className="flex items-center space-x-4 py-2">
