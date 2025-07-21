@@ -8,8 +8,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Search, Loader2 } from 'lucide-react';
 import { Artisan } from '@/models/types';
+import { useTranslations } from '@/lib/i18n';
 
 const Artisans = () => {
+  const { t } = useTranslations();
   const [artisans, setArtisans] = useState<Artisan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,14 +76,14 @@ const Artisans = () => {
       <Navbar />
       <main className="flex-grow pt-24 pb-16 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="font-serif text-3xl md:text-4xl font-bold mb-6">Our Artisans</h1>
+          <h1 className="font-serif text-3xl md:text-4xl font-bold mb-6">{t('our_artisans')}</h1>
           
           {/* Search bar */}
           <div className="relative mb-8 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search artisans by name or location..."
+              placeholder={t('search_artisans_placeholder')}
               className="pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -94,7 +96,7 @@ const Artisans = () => {
             </div>
           ) : error ? (
             <div className="text-center py-20">
-              <h3 className="text-xl font-bold mb-2 text-red-500">An error occurred</h3>
+              <h3 className="text-xl font-bold mb-2 text-red-500">{t('error_occurred')}</h3>
               <p className="text-muted-foreground mb-4">{error}</p>
             </div>
           ) : filteredArtisans.length > 0 ? (
@@ -105,11 +107,11 @@ const Artisans = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <h3 className="text-xl font-bold mb-2">No artisans found</h3>
+              <h3 className="text-xl font-bold mb-2">{t('no_artisans_found')}</h3>
               <p className="text-muted-foreground mb-4">
                 {searchTerm 
-                  ? `No artisans match your search for "${searchTerm}".` 
-                  : "We don't have any artisans to display yet."}
+                  ? t('no_artisans_search_match').replace('{searchTerm}', searchTerm)
+                  : t('no_artisans_yet')}
               </p>
             </div>
           )}

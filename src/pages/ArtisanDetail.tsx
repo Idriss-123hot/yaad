@@ -8,15 +8,21 @@ import { ProductCard } from '@/components/ui/ProductCard';
 import { supabase } from '@/integrations/supabase/client';
 import { Artisan, ProductWithArtisan } from '@/models/types';
 import { Loader2, MapPin, Globe, Calendar } from 'lucide-react';
+import { useTranslations } from '@/lib/i18n';
+import { useArtisanTranslations } from '@/hooks/useDynamicTranslations';
 
 const ArtisanDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslations();
   
   const [artisan, setArtisan] = useState<Artisan | null>(null);
   const [products, setProducts] = useState<ProductWithArtisan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use dynamic translations for artisan content
+  const { translations: artisanTranslations, loading: translationsLoading } = useArtisanTranslations(id || '');
 
   useEffect(() => {
     const fetchArtisanDetails = async () => {
@@ -128,7 +134,7 @@ const ArtisanDetail = () => {
         <main className="flex-grow pt-24 flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-terracotta-600" />
-            <p className="text-muted-foreground">Chargement des détails de l'artisan...</p>
+            <p className="text-muted-foreground">{t('loading_artisan_details')}</p>
           </div>
         </main>
         <Footer />
@@ -143,12 +149,12 @@ const ArtisanDetail = () => {
         <Navbar />
         <main className="flex-grow pt-24 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="font-serif text-3xl font-bold mb-4">Artisan non trouvé</h1>
+            <h1 className="font-serif text-3xl font-bold mb-4">{t('artisan_not_found')}</h1>
             <p className="text-muted-foreground mb-6">
-              Désolé, l'artisan que vous recherchez n'existe pas.
+              {t('artisan_not_found_description')}
             </p>
             <Button asChild>
-              <Link to="/artisans">Voir tous les artisans</Link>
+              <Link to="/artisans">{t('view_all_artisans')}</Link>
             </Button>
           </div>
         </main>
@@ -187,7 +193,9 @@ const ArtisanDetail = () => {
 
               {/* Artisan Info */}
               <div className="w-full md:w-2/3">
-                <h1 className="font-serif text-3xl md:text-4xl font-bold mb-2">{artisan.name}</h1>
+                <h1 className="font-serif text-3xl md:text-4xl font-bold mb-2">
+                  {artisanTranslations.name || artisan.name}
+                </h1>
                 
                 <div className="flex flex-wrap items-center gap-2 text-muted-foreground mb-4">
                   {artisan.location && (
@@ -200,19 +208,19 @@ const ArtisanDetail = () => {
                   {artisan.joinedDate && (
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-1" />
-                      <span>Membre depuis {new Date(artisan.joinedDate).getFullYear()}</span>
+                      <span>{t('member_since')} {new Date(artisan.joinedDate).getFullYear()}</span>
                     </div>
                   )}
                   
                   {/* Badge for featured artisans */}
                   {artisan.featured && (
                     <span className="bg-terracotta-100 text-terracotta-800 px-2 py-1 rounded-full text-xs font-medium">
-                      Artisan en Vedette
+                      {t('featured_artisan')}
                     </span>
                   )}
                 </div>
                 
-                <p className="text-lg mb-6">{artisan.bio}</p>
+                <p className="text-lg mb-6">{artisanTranslations.bio || artisan.bio}</p>
                 
                 {artisan.website && (
                   <a 
@@ -222,7 +230,7 @@ const ArtisanDetail = () => {
                     className="inline-flex items-center text-terracotta-600 hover:underline mb-6"
                   >
                     <Globe className="h-4 w-4 mr-2" />
-                    Visiter le site web
+                    {t('visit_website')}
                   </a>
                 )}
               </div>
@@ -234,7 +242,7 @@ const ArtisanDetail = () => {
         {artisan.galleryImages && artisan.galleryImages.length > 0 && (
           <section className="py-12 px-6 md:px-12">
             <div className="max-w-7xl mx-auto">
-              <h2 className="font-serif text-2xl font-bold mb-6">Galerie de l'artisan</h2>
+              <h2 className="font-serif text-2xl font-bold mb-6">{t('artisan_gallery')}</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {artisan.galleryImages.map((image, index) => (
                   <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
@@ -254,17 +262,17 @@ const ArtisanDetail = () => {
         <section className="py-12 px-6 md:px-12 bg-cream-50">
           <div className="max-w-7xl mx-auto">
             <h2 className="font-serif text-2xl font-bold mb-6">
-              Produits par {artisan.name} 
+              {t('products_by')} {artisanTranslations.name || artisan.name} 
               <span className="text-muted-foreground font-normal text-lg ml-2">
-                ({products.length} produits)
+                ({products.length} {t('products')})
               </span>
             </h2>
             
             {products.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">Aucun produit disponible pour le moment.</p>
+                <p className="text-muted-foreground mb-4">{t('no_products_available')}</p>
                 <Button asChild>
-                  <Link to="/artisans">Voir d'autres artisans</Link>
+                  <Link to="/artisans">{t('view_other_artisans')}</Link>
                 </Button>
               </div>
             ) : (
@@ -281,9 +289,9 @@ const ArtisanDetail = () => {
         {artisan.description && (
           <section className="py-12 px-6 md:px-12">
             <div className="max-w-7xl mx-auto">
-              <h2 className="font-serif text-2xl font-bold mb-6">À propos de {artisan.name}</h2>
+              <h2 className="font-serif text-2xl font-bold mb-6">{t('about')} {artisanTranslations.name || artisan.name}</h2>
               <div className="prose max-w-none">
-                <p>{artisan.description}</p>
+                <p>{artisanTranslations.description || artisan.description}</p>
               </div>
             </div>
           </section>
@@ -297,7 +305,7 @@ const ArtisanDetail = () => {
               onClick={() => navigate(-1)}
               className="mb-4"
             >
-              Retour
+              {t('back')}
             </Button>
           </div>
         </section>

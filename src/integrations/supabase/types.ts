@@ -41,6 +41,47 @@ export type Database = {
         }
         Relationships: []
       }
+      artisan_translations: {
+        Row: {
+          artisan_id: string
+          bio: string | null
+          created_at: string
+          description: string | null
+          id: string
+          locale: string
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          artisan_id: string
+          bio?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          locale: string
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          artisan_id?: string
+          bio?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          locale?: string
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artisan_translations_artisan_id_fkey"
+            columns: ["artisan_id"]
+            isOneToOne: false
+            referencedRelation: "artisans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artisans: {
         Row: {
           bio: string | null
@@ -435,6 +476,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_edits_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          locale: string
+          material: string | null
+          origin: string | null
+          product_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          locale: string
+          material?: string | null
+          origin?: string | null
+          product_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          locale?: string
+          material?: string | null
+          origin?: string | null
+          product_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_translations_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -853,6 +938,14 @@ export type Database = {
       get_artisan_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_artisan_translation: {
+        Args: { artisan_uuid: string; locale_param?: string }
+        Returns: Json
+      }
+      get_product_translation: {
+        Args: { product_uuid: string; locale_param?: string }
+        Returns: Json
       }
       get_translations: {
         Args: { locale: string }

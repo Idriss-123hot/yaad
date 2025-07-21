@@ -17,6 +17,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useCart } from '@/hooks/useCart';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useTranslations } from '@/lib/i18n';
+import { useProductTranslations } from '@/hooks/useDynamicTranslations';
 const ProductDetail = () => {
   const {
     id
@@ -42,11 +44,15 @@ const ProductDetail = () => {
   const {
     formatPrice
   } = useCurrency();
+  const { t } = useTranslations();
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState('');
   const [product, setProduct] = useState<ProductWithArtisan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use dynamic translations for product content
+  const { translations: productTranslations, loading: translationsLoading } = useProductTranslations(id || '');
 
   // Check if the product is in the wishlist
   const isInWishlist = wishlistItems.some(item => item.productId === id);
@@ -228,7 +234,7 @@ const ProductDetail = () => {
         <main className="flex-grow pt-24 flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-terracotta-600 mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading product...</p>
+            <p className="text-muted-foreground">{t('loading_product')}</p>
           </div>
         </main>
         <Footer />
@@ -240,12 +246,12 @@ const ProductDetail = () => {
         <Navbar />
         <main className="flex-grow pt-24 flex items-center justify-center">
           <div className="text-center max-w-md mx-auto px-4">
-            <h1 className="text-2xl font-bold mb-2">Product Not Found</h1>
+            <h1 className="text-2xl font-bold mb-2">{t('product_not_found')}</h1>
             <p className="text-muted-foreground mb-6">
-              {error || "We couldn't find the product you're looking for."}
+              {error || t('product_not_found_description')}
             </p>
             <Button asChild>
-              <Link to="/products">Browse All Products</Link>
+              <Link to="/products">{t('browse_all_products')}</Link>
             </Button>
           </div>
         </main>
@@ -261,11 +267,11 @@ const ProductDetail = () => {
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center text-sm text-muted-foreground overflow-x-auto whitespace-nowrap">
               <Link to="/" className="hover:text-terracotta-600 transition-colors">
-                Home
+                {t('home')}
               </Link>
               <ChevronRight className="h-4 w-4 mx-2" />
               <Link to="/products" className="hover:text-terracotta-600 transition-colors">
-                Products
+                {t('products')}
               </Link>
               {product.category && <>
                   <ChevronRight className="h-4 w-4 mx-2" />
@@ -274,7 +280,7 @@ const ProductDetail = () => {
                   </Link>
                 </>}
               <ChevronRight className="h-4 w-4 mx-2" />
-              <span className="text-foreground truncate max-w-[200px]">{product.title}</span>
+              <span className="text-foreground truncate max-w-[200px]">{productTranslations.title || product.title}</span>
             </div>
           </div>
         </section>
@@ -289,13 +295,13 @@ const ProductDetail = () => {
               {/* Product Info */}
               <div>
                 {/* Title & Rating */}
-                <h1 className="font-serif text-3xl font-bold mb-2">{product.title}</h1>
+                <h1 className="font-serif text-3xl font-bold mb-2">{productTranslations.title || product.title}</h1>
                 <div className="flex items-center mb-4">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} />)}
                   </div>
                   <span className="ml-2 text-sm text-muted-foreground">
-                    {product.rating.toFixed(1)} ({product.reviewCount} reviews)
+                    {product.rating.toFixed(1)} ({product.reviewCount} {t('reviews')})
                   </span>
                 </div>
 
