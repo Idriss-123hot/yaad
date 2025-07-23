@@ -14,6 +14,8 @@ import { X, Upload, Image, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadFile } from '@/utils/storageUtils';
+import { TranslationForm } from '@/components/translations/TranslationForm';
+import { useProductTranslations } from '@/hooks/useDynamicTranslations';
 
 // Form validation schema
 const productSchema = z.object({
@@ -56,7 +58,16 @@ export function ProductForm({
   const [artisans, setArtisans] = useState<{ id: string; name: string }[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [translations, setTranslations] = useState<Record<string, Record<string, string>>>({
+    'fr': {},
+    'en': {},
+    'ar': {},
+    'ar-MA': {}
+  });
   const MAX_IMAGES = 4; // Maximum number of images allowed per product
+  
+  // Use translation hook for existing product
+  const { translations: existingTranslations, saveTranslation } = useProductTranslations(productId || '');
 
   // Initialize form with default values
   const form = useForm<ProductFormValues>({
@@ -205,6 +216,7 @@ export function ProductForm({
           // Set images
           setImages(data.images || []);
         }
+      
         
         setLoading(false);
       };
@@ -212,6 +224,18 @@ export function ProductForm({
       fetchProduct();
     }
   }, [productId, form, toast]);
+
+  // Load existing translations
+  useEffect(() => {
+    if (productId && existingTranslations && Object.keys(existingTranslations).length > 0) {
+      setTranslations(prev => ({
+        'fr': { ...prev['fr'], ...existingTranslations },
+        'en': { ...prev['en'], ...existingTranslations },
+        'ar': { ...prev['ar'], ...existingTranslations },
+        'ar-MA': { ...prev['ar-MA'], ...existingTranslations }
+      }));
+    }
+  }, [productId, existingTranslations]);
 
   // Get current artisan ID if not admin
   const getCurrentArtisanId = async (): Promise<string | null> => {
@@ -322,6 +346,34 @@ export function ProductForm({
     }
   };
 
+  // Handle translation changes
+  const handleTranslationChange = (locale: string, field: string, value: string) => {
+    setTranslations(prev => ({
+      ...prev,
+      [locale]: {
+        ...prev[locale],
+        [field]: value
+      }
+    }));
+  };
+
+  // Save translations for each language
+  const saveTranslations = async (productId: string) => {
+    const savePromises: Promise<void>[] = [];
+    
+    Object.entries(translations).forEach(([locale, fields]) => {
+      Object.entries(fields).forEach(([field, value]) => {
+        if (value.trim() && (field === 'title' || field === 'description' || field === 'material' || field === 'origin')) {
+          savePromises.push(saveTranslation(field as 'title' | 'description' | 'material' | 'origin', value, locale));
+        }
+      });
+    });
+
+    if (savePromises.length > 0) {
+      await Promise.all(savePromises);
+    }
+  };
+
   // Form submission handler
   const onSubmit = async (data: ProductFormValues) => {
     setLoading(true);
@@ -371,6 +423,12 @@ export function ProductForm({
       
       if (result.error) {
         throw new Error(result.error.message);
+      }
+
+      // Save translations
+      const finalProductId = productId || result.data?.id;
+      if (finalProductId) {
+        await saveTranslations(finalProductId);
       }
       
       toast({
@@ -669,6 +727,20 @@ export function ProductForm({
                 )}
               />
             )}
+
+            {/* Product Translations */}
+            <TranslationForm
+              title="Traductions du produit"
+              description="Gérez les traductions du produit dans toutes les langues supportées"
+              fields={[
+                { name: 'title', label: 'Titre', type: 'input', required: true },
+                { name: 'description', label: 'Description', type: 'textarea', rows: 4 },
+                { name: 'material', label: 'Matériau', type: 'input' },
+                { name: 'origin', label: 'Origine', type: 'input' }
+              ]}
+              values={translations}
+              onChange={handleTranslationChange}
+            />
 
             <CardFooter className="px-0 pt-6">
               <Button 

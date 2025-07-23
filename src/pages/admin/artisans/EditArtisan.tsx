@@ -14,6 +14,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import { Artisan } from '@/models/types';
+import { TranslationForm } from '@/components/translations/TranslationForm';
+import { useArtisanTranslations } from '@/hooks/useDynamicTranslations';
 
 const EditArtisan = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +23,15 @@ const EditArtisan = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [artisan, setArtisan] = useState<Partial<Artisan>>({});
+  const [translations, setTranslations] = useState<Record<string, Record<string, string>>>({
+    'fr': {},
+    'en': {},
+    'ar': {},
+    'ar-MA': {}
+  });
+  
+  // Use translation hook
+  const { translations: existingTranslations, saveTranslation } = useArtisanTranslations(id || '');
   
   // Fetch artisan details on component mount
   useEffect(() => {
@@ -69,6 +80,18 @@ const EditArtisan = () => {
     
     fetchArtisan();
   }, [id]);
+
+  // Load existing translations
+  useEffect(() => {
+    if (id && existingTranslations && Object.keys(existingTranslations).length > 0) {
+      setTranslations(prev => ({
+        'fr': { ...prev['fr'], ...existingTranslations },
+        'en': { ...prev['en'], ...existingTranslations },
+        'ar': { ...prev['ar'], ...existingTranslations },
+        'ar-MA': { ...prev['ar-MA'], ...existingTranslations }
+      }));
+    }
+  }, [id, existingTranslations]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -77,6 +100,34 @@ const EditArtisan = () => {
   
   const handleCheckboxChange = (checked: boolean) => {
     setArtisan((prev) => ({ ...prev, featured: checked }));
+  };
+
+  // Handle translation changes
+  const handleTranslationChange = (locale: string, field: string, value: string) => {
+    setTranslations(prev => ({
+      ...prev,
+      [locale]: {
+        ...prev[locale],
+        [field]: value
+      }
+    }));
+  };
+
+  // Save translations for each language
+  const saveTranslations = async () => {
+    const savePromises: Promise<void>[] = [];
+    
+    Object.entries(translations).forEach(([locale, fields]) => {
+      Object.entries(fields).forEach(([field, value]) => {
+        if (value.trim() && (field === 'name' || field === 'bio' || field === 'description')) {
+          savePromises.push(saveTranslation(field as 'name' | 'bio' | 'description', value, locale));
+        }
+      });
+    });
+
+    if (savePromises.length > 0) {
+      await Promise.all(savePromises);
+    }
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -106,6 +157,9 @@ const EditArtisan = () => {
       if (error) {
         throw error;
       }
+
+      // Save translations
+      await saveTranslations();
       
       toast({
         title: 'Success',
@@ -315,6 +369,19 @@ const EditArtisan = () => {
                 </Button>
               </CardFooter>
             </Card>
+
+            {/* Artisan Translations */}
+            <TranslationForm
+              title="Traductions de l'artisan"
+              description="Gérez les traductions des informations de l'artisan dans toutes les langues supportées"
+              fields={[
+                { name: 'name', label: 'Nom', type: 'input', required: true },
+                { name: 'bio', label: 'Bio', type: 'textarea', rows: 3 },
+                { name: 'description', label: 'Description', type: 'textarea', rows: 5 }
+              ]}
+              values={translations}
+              onChange={handleTranslationChange}
+            />
           </div>
         </form>
       </div>
