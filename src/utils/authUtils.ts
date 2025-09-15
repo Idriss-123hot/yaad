@@ -127,13 +127,13 @@ export const getUserProfile = async (userId: string) => {
 };
 
 /**
- * Gets all authors (admins and artisans)
+ * Gets all authors (admins and artisans) - only non-sensitive fields
  */
 export const getAuthors = async () => {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, first_name, last_name, role')
       .in('role', ['admin', 'artisan']);
     
     if (error) {
