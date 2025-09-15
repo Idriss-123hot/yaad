@@ -7,10 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
@@ -944,7 +944,7 @@ export type Database = {
         Returns: Json
       }
       get_product_translation: {
-        Args: { product_uuid: string; locale_param?: string }
+        Args: { locale_param?: string; product_uuid: string }
         Returns: Json
       }
       get_translations: {
