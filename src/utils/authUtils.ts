@@ -7,15 +7,19 @@ export const isSessionExpired = (lastActivity: string | null): boolean => {
   
   const lastActivityTime = new Date(lastActivity).getTime();
   const currentTime = new Date().getTime();
-  // 30 minutes in milliseconds
+  // 30 minutes in milliseconds - can be configured for security
   const sessionTimeout = 30 * 60 * 1000;
   
   return currentTime - lastActivityTime > sessionTimeout;
 };
 
-// Function to update the last activity timestamp
+// Function to update the last activity timestamp with validation
 export const updateLastActivity = (): void => {
-  localStorage.setItem('lastActivity', new Date().toISOString());
+  try {
+    localStorage.setItem('lastActivity', new Date().toISOString());
+  } catch (error) {
+    console.error('Failed to update last activity:', error);
+  }
 };
 
 // Optimized function to check a user's role without risking RLS recursion
@@ -27,6 +31,13 @@ export const checkUserRole = async (roleToCheck: string): Promise<boolean> => {
     
     if (!session) {
       console.log('No session found when checking role');
+      return false;
+    }
+    
+    // Validate session is not expired
+    if (session.expires_at && new Date(session.expires_at * 1000) < new Date()) {
+      console.log('Session has expired');
+      await supabase.auth.signOut();
       return false;
     }
     
