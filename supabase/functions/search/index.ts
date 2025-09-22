@@ -30,8 +30,8 @@ Deno.serve(async (req) => {
     const searchQuery = url.searchParams.get('q') || ''
     const type = url.searchParams.get('type') || 'all'
     
-    // Vérification de la validité du terme de recherche
-    if (!searchQuery || searchQuery.length < 2) {
+    // Vérification de la validité du terme de recherche avec limites de sécurité
+    if (!searchQuery || searchQuery.length < 2 || searchQuery.length > 100) {
       return new Response(
         JSON.stringify({ products: [], artisans: [] }),
         { 
@@ -40,6 +40,9 @@ Deno.serve(async (req) => {
         }
       )
     }
+    
+    // Sanitize search query to prevent injection
+    const sanitizedQuery = searchQuery.replace(/[%_\\]/g, '\\$&').trim();
 
     const results: { products?: any[], artisans?: any[] } = {}
     
@@ -60,13 +63,13 @@ Deno.serve(async (req) => {
       results.products = products
     }
     
-    // Recherche d'artisans
+    // Recherche d'artisans avec requête sécurisée
     if (type === 'all' || type === 'artisans') {
       const { data: artisans, error: artisansError } = await supabase
         .from('artisans')
         .select('*')
-        .or(`name.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`)  // Recherche par correspondance partielle
-        .limit(type === 'all' ? 4 : 20)  // Limite de résultats selon le type de recherche
+        .or(`name.ilike.%${sanitizedQuery}%,bio.ilike.%${sanitizedQuery}%,location.ilike.%${sanitizedQuery}%`)
+        .limit(type === 'all' ? 4 : 20)
       
       if (artisansError) throw artisansError
       results.artisans = artisans
