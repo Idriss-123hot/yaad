@@ -68,24 +68,24 @@ export function ProductCard({ product, className }: ProductCardProps) {
         )}
       </Link>
       
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col p-3">
         <Link to={`/products/${id}`}>
-          <h3 className="font-medium text-base line-clamp-2 mb-1 group-hover:text-terracotta-600">
+          <h3 className="font-medium text-base line-clamp-2 mb-3 group-hover:text-terracotta-600 leading-relaxed">
             {title}
           </h3>
         </Link>
         
         {artisanId ? (
-          <Link to={`/artisans/${artisanId}`} className="text-sm text-muted-foreground mb-2 hover:text-terracotta-600">
+          <Link to={`/artisans/${artisanId}`} className="text-sm text-muted-foreground mb-4 hover:text-terracotta-600 block">
             Par {artisanName}
           </Link>
         ) : (
-          <p className="text-sm text-muted-foreground mb-2">
+          <p className="text-sm text-muted-foreground mb-4">
             Par {artisanName}
           </p>
         )}
         
-        <div className="flex items-center mt-auto">
+        <div className="flex items-center mt-auto mb-3">
           <div className="flex items-center">
             <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
             <span className="text-sm font-medium ml-1">{rating?.toFixed(1) || "4.5"}</span>
@@ -94,14 +94,14 @@ export function ProductCard({ product, className }: ProductCardProps) {
             </span>
           </div>
         </div>
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center justify-between">
           {discountPrice ? (
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-medium">{formatPrice(discountPrice)}</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-lg font-medium text-primary">{formatPrice(discountPrice)}</span>
               <span className="text-sm text-muted-foreground line-through">{formatPrice(price)}</span>
             </div>
           ) : (
-            <span className="text-lg font-medium">{formatPrice(price)}</span>
+            <span className="text-lg font-medium text-primary">{formatPrice(price)}</span>
           )}
         </div>
       </div>
