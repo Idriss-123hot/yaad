@@ -44,15 +44,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       
       try {
         if (isAuthenticated && user) {
-          // Get cart items from Supabase
+          // Clean expired cart items first
+          await supabase.rpc('clean_expired_cart_items');
+          
+          // Get cart items from Supabase (only non-expired items)
           const { data: cartData, error: cartError } = await supabase
             .from('cart_items')
             .select('*')
-            .eq('user_id', user.id);
+            .eq('user_id', user.id)
+            .gte('updated_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
           
           if (cartError) {
             console.error('Error loading cart from Supabase:', cartError);
-            // Fallback to localStorage
             const savedCart = localStorage.getItem('cart');
             if (savedCart) {
               const parsedCart = JSON.parse(savedCart);
@@ -62,10 +65,75 @@ export function CartProvider({ children }: { children: ReactNode }) {
             return;
           }
           
+          // Get local cart for merging
+          const localCart = localStorage.getItem('cart');
+          let localItems: CartItem[] = [];
+          
+          if (localCart) {
+            try {
+              localItems = JSON.parse(localCart);
+            } catch (e) {
+              console.error('Error parsing local cart:', e);
+            }
+          }
+          
+          let hasExpiredItems = false;
+          
           if (cartData) {
+            // Check if we had local items that need to be merged
+            if (localItems.length > 0) {
+              // Merge local cart with database cart
+              const mergedMap = new Map<string, CartItem>();
+              
+              // Add database items first
+              cartData.forEach((item: any) => {
+                const key = `${item.product_id}_${JSON.stringify(item.variations || {})}`;
+                mergedMap.set(key, {
+                  productId: item.product_id,
+                  quantity: item.quantity,
+                  variations: typeof item.variations === 'object' ? item.variations : {},
+                });
+              });
+              
+              // Merge with local items (sum quantities if product exists)
+              localItems.forEach((localItem) => {
+                const key = `${localItem.productId}_${JSON.stringify(localItem.variations || {})}`;
+                const existing = mergedMap.get(key);
+                if (existing) {
+                  existing.quantity += localItem.quantity;
+                } else {
+                  mergedMap.set(key, localItem);
+                }
+              });
+              
+              // Save merged cart to database
+              const itemsToUpsert = Array.from(mergedMap.values()).map(item => ({
+                user_id: user.id,
+                product_id: item.productId,
+                quantity: item.quantity,
+                variations: item.variations || {},
+              }));
+              
+              if (itemsToUpsert.length > 0) {
+                await supabase
+                  .from('cart_items')
+                  .upsert(itemsToUpsert, {
+                    onConflict: 'user_id,product_id',
+                  });
+              }
+              
+              // Clear local cart after merge
+              localStorage.removeItem('cart');
+              
+              toast({
+                title: 'Panier synchronisé',
+                description: 'Votre panier a été synchronisé avec succès',
+              });
+            }
+            
             // Load product details for each cart item
             const itemsWithProducts: CartItem[] = await Promise.all(
-              cartData.map(async (item: any) => {
+              Array.from(cartData).map(async (item: any) => {
                 const { data: productData, error: productError } = await supabase
                   .from('products')
                   .select(`
@@ -96,6 +164,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
             );
             
             setCartItems(itemsWithProducts);
+            
+            // Show message if cart was expired
+            if (hasExpiredItems) {
+              toast({
+                title: 'Panier expiré',
+                description: 'Certains articles ont été retirés car votre panier a expiré après 24h d\'inactivité',
+                variant: 'destructive',
+              });
+            }
+          } else if (localItems.length > 0) {
+            // No database cart but have local cart - save it
+            const itemsToInsert = localItems.map(item => ({
+              user_id: user.id,
+              product_id: item.productId,
+              quantity: item.quantity,
+              variations: item.variations || {},
+            }));
+            
+            await supabase
+              .from('cart_items')
+              .insert(itemsToInsert);
+            
+            localStorage.removeItem('cart');
+            setCartItems(localItems);
           }
         } else {
           // If not logged in, load cart from localStorage
@@ -117,9 +209,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
     
     loadCart();
-  }, [user, isAuthenticated]);
+  }, [user, isAuthenticated, toast]);
   
-  // Save cart whenever it changes
+  // Save cart whenever it changes (optimized with upsert)
   useEffect(() => {
     const saveCart = async () => {
       if (loading) return;
@@ -128,40 +220,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (isAuthenticated && user?.id) {
           console.log('Saving cart to Supabase for user:', user.id);
           
-          // First, delete existing cart items
-          const { error: deleteError } = await supabase
-            .from('cart_items')
-            .delete()
-            .eq('user_id', user.id);
-
-          if (deleteError) {
-            console.error('Error deleting old cart items:', deleteError);
-            localStorage.setItem('cart', JSON.stringify(cartItems));
-            return;
-          }
-
-          // Then insert new cart items if any exist
           if (cartItems.length > 0) {
-            const itemsToInsert = cartItems.map(item => ({
+            // Use upsert for better performance
+            const itemsToUpsert = cartItems.map(item => ({
               user_id: user.id,
               product_id: item.productId,
               quantity: item.quantity,
               variations: item.variations || {},
             }));
 
-            console.log('Inserting cart items:', itemsToInsert);
+            console.log('Upserting cart items:', itemsToUpsert);
 
-            const { error: insertError } = await supabase
+            const { error: upsertError } = await supabase
               .from('cart_items')
-              .insert(itemsToInsert);
+              .upsert(itemsToUpsert, {
+                onConflict: 'user_id,product_id',
+              });
 
-            if (insertError) {
-              console.error('Error inserting cart items:', insertError);
+            if (upsertError) {
+              console.error('Error upserting cart items:', upsertError);
               localStorage.setItem('cart', JSON.stringify(cartItems));
               return;
             }
 
             console.log('Cart saved successfully to Supabase');
+          } else {
+            // If cart is empty, delete all items for this user
+            await supabase
+              .from('cart_items')
+              .delete()
+              .eq('user_id', user.id);
           }
         } else {
           // If not logged in, save cart to localStorage
@@ -264,8 +352,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
   
   // Clear cart
-  const clearCart = () => {
+  const clearCart = async () => {
     setCartItems([]);
+    
+    // Also delete from database if user is authenticated
+    if (isAuthenticated && user?.id) {
+      await supabase
+        .from('cart_items')
+        .delete()
+        .eq('user_id', user.id);
+    }
+    
     toast({
       title: 'Panier vidé',
       description: 'Votre panier a été vidé',

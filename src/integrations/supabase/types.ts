@@ -935,6 +935,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clean_expired_cart_items: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_artisan_id: {
         Args: Record<PropertyKey, never>
         Returns: string
