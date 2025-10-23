@@ -21,7 +21,7 @@ const About = () => {
       name: 'Idriss Laroussi',
       role: 'Fondateur & CEO',
       bio: 'Passionné par l\'artisanat depuis son enfance, Idriss a créé Yaad pour connecter les artisans du monde entier avec des consommateurs responsables.',
-      image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//IMG-20220204-WA0026.jpg'
+      image: 'https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/profiles/Equipe/IMG-20220204-WA0026.jpg'
     },
     {
       id: 2,
@@ -123,7 +123,7 @@ const About = () => {
               <div className="order-1 lg:order-2">
                 <div className="relative rounded-lg overflow-hidden aspect-[4/3]">
                   <img 
-                    src="https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products//professional-artisan-job-workshop.jpg" 
+                    src="https://hijgrzabkfynlomhbzij.supabase.co/storage/v1/object/public/products/Blog%20et%20home%20page/professional-artisan-job-workshop.jpg" 
                     alt="Artisan travaillant dans son atelier" 
                     className="w-full h-full object-cover"
                   />
